@@ -207,10 +207,11 @@ class LLMProvider:
     
     def _estimate_cost_anthropic(self, model: str, tokens_in: int, tokens_out: int) -> float:
         """Rough cost estimation for Anthropic"""
-        # Prices as of Oct 2024 (update as needed)
+        # Prices as of Oct 2025 (check https://www.anthropic.com/pricing for updates)
         prices = {
             "claude-3-5-sonnet-20241022": (3.0, 15.0),  # per 1M tokens (input, output)
             "claude-3-5-haiku-20241022": (1.0, 5.0),
+            "claude-3-opus-20240229": (15.0, 75.0),
         }
         
         if model in prices:
@@ -220,10 +221,12 @@ class LLMProvider:
     
     def _estimate_cost_openai(self, model: str, tokens_in: int, tokens_out: int) -> float:
         """Rough cost estimation for OpenAI"""
-        # Prices as of Oct 2024 (update as needed)
+        # Prices as of Oct 2025 (check https://openai.com/pricing for updates)
         prices = {
             "gpt-4": (30.0, 60.0),
             "gpt-4-turbo": (10.0, 30.0),
+            "gpt-4o": (2.5, 10.0),
+            "gpt-4o-mini": (0.15, 0.6),
             "gpt-3.5-turbo": (0.5, 1.5),
         }
         
