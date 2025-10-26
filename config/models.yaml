@@ -1,0 +1,84 @@
+# Model Configuration Presets
+# Define reusable configurations for different models and use cases
+
+gpt-oss-20b-reasoning:
+  provider: ollama
+  model: gpt-oss:20b
+  temperature: 0.7
+  max_tokens: 2048
+  thinking_budget: 2000
+  num_ctx: 4096
+  description: GPT-OSS 20B with extended reasoning budget for complex problems
+  tags:
+    - reasoning
+    - large
+
+gpt-oss-20b-creative:
+  provider: ollama
+  model: gpt-oss:20b
+  temperature: 0.9
+  max_tokens: 2048
+  top_p: 0.95
+  num_ctx: 4096
+  description: GPT-OSS 20B optimized for creative and diverse outputs
+  tags:
+    - creative
+    - large
+
+gpt-oss-20b-precise:
+  provider: ollama
+  model: gpt-oss:20b
+  temperature: 0.3
+  max_tokens: 2048
+  top_k: 40
+  num_ctx: 4096
+  seed: 42
+  description: GPT-OSS 20B for precise, deterministic, factual outputs
+  tags:
+    - precise
+    - deterministic
+
+llama3.2-fast:
+  provider: ollama
+  model: llama3.2:latest
+  temperature: 0.7
+  max_tokens: 1024
+  description: Llama 3.2 3B for fast iteration and testing
+  tags:
+    - fast
+    - small
+
+claude-sonnet:
+  provider: anthropic
+  model: claude-3-5-sonnet-20241022
+  temperature: 0.7
+  max_tokens: 4096
+  description: Claude 3.5 Sonnet for high-quality, nuanced outputs
+  tags:
+    - api
+    - premium
+    - quality
+
+claude-haiku:
+  provider: anthropic
+  model: claude-3-5-haiku-20241022
+  temperature: 0.7
+  max_tokens: 2048
+  description: Claude 3.5 Haiku for fast, cost-effective API usage
+  tags:
+    - api
+    - fast
+    - cheap
+
+# Add your own configurations below!
+# Example:
+#
+# my-custom-config:
+#   provider: ollama
+#   model: my-model:latest
+#   temperature: 0.8
+#   thinking_budget: 1500
+#   system_prompt: "You are a helpful assistant specialized in..."
+#   description: My custom configuration for specific tasks
+#   tags:
+#     - custom

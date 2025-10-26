@@ -8,7 +8,7 @@ from collections import Counter
 import time
 import re
 
-from .llm_provider import llm_call, LLMResponse
+from .llm_provider import llm_call, llm_call_stream, LLMResponse
 
 
 def _extract_answer(text: str) -> str:
@@ -101,33 +101,55 @@ def single_model_strategy(
     model: str = "llama3.2:latest",
     temperature: float = 0.7,
     system_prompt: str = None,
+    verbose: bool = True,
     **kwargs
 ) -> StrategyResult:
     """
     Single model baseline.
-    
+
     Args:
         task_input: The task/question
         provider: LLM provider
         model: Model identifier
         temperature: Sampling temperature
         system_prompt: Optional system prompt
+        verbose: If True, stream output in real-time
     """
     start = time.time()
-    
+
     # Construct prompt
     if system_prompt:
         prompt = f"{system_prompt}\n\n{task_input}"
     else:
         prompt = task_input
-    
-    response = llm_call(prompt, provider=provider, model=model, temperature=temperature, **kwargs)
-    
-    return StrategyResult.from_llm_response(
-        response,
-        strategy_name="single",
-        metadata={"provider": provider, "model": model}
-    )
+
+    if verbose:
+        print(f"\n{'='*60}")
+        print(f"🤔 Thinking... (model: {model})")
+        print(f"{'='*60}\n")
+
+        full_text = ""
+        response = None
+        for chunk in llm_call_stream(prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+            if isinstance(chunk, str):
+                print(chunk, end="", flush=True)
+                full_text += chunk
+            else:
+                response = chunk
+        print("\n")
+
+        return StrategyResult.from_llm_response(
+            response,
+            strategy_name="single",
+            metadata={"provider": provider, "model": model}
+        )
+    else:
+        response = llm_call(prompt, provider=provider, model=model, temperature=temperature, **kwargs)
+        return StrategyResult.from_llm_response(
+            response,
+            strategy_name="single",
+            metadata={"provider": provider, "model": model}
+        )
 
 
 def debate_strategy(
@@ -139,14 +161,15 @@ def debate_strategy(
     judge_provider: str = None,
     judge_model: str = None,
     temperature: float = 0.7,
+    verbose: bool = True,
     **kwargs
 ) -> StrategyResult:
     """
     Multi-agent debate strategy.
-    
+
     n_debaters agents each provide an answer, then a judge selects the best.
     Optionally run multiple rounds of debate.
-    
+
     Args:
         task_input: The task/question
         n_debaters: Number of debating agents
@@ -154,18 +177,24 @@ def debate_strategy(
         provider/model: For debaters
         judge_provider/judge_model: For judge (defaults to same as debaters)
         temperature: Sampling temperature
+        verbose: If True, stream debate in real-time
     """
     start = time.time()
-    
+
     if judge_provider is None:
         judge_provider = provider
     if judge_model is None:
         judge_model = model
-    
+
     total_tokens_in = 0
     total_tokens_out = 0
     total_cost = 0.0
-    
+
+    if verbose:
+        print(f"\n{'='*60}")
+        print(f"🗣️  Starting Debate: {n_debaters} debaters, {n_rounds} round(s)")
+        print(f"{'='*60}\n")
+
     # Initial arguments
     arguments = []
     for i in range(n_debaters):
@@ -174,24 +203,45 @@ def debate_strategy(
 Question: {task_input}
 
 Your answer:"""
-        
-        response = llm_call(debater_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
-        arguments.append(response.text)
-        
+
+        if verbose:
+            print(f"\n{'─'*60}")
+            print(f"💬 Debater {i+1}:")
+            print(f"{'─'*60}\n")
+
+            full_text = ""
+            response = None
+            for chunk in llm_call_stream(debater_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+                if isinstance(chunk, str):
+                    print(chunk, end="", flush=True)
+                    full_text += chunk
+                else:
+                    response = chunk
+            print("\n")
+            arguments.append(response.text)
+        else:
+            response = llm_call(debater_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
+            arguments.append(response.text)
+
         total_tokens_in += response.tokens_in or 0
         total_tokens_out += response.tokens_out or 0
         total_cost += response.cost_usd or 0.0
     
     # Optional: Multiple rounds (each debater sees others' arguments)
     for round_num in range(1, n_rounds):
+        if verbose:
+            print(f"\n{'='*60}")
+            print(f"🔄 Round {round_num + 1}: Rebuttals")
+            print(f"{'='*60}\n")
+
         new_arguments = []
         for i in range(n_debaters):
             # Show other arguments
             other_args = "\n\n".join([
-                f"Debater {j+1}: {arg}" 
+                f"Debater {j+1}: {arg}"
                 for j, arg in enumerate(arguments) if j != i
             ])
-            
+
             rebuttal_prompt = f"""You are Debater {i+1}. You've seen other debaters' arguments. Refine or defend your position.
 
 Question: {task_input}
@@ -203,17 +253,38 @@ Your argument:
 {arguments[i]}
 
 Your refined answer:"""
-            
-            response = llm_call(rebuttal_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
-            new_arguments.append(response.text)
-            
+
+            if verbose:
+                print(f"\n{'─'*60}")
+                print(f"💬 Debater {i+1} (Rebuttal):")
+                print(f"{'─'*60}\n")
+
+                full_text = ""
+                response = None
+                for chunk in llm_call_stream(rebuttal_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+                    if isinstance(chunk, str):
+                        print(chunk, end="", flush=True)
+                        full_text += chunk
+                    else:
+                        response = chunk
+                print("\n")
+                new_arguments.append(response.text)
+            else:
+                response = llm_call(rebuttal_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
+                new_arguments.append(response.text)
+
             total_tokens_in += response.tokens_in or 0
             total_tokens_out += response.tokens_out or 0
             total_cost += response.cost_usd or 0.0
-        
+
         arguments = new_arguments
-    
+
     # Judge selects best
+    if verbose:
+        print(f"\n{'='*60}")
+        print(f"⚖️  Judge Deliberating...")
+        print(f"{'='*60}\n")
+
     judge_prompt = f"""You are a judge evaluating {n_debaters} answers to a question. Choose the best answer and explain why.
 
 Question: {task_input}
@@ -222,10 +293,21 @@ Answers:
 """
     for i, arg in enumerate(arguments):
         judge_prompt += f"\nAnswer {i+1}:\n{arg}\n"
-    
+
     judge_prompt += "\nWhich answer is best? Respond with: 'Answer X is best because...'"
-    
-    judge_response = llm_call(judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs)
+
+    if verbose:
+        full_text = ""
+        judge_response = None
+        for chunk in llm_call_stream(judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs):
+            if isinstance(chunk, str):
+                print(chunk, end="", flush=True)
+                full_text += chunk
+            else:
+                judge_response = chunk
+        print("\n")
+    else:
+        judge_response = llm_call(judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs)
     
     total_tokens_in += judge_response.tokens_in or 0
     total_tokens_out += judge_response.tokens_out or 0

@@ -2,9 +2,10 @@
 LLM Provider Layer - supports local MLX models, Ollama, and API providers
 """
 import os
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Generator
 from dataclasses import dataclass
 import time
+import sys
 
 @dataclass
 class LLMResponse:
@@ -64,7 +65,45 @@ class LLMProvider:
         
         response.latency_s = time.time() - start
         return response
-    
+
+    def call_stream(
+        self,
+        prompt: str,
+        provider: str = "ollama",
+        model: str = "llama3.2:latest",
+        temperature: float = 0.7,
+        max_tokens: int = 1024,
+        **kwargs
+    ) -> Generator[str, None, LLMResponse]:
+        """
+        Stream response from LLM provider.
+
+        Yields text chunks as they arrive, then returns final LLMResponse.
+
+        Usage:
+            full_text = ""
+            for chunk in provider.call_stream(prompt, ...):
+                if isinstance(chunk, str):
+                    print(chunk, end="", flush=True)
+                    full_text += chunk
+                else:
+                    # Last item is the LLMResponse
+                    response = chunk
+        """
+        start = time.time()
+
+        if provider == "ollama":
+            yield from self._call_ollama_stream(prompt, model, temperature, max_tokens, **kwargs)
+        elif provider == "anthropic":
+            yield from self._call_anthropic_stream(prompt, model, temperature, max_tokens, **kwargs)
+        elif provider == "openai":
+            yield from self._call_openai_stream(prompt, model, temperature, max_tokens, **kwargs)
+        else:
+            # Fallback: non-streaming providers just yield full response
+            response = self.call(prompt, provider, model, temperature, max_tokens, **kwargs)
+            yield response.text
+            yield response
+
     def _call_mlx(self, prompt: str, model: str, temperature: float, max_tokens: int, **kwargs) -> LLMResponse:
         """Call MLX local model"""
         try:
@@ -107,16 +146,34 @@ class LLMProvider:
         """Call Ollama local model"""
         try:
             import ollama
-            
+
+            # Build options dict with reasoning/thinking parameters
+            options = {
+                'temperature': temperature,
+                'num_predict': max_tokens,
+            }
+
+            # Add thinking budget and other reasoning parameters if provided
+            reasoning_params = [
+                'thinking_budget',  # Budget for reasoning tokens
+                'num_ctx',          # Context window size
+                'top_k',            # Top-K sampling
+                'top_p',            # Top-P sampling
+                'repeat_penalty',   # Repetition penalty
+                'num_thread',       # Number of threads
+                'num_gpu',          # Number of GPUs
+                'seed',             # Random seed for reproducibility
+            ]
+            for param in reasoning_params:
+                if param in kwargs:
+                    options[param] = kwargs[param]
+
             response = ollama.generate(
                 model=model,
                 prompt=prompt,
-                options={
-                    'temperature': temperature,
-                    'num_predict': max_tokens,
-                }
+                options=options
             )
-            
+
             return LLMResponse(
                 text=response['response'],
                 model=model,
@@ -124,7 +181,10 @@ class LLMProvider:
                 latency_s=0.0,  # Will be set by caller
                 tokens_in=response.get('prompt_eval_count'),
                 tokens_out=response.get('eval_count'),
-                metadata={'total_duration': response.get('total_duration')}
+                metadata={
+                    'total_duration': response.get('total_duration'),
+                    'thinking_budget': options.get('thinking_budget')
+                }
             )
             
         except ImportError:
@@ -134,7 +194,70 @@ class LLMProvider:
                 provider="ollama",
                 latency_s=0.0
             )
-    
+
+    def _call_ollama_stream(self, prompt: str, model: str, temperature: float, max_tokens: int, **kwargs) -> Generator[str, None, LLMResponse]:
+        """Stream from Ollama local model"""
+        try:
+            import ollama
+
+            # Build options dict
+            options = {
+                'temperature': temperature,
+                'num_predict': max_tokens,
+            }
+
+            # Add reasoning parameters
+            reasoning_params = [
+                'thinking_budget', 'num_ctx', 'top_k', 'top_p',
+                'repeat_penalty', 'num_thread', 'num_gpu', 'seed'
+            ]
+            for param in reasoning_params:
+                if param in kwargs:
+                    options[param] = kwargs[param]
+
+            start = time.time()
+            full_text = ""
+            total_tokens_in = 0
+            total_tokens_out = 0
+
+            # Stream the response
+            for chunk in ollama.generate(
+                model=model,
+                prompt=prompt,
+                options=options,
+                stream=True
+            ):
+                text_chunk = chunk.get('response', '')
+                full_text += text_chunk
+                yield text_chunk
+
+                # Update token counts if available
+                if 'prompt_eval_count' in chunk:
+                    total_tokens_in = chunk['prompt_eval_count']
+                if 'eval_count' in chunk:
+                    total_tokens_out = chunk['eval_count']
+
+            # Return final response
+            latency = time.time() - start
+            yield LLMResponse(
+                text=full_text,
+                model=model,
+                provider="ollama",
+                latency_s=latency,
+                tokens_in=total_tokens_in,
+                tokens_out=total_tokens_out,
+                metadata={'thinking_budget': options.get('thinking_budget')}
+            )
+
+        except ImportError:
+            yield "[Ollama not installed. Run: pip install ollama]"
+            yield LLMResponse(
+                text="",
+                model=model,
+                provider="ollama",
+                latency_s=0.0
+            )
+
     def _call_anthropic(self, prompt: str, model: str, temperature: float, max_tokens: int, **kwargs) -> LLMResponse:
         """Call Anthropic API"""
         try:
@@ -204,7 +327,101 @@ class LLMProvider:
                 provider="openai",
                 latency_s=0.0
             )
-    
+
+    def _call_anthropic_stream(self, prompt: str, model: str, temperature: float, max_tokens: int, **kwargs) -> Generator[str, None, LLMResponse]:
+        """Stream from Anthropic API"""
+        try:
+            import anthropic
+
+            client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+
+            start = time.time()
+            full_text = ""
+            tokens_in = 0
+            tokens_out = 0
+
+            # Stream the response
+            with client.messages.stream(
+                model=model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                messages=[{"role": "user", "content": prompt}]
+            ) as stream:
+                for text_chunk in stream.text_stream:
+                    full_text += text_chunk
+                    yield text_chunk
+
+                # Get final message for token counts
+                message = stream.get_final_message()
+                tokens_in = message.usage.input_tokens
+                tokens_out = message.usage.output_tokens
+
+            latency = time.time() - start
+            cost = self._estimate_cost_anthropic(model, tokens_in, tokens_out)
+
+            yield LLMResponse(
+                text=full_text,
+                model=model,
+                provider="anthropic",
+                latency_s=latency,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                cost_usd=cost
+            )
+
+        except ImportError:
+            yield "[Anthropic not installed. Run: pip install anthropic]"
+            yield LLMResponse(text="", model=model, provider="anthropic", latency_s=0.0)
+
+    def _call_openai_stream(self, prompt: str, model: str, temperature: float, max_tokens: int, **kwargs) -> Generator[str, None, LLMResponse]:
+        """Stream from OpenAI API"""
+        try:
+            from openai import OpenAI
+
+            client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+            start = time.time()
+            full_text = ""
+            tokens_in = 0
+            tokens_out = 0
+
+            # Stream the response
+            stream = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stream=True
+            )
+
+            for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    text_chunk = chunk.choices[0].delta.content
+                    full_text += text_chunk
+                    yield text_chunk
+
+            latency = time.time() - start
+
+            # Note: Token counts not available in streaming mode for OpenAI
+            # Estimate based on text length
+            tokens_out = len(full_text.split()) * 1.3  # Rough estimate
+
+            cost = self._estimate_cost_openai(model, tokens_in, tokens_out)
+
+            yield LLMResponse(
+                text=full_text,
+                model=model,
+                provider="openai",
+                latency_s=latency,
+                tokens_in=None,
+                tokens_out=int(tokens_out),
+                cost_usd=cost
+            )
+
+        except ImportError:
+            yield "[OpenAI not installed. Run: pip install openai]"
+            yield LLMResponse(text="", model=model, provider="openai", latency_s=0.0)
+
     def _estimate_cost_anthropic(self, model: str, tokens_in: int, tokens_out: int) -> float:
         """Rough cost estimation for Anthropic"""
         # Prices as of Oct 2025 (check https://www.anthropic.com/pricing for updates)
@@ -250,15 +467,42 @@ def get_provider() -> LLMProvider:
 def llm_call(prompt: str, provider: str = "ollama", model: str = "llama3.2:latest", **kwargs) -> LLMResponse:
     """
     Convenience function for calling LLMs.
-    
+
     Examples:
         # Local Ollama
         response = llm_call("What is 2+2?", provider="ollama", model="llama3.2:latest")
-        
+
         # Local MLX
         response = llm_call("What is 2+2?", provider="mlx", model="mlx-community/Llama-3.2-3B-Instruct-4bit")
-        
+
         # Anthropic API
         response = llm_call("What is 2+2?", provider="anthropic", model="claude-3-5-sonnet-20241022")
+
+        # With thinking budget
+        response = llm_call("Complex problem...", provider="ollama",
+                           model="gpt-oss:20b", thinking_budget=2000)
     """
     return get_provider().call(prompt, provider=provider, model=model, **kwargs)
+
+
+def llm_call_stream(prompt: str, provider: str = "ollama", model: str = "llama3.2:latest", **kwargs) -> Generator[str, None, LLMResponse]:
+    """
+    Convenience function for streaming LLM calls.
+
+    Yields text chunks as they arrive, with final LLMResponse at the end.
+
+    Examples:
+        # Stream and print in real-time
+        for chunk in llm_call_stream("Tell me a story", provider="ollama"):
+            if isinstance(chunk, str):
+                print(chunk, end="", flush=True)
+            else:
+                response = chunk  # Final LLMResponse
+
+        # With thinking budget
+        for chunk in llm_call_stream("Solve this...", provider="ollama",
+                                     model="gpt-oss:20b", thinking_budget=2000):
+            if isinstance(chunk, str):
+                print(chunk, end="", flush=True)
+    """
+    return get_provider().call_stream(prompt, provider=provider, model=model, **kwargs)
