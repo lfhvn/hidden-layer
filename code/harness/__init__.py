@@ -31,6 +31,13 @@ from .evals import (
     evaluate_task,
     EVAL_FUNCTIONS
 )
+from .model_config import (
+    ModelConfig,
+    ModelConfigManager,
+    get_config_manager,
+    get_model_config,
+    list_model_configs
+)
 
 __version__ = "0.1.0"
 
@@ -66,4 +73,11 @@ __all__ = [
     "win_rate_comparison",
     "evaluate_task",
     "EVAL_FUNCTIONS",
+
+    # Model Configuration
+    "ModelConfig",
+    "ModelConfigManager",
+    "get_config_manager",
+    "get_model_config",
+    "list_model_configs",
 ]
