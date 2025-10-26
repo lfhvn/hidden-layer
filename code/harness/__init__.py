@@ -5,7 +5,7 @@ A toolkit for running and comparing single-model and multi-agent strategies.
 Supports local (MLX, Ollama) and API (Anthropic, OpenAI) providers.
 """
 
-from .llm_provider import llm_call, get_provider, LLMProvider, LLMResponse
+from .llm_provider import llm_call, llm_call_stream, get_provider, LLMProvider, LLMResponse
 from .strategies import (
     run_strategy,
     single_model_strategy,
@@ -37,6 +37,7 @@ __version__ = "0.1.0"
 __all__ = [
     # LLM Provider
     "llm_call",
+    "llm_call_stream",
     "get_provider",
     "LLMProvider",
     "LLMResponse",
