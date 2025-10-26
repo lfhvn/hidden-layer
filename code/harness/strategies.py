@@ -4,9 +4,70 @@ Each strategy is a function that takes task input and returns output + metadata.
 """
 from typing import Dict, Any, List
 from dataclasses import dataclass
+from collections import Counter
 import time
+import re
 
 from .llm_provider import llm_call, LLMResponse
+
+
+def _extract_answer(text: str) -> str:
+    """
+    Try to extract the core answer from a response.
+    Handles common patterns like "The answer is X" or numbers.
+    """
+    text = text.strip()
+
+    # Try to find "answer is X" patterns
+    patterns = [
+        r'(?:answer|result|solution) is:?\s*([^\n.]+)',
+        r'(?:therefore|thus|so),?\s*(?:the answer is)?\s*([^\n.]+)',
+        r'^\s*([0-9]+(?:\.[0-9]+)?)\s*$',  # Just a number
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+
+    # If no pattern found, return first sentence or first 100 chars
+    sentences = text.split('.')
+    if sentences:
+        return sentences[0].strip()
+
+    return text[:100].strip()
+
+
+def _aggregate_samples(samples: List[str]) -> str:
+    """
+    Aggregate multiple samples using majority voting.
+
+    Extracts answers, finds most common one, and returns
+    the full response that contained that answer.
+    """
+    if not samples:
+        return ""
+
+    if len(samples) == 1:
+        return samples[0]
+
+    # Extract answers from each sample
+    answers = [_extract_answer(s) for s in samples]
+
+    # Normalize for comparison (lowercase, strip whitespace)
+    normalized = [a.lower().strip() for a in answers]
+
+    # Find most common answer
+    counter = Counter(normalized)
+    most_common_normalized, count = counter.most_common(1)[0]
+
+    # Find the original sample that had this answer
+    for i, norm in enumerate(normalized):
+        if norm == most_common_normalized:
+            return samples[i]
+
+    # Fallback: return first sample
+    return samples[0]
 
 
 @dataclass
@@ -225,10 +286,9 @@ def self_consistency_strategy(
         total_tokens_out += response.tokens_out or 0
         total_cost += response.cost_usd or 0.0
     
-    # Aggregate: simple majority vote on final answer
-    # (In practice, you'd extract structured answers first)
-    # For now, just return the first sample as representative
-    aggregated_output = samples[0]  # TODO: implement proper aggregation
+    # Aggregate: majority vote on answers
+    # Try to extract answers and find most common one
+    aggregated_output = _aggregate_samples(samples)
     
     latency = time.time() - start
     
