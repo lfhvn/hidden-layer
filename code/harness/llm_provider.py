@@ -7,6 +7,8 @@ from dataclasses import dataclass
 import time
 import sys
 
+from .defaults import DEFAULT_PROVIDER, DEFAULT_MODEL
+
 @dataclass
 class LLMResponse:
     """Standardized response format"""
@@ -33,25 +35,31 @@ class LLMProvider:
     def call(
         self,
         prompt: str,
-        provider: str = "ollama",
-        model: str = "llama3.2:latest",
+        provider: str = None,
+        model: str = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
         **kwargs
     ) -> LLMResponse:
         """
         Route to appropriate provider.
-        
+
         Args:
             prompt: The input prompt
-            provider: "mlx", "ollama", "anthropic", "openai"
-            model: Model identifier
+            provider: "mlx", "ollama", "anthropic", "openai" (defaults to DEFAULT_PROVIDER)
+            model: Model identifier (defaults to DEFAULT_MODEL)
             temperature: Sampling temperature
             max_tokens: Max tokens to generate
             **kwargs: Provider-specific args
         """
+        # Use defaults if not specified
+        if provider is None:
+            provider = DEFAULT_PROVIDER
+        if model is None:
+            model = DEFAULT_MODEL
+
         start = time.time()
-        
+
         if provider == "mlx":
             response = self._call_mlx(prompt, model, temperature, max_tokens, **kwargs)
         elif provider == "ollama":
@@ -69,8 +77,8 @@ class LLMProvider:
     def call_stream(
         self,
         prompt: str,
-        provider: str = "ollama",
-        model: str = "llama3.2:latest",
+        provider: str = None,
+        model: str = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
         **kwargs
@@ -90,6 +98,12 @@ class LLMProvider:
                     # Last item is the LLMResponse
                     response = chunk
         """
+        # Use defaults if not specified
+        if provider is None:
+            provider = DEFAULT_PROVIDER
+        if model is None:
+            model = DEFAULT_MODEL
+
         start = time.time()
 
         if provider == "ollama":
@@ -464,13 +478,18 @@ def get_provider() -> LLMProvider:
     return _provider
 
 
-def llm_call(prompt: str, provider: str = "ollama", model: str = "llama3.2:latest", **kwargs) -> LLMResponse:
+def llm_call(prompt: str, provider: str = None, model: str = None, **kwargs) -> LLMResponse:
     """
     Convenience function for calling LLMs.
 
+    Defaults to DEFAULT_PROVIDER and DEFAULT_MODEL if not specified.
+
     Examples:
+        # Use defaults (from defaults.py)
+        response = llm_call("What is 2+2?")
+
         # Local Ollama
-        response = llm_call("What is 2+2?", provider="ollama", model="llama3.2:latest")
+        response = llm_call("What is 2+2?", provider="ollama", model="gpt-oss:20b")
 
         # Local MLX
         response = llm_call("What is 2+2?", provider="mlx", model="mlx-community/Llama-3.2-3B-Instruct-4bit")
@@ -479,29 +498,29 @@ def llm_call(prompt: str, provider: str = "ollama", model: str = "llama3.2:lates
         response = llm_call("What is 2+2?", provider="anthropic", model="claude-3-5-sonnet-20241022")
 
         # With thinking budget
-        response = llm_call("Complex problem...", provider="ollama",
-                           model="gpt-oss:20b", thinking_budget=2000)
+        response = llm_call("Complex problem...", thinking_budget=2000)
     """
     return get_provider().call(prompt, provider=provider, model=model, **kwargs)
 
 
-def llm_call_stream(prompt: str, provider: str = "ollama", model: str = "llama3.2:latest", **kwargs) -> Generator[str, None, LLMResponse]:
+def llm_call_stream(prompt: str, provider: str = None, model: str = None, **kwargs) -> Generator[str, None, LLMResponse]:
     """
     Convenience function for streaming LLM calls.
+
+    Defaults to DEFAULT_PROVIDER and DEFAULT_MODEL if not specified.
 
     Yields text chunks as they arrive, with final LLMResponse at the end.
 
     Examples:
-        # Stream and print in real-time
-        for chunk in llm_call_stream("Tell me a story", provider="ollama"):
+        # Use defaults (from defaults.py)
+        for chunk in llm_call_stream("Tell me a story"):
             if isinstance(chunk, str):
                 print(chunk, end="", flush=True)
             else:
                 response = chunk  # Final LLMResponse
 
         # With thinking budget
-        for chunk in llm_call_stream("Solve this...", provider="ollama",
-                                     model="gpt-oss:20b", thinking_budget=2000):
+        for chunk in llm_call_stream("Solve this...", thinking_budget=2000):
             if isinstance(chunk, str):
                 print(chunk, end="", flush=True)
     """

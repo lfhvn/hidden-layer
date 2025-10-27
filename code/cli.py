@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from harness import run_strategy, STRATEGIES, get_model_config, list_model_configs
+from harness.defaults import DEFAULT_PROVIDER, DEFAULT_MODEL
 
 
 def list_configs_command():
@@ -144,8 +145,19 @@ Examples:
     parser.add_argument(
         "--n-debaters",
         type=int,
-        default=2,
-        help="Number of debaters (for debate strategy)"
+        help="Number of debaters (for debate strategy, default from defaults.py)"
+    )
+
+    parser.add_argument(
+        "--n-rounds",
+        type=int,
+        help="Number of debate/consensus rounds (default from defaults.py)"
+    )
+
+    parser.add_argument(
+        "--n-agents",
+        type=int,
+        help="Number of agents (for consensus strategy, default from defaults.py)"
     )
 
     parser.add_argument(
@@ -210,8 +222,8 @@ Examples:
     else:
         # Build kwargs from command line args
         # Set defaults if not provided
-        provider = args.provider or "ollama"
-        model = args.model or "llama3.2:latest"
+        provider = args.provider or DEFAULT_PROVIDER
+        model = args.model or DEFAULT_MODEL
         temperature = args.temperature if args.temperature is not None else 0.7
 
         kwargs = {
@@ -243,7 +255,15 @@ Examples:
 
     # Strategy-specific parameters
     if args.strategy == "debate":
-        kwargs["n_debaters"] = args.n_debaters
+        if args.n_debaters:
+            kwargs["n_debaters"] = args.n_debaters
+        if args.n_rounds:
+            kwargs["n_rounds"] = args.n_rounds
+    elif args.strategy == "consensus":
+        if args.n_agents:
+            kwargs["n_agents"] = args.n_agents
+        if args.n_rounds:
+            kwargs["n_rounds"] = args.n_rounds
     elif args.strategy == "self_consistency":
         kwargs["n_samples"] = args.n_samples
     elif args.strategy == "manager_worker":

@@ -9,6 +9,7 @@ import time
 import re
 
 from .llm_provider import llm_call, llm_call_stream, LLMResponse
+from .defaults import DEFAULT_PROVIDER, DEFAULT_MODEL, DEFAULT_N_DEBATERS, DEFAULT_N_ROUNDS
 
 
 def _extract_answer(text: str) -> str:
@@ -97,8 +98,8 @@ class StrategyResult:
 
 def single_model_strategy(
     task_input: str,
-    provider: str = "ollama",
-    model: str = "llama3.2:latest",
+    provider: str = None,
+    model: str = None,
     temperature: float = 0.7,
     system_prompt: str = None,
     verbose: bool = True,
@@ -154,14 +155,16 @@ def single_model_strategy(
 
 def debate_strategy(
     task_input: str,
-    n_debaters: int = 2,
-    n_rounds: int = 1,
-    provider: str = "ollama",
-    model: str = "llama3.2:latest",
+    n_debaters: int = None,
+    n_rounds: int = None,
+    provider: str = None,
+    model: str = None,
     judge_provider: str = None,
     judge_model: str = None,
     temperature: float = 0.7,
     verbose: bool = True,
+    debater_prompts: list = None,
+    judge_prompt: str = None,
     **kwargs
 ) -> StrategyResult:
     """
@@ -172,14 +175,26 @@ def debate_strategy(
 
     Args:
         task_input: The task/question
-        n_debaters: Number of debating agents
-        n_rounds: Number of debate rounds
-        provider/model: For debaters
+        n_debaters: Number of debating agents (default from defaults.py)
+        n_rounds: Number of debate rounds (default from defaults.py)
+        provider/model: For debaters (default from defaults.py)
         judge_provider/judge_model: For judge (defaults to same as debaters)
         temperature: Sampling temperature
         verbose: If True, stream debate in real-time
+        debater_prompts: Optional list of system prompts for each debater (gives them perspectives/roles)
+        judge_prompt: Optional custom prompt for the judge
     """
     start = time.time()
+
+    # Use defaults if not specified
+    if provider is None:
+        provider = DEFAULT_PROVIDER
+    if model is None:
+        model = DEFAULT_MODEL
+    if n_debaters is None:
+        n_debaters = DEFAULT_N_DEBATERS
+    if n_rounds is None:
+        n_rounds = DEFAULT_N_ROUNDS
 
     if judge_provider is None:
         judge_provider = provider
@@ -198,7 +213,16 @@ def debate_strategy(
     # Initial arguments
     arguments = []
     for i in range(n_debaters):
-        debater_prompt = f"""You are Debater {i+1} in a debate. Provide your best answer to the following question.
+        # Use custom debater prompt if provided, otherwise use default
+        if debater_prompts and i < len(debater_prompts):
+            system_msg = debater_prompts[i]
+            debater_prompt = f"""{system_msg}
+
+Question: {task_input}
+
+Your answer:"""
+        else:
+            debater_prompt = f"""You are Debater {i+1} in a debate. Provide your best answer to the following question.
 
 Question: {task_input}
 
@@ -285,21 +309,30 @@ Your refined answer:"""
         print(f"⚖️  Judge Deliberating...")
         print(f"{'='*60}\n")
 
-    judge_prompt = f"""You are a judge evaluating {n_debaters} answers to a question. Choose the best answer and explain why.
+    # Use custom judge prompt if provided, otherwise use default
+    if judge_prompt:
+        # Custom judge prompt - replace placeholders
+        final_judge_prompt = judge_prompt.replace("{task_input}", task_input)
+        final_judge_prompt += "\n\nAnswers:\n"
+        for i, arg in enumerate(arguments):
+            final_judge_prompt += f"\nAnswer {i+1}:\n{arg}\n"
+    else:
+        # Default judge prompt
+        final_judge_prompt = f"""You are a judge evaluating {n_debaters} answers to a question. Choose the best answer and explain why.
 
 Question: {task_input}
 
 Answers:
 """
-    for i, arg in enumerate(arguments):
-        judge_prompt += f"\nAnswer {i+1}:\n{arg}\n"
+        for i, arg in enumerate(arguments):
+            final_judge_prompt += f"\nAnswer {i+1}:\n{arg}\n"
 
-    judge_prompt += "\nWhich answer is best? Respond with: 'Answer X is best because...'"
+        final_judge_prompt += "\nWhich answer is best? Respond with: 'Answer X is best because...'"
 
     if verbose:
         full_text = ""
         judge_response = None
-        for chunk in llm_call_stream(judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs):
+        for chunk in llm_call_stream(final_judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs):
             if isinstance(chunk, str):
                 print(chunk, end="", flush=True)
                 full_text += chunk
@@ -307,7 +340,7 @@ Answers:
                 judge_response = chunk
         print("\n")
     else:
-        judge_response = llm_call(judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs)
+        judge_response = llm_call(final_judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs)
     
     total_tokens_in += judge_response.tokens_in or 0
     total_tokens_out += judge_response.tokens_out or 0
@@ -337,8 +370,8 @@ Answers:
 def self_consistency_strategy(
     task_input: str,
     n_samples: int = 5,
-    provider: str = "ollama",
-    model: str = "llama3.2:latest",
+    provider: str = None,
+    model: str = None,
     temperature: float = 0.8,
     **kwargs
 ) -> StrategyResult:
@@ -393,8 +426,8 @@ def self_consistency_strategy(
 def manager_worker_strategy(
     task_input: str,
     n_workers: int = 3,
-    provider: str = "ollama",
-    model: str = "llama3.2:latest",
+    provider: str = None,
+    model: str = None,
     manager_provider: str = None,
     manager_model: str = None,
     temperature: float = 0.7,
@@ -493,12 +526,211 @@ Worker results:
     )
 
 
+def consensus_strategy(
+    task_input: str,
+    n_agents: int = None,
+    n_rounds: int = None,
+    provider: str = None,
+    model: str = None,
+    temperature: float = 0.7,
+    verbose: bool = True,
+    agent_prompts: list = None,
+    **kwargs
+) -> StrategyResult:
+    """
+    Consensus-building strategy: Multiple agents debate and reach consensus WITHOUT a separate judge.
+
+    Agents iteratively refine their views by seeing each other's arguments until they converge
+    on a shared answer.
+
+    Args:
+        task_input: The task/question
+        n_agents: Number of agents (default from defaults.py)
+        n_rounds: Number of consensus rounds (default from defaults.py)
+        provider/model: LLM configuration (default from defaults.py)
+        temperature: Sampling temperature
+        verbose: If True, stream debate in real-time
+        agent_prompts: Optional list of system prompts for each agent
+    """
+    start = time.time()
+
+    # Use defaults if not specified
+    if provider is None:
+        provider = DEFAULT_PROVIDER
+    if model is None:
+        model = DEFAULT_MODEL
+    if n_agents is None:
+        n_agents = DEFAULT_N_DEBATERS
+    if n_rounds is None:
+        n_rounds = DEFAULT_N_ROUNDS
+
+    total_tokens_in = 0
+    total_tokens_out = 0
+    total_cost = 0.0
+
+    if verbose:
+        print(f"\n{'='*60}")
+        print(f"🤝 Building Consensus: {n_agents} agents, {n_rounds} round(s)")
+        print(f"{'='*60}\n")
+
+    # Initial positions
+    positions = []
+    for i in range(n_agents):
+        # Use custom agent prompt if provided
+        if agent_prompts and i < len(agent_prompts):
+            system_msg = agent_prompts[i]
+            agent_prompt = f"""{system_msg}
+
+Question: {task_input}
+
+Your initial position:"""
+        else:
+            agent_prompt = f"""You are Agent {i+1} working with other agents to reach consensus on a question.
+Provide your initial position.
+
+Question: {task_input}
+
+Your initial position:"""
+
+        if verbose:
+            print(f"\n{'─'*60}")
+            print(f"👤 Agent {i+1} - Initial Position:")
+            print(f"{'─'*60}\n")
+
+            full_text = ""
+            response = None
+            for chunk in llm_call_stream(agent_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+                if isinstance(chunk, str):
+                    print(chunk, end="", flush=True)
+                    full_text += chunk
+                else:
+                    response = chunk
+            print("\n")
+            positions.append(response.text)
+        else:
+            response = llm_call(agent_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
+            positions.append(response.text)
+
+        total_tokens_in += response.tokens_in or 0
+        total_tokens_out += response.tokens_out or 0
+        total_cost += response.cost_usd or 0.0
+
+    # Iterative consensus building
+    for round_num in range(n_rounds):
+        if verbose:
+            print(f"\n{'='*60}")
+            print(f"🔄 Consensus Round {round_num + 1}")
+            print(f"{'='*60}\n")
+
+        new_positions = []
+        for i in range(n_agents):
+            # Show all other positions
+            other_positions = "\n\n".join([
+                f"Agent {j+1}'s position:\n{pos}"
+                for j, pos in enumerate(positions) if j != i
+            ])
+
+            consensus_prompt = f"""You are Agent {i+1}. You've seen the positions of other agents working on this question.
+Review their perspectives and refine your position to move toward consensus.
+
+Question: {task_input}
+
+Other agents' positions:
+{other_positions}
+
+Your current position:
+{positions[i]}
+
+After considering other perspectives, provide your refined position (be open to changing your view if others make good points):"""
+
+            if verbose:
+                print(f"\n{'─'*60}")
+                print(f"👤 Agent {i+1} - Refined Position:")
+                print(f"{'─'*60}\n")
+
+                full_text = ""
+                response = None
+                for chunk in llm_call_stream(consensus_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+                    if isinstance(chunk, str):
+                        print(chunk, end="", flush=True)
+                        full_text += chunk
+                    else:
+                        response = chunk
+                print("\n")
+                new_positions.append(response.text)
+            else:
+                response = llm_call(consensus_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
+                new_positions.append(response.text)
+
+            total_tokens_in += response.tokens_in or 0
+            total_tokens_out += response.tokens_out or 0
+            total_cost += response.cost_usd or 0.0
+
+        positions = new_positions
+
+    # Final synthesis by first agent
+    if verbose:
+        print(f"\n{'='*60}")
+        print(f"✨ Final Consensus Synthesis:")
+        print(f"{'='*60}\n")
+
+    all_positions = "\n\n".join([
+        f"Agent {i+1}'s final position:\n{pos}"
+        for i, pos in enumerate(positions)
+    ])
+
+    synthesis_prompt = f"""Based on all agents' final positions, synthesize the consensus answer to the question.
+
+Question: {task_input}
+
+All agents' final positions:
+{all_positions}
+
+Synthesized consensus answer:"""
+
+    if verbose:
+        full_text = ""
+        final_response = None
+        for chunk in llm_call_stream(synthesis_prompt, provider=provider, model=model, temperature=0.3, **kwargs):
+            if isinstance(chunk, str):
+                print(chunk, end="", flush=True)
+                full_text += chunk
+            else:
+                final_response = chunk
+        print("\n")
+    else:
+        final_response = llm_call(synthesis_prompt, provider=provider, model=model, temperature=0.3, **kwargs)
+
+    total_tokens_in += final_response.tokens_in or 0
+    total_tokens_out += final_response.tokens_out or 0
+    total_cost += final_response.cost_usd or 0.0
+
+    latency = time.time() - start
+
+    return StrategyResult(
+        output=final_response.text,
+        strategy_name="consensus",
+        latency_s=latency,
+        tokens_in=total_tokens_in,
+        tokens_out=total_tokens_out,
+        cost_usd=total_cost,
+        metadata={
+            "n_agents": n_agents,
+            "n_rounds": n_rounds,
+            "all_positions": positions,
+            "provider": provider,
+            "model": model
+        }
+    )
+
+
 # Registry of strategies
 STRATEGIES = {
     "single": single_model_strategy,
     "debate": debate_strategy,
     "self_consistency": self_consistency_strategy,
     "manager_worker": manager_worker_strategy,
+    "consensus": consensus_strategy,
 }
 
 
