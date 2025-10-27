@@ -207,12 +207,11 @@ def test_basic_functionality():
 
     try:
         from harness import llm_call
+        from harness.defaults import DEFAULT_MODEL, DEFAULT_PROVIDER
 
-        print("\nTesting Ollama with a simple query...")
+        print(f"\nTesting {DEFAULT_PROVIDER} with model {DEFAULT_MODEL}...")
         response = llm_call(
             "Say 'Hello from Hidden Layer!' and nothing else.",
-            provider="ollama",
-            model="llama3.2:latest",
             max_tokens=50
         )
 

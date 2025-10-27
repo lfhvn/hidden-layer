@@ -10,11 +10,13 @@ from .strategies import (
     run_strategy,
     single_model_strategy,
     debate_strategy,
+    consensus_strategy,
     self_consistency_strategy,
     manager_worker_strategy,
     StrategyResult,
     STRATEGIES
 )
+from . import defaults
 from .experiment_tracker import (
     ExperimentTracker,
     ExperimentConfig,
@@ -53,10 +55,14 @@ __all__ = [
     "run_strategy",
     "single_model_strategy",
     "debate_strategy",
+    "consensus_strategy",
     "self_consistency_strategy",
     "manager_worker_strategy",
     "StrategyResult",
     "STRATEGIES",
+
+    # Defaults
+    "defaults",
     
     # Experiment Tracking
     "ExperimentTracker",

@@ -5,6 +5,7 @@ Start simple, add complexity as needed.
 import re
 from typing import Dict, Any, Optional
 from .llm_provider import llm_call
+from .defaults import DEFAULT_PROVIDER, DEFAULT_MODEL
 
 
 def exact_match(output: str, expected: str, case_sensitive: bool = False) -> float:
@@ -93,8 +94,8 @@ def llm_judge(
     task_input: str,
     output: str,
     criteria: str = "overall quality",
-    provider: str = "ollama",
-    model: str = "llama3.2:latest",
+    provider: str = None,
+    model: str = None,
     scale: int = 10
 ) -> Dict[str, Any]:
     """
@@ -151,8 +152,8 @@ def win_rate_comparison(
     task_input: str,
     output_a: str,
     output_b: str,
-    provider: str = "ollama",
-    model: str = "llama3.2:latest"
+    provider: str = None,
+    model: str = None
 ) -> Dict[str, Any]:
     """
     Compare two outputs and determine winner.
