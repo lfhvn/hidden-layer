@@ -163,13 +163,13 @@ class ModelConfigManager:
                 tags=["precise", "deterministic"]
             ),
             ModelConfig(
-                name="llama3.2-fast",
+                name="gpt-oss-20b-fast",
                 provider="ollama",
-                model="llama3.2:latest",
+                model="gpt-oss:20b",
                 temperature=0.7,
                 max_tokens=1024,
-                description="Llama 3.2 3B for fast iteration",
-                tags=["fast", "small"]
+                description="GPT-OSS 20B for fast iteration and testing with lower token limits",
+                tags=["fast"]
             ),
             ModelConfig(
                 name="claude-sonnet",
