@@ -40,6 +40,18 @@ from .model_config import (
     get_model_config,
     list_model_configs
 )
+from .rationale import (
+    llm_call_with_rationale,
+    extract_rationale_from_result,
+    run_strategy_with_rationale,
+    ask_with_reasoning,
+    RationaleResponse
+)
+from .benchmarks import (
+    load_benchmark,
+    get_baseline_scores,
+    BENCHMARKS
+)
 
 __version__ = "0.1.0"
 
@@ -86,4 +98,16 @@ __all__ = [
     "get_config_manager",
     "get_model_config",
     "list_model_configs",
+
+    # Rationale Extraction
+    "llm_call_with_rationale",
+    "extract_rationale_from_result",
+    "run_strategy_with_rationale",
+    "ask_with_reasoning",
+    "RationaleResponse",
+
+    # Benchmarks
+    "load_benchmark",
+    "get_baseline_scores",
+    "BENCHMARKS",
 ]
