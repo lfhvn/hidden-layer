@@ -40,6 +40,13 @@ from .model_config import (
     get_model_config,
     list_model_configs
 )
+from .benchmarks import (
+    Benchmark,
+    BenchmarkTask,
+    load_benchmark,
+    get_baseline_scores,
+    BENCHMARKS
+)
 
 __version__ = "0.1.0"
 
@@ -86,4 +93,11 @@ __all__ = [
     "get_config_manager",
     "get_model_config",
     "list_model_configs",
+
+    # Benchmarks
+    "Benchmark",
+    "BenchmarkTask",
+    "load_benchmark",
+    "get_baseline_scores",
+    "BENCHMARKS",
 ]
