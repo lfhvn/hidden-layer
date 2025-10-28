@@ -40,9 +40,14 @@ from .model_config import (
     get_model_config,
     list_model_configs
 )
+from .rationale import (
+    llm_call_with_rationale,
+    extract_rationale_from_result,
+    run_strategy_with_rationale,
+    ask_with_reasoning,
+    RationaleResponse
+)
 from .benchmarks import (
-    Benchmark,
-    BenchmarkTask,
     load_benchmark,
     get_baseline_scores,
     BENCHMARKS
@@ -94,9 +99,14 @@ __all__ = [
     "get_model_config",
     "list_model_configs",
 
+    # Rationale Extraction
+    "llm_call_with_rationale",
+    "extract_rationale_from_result",
+    "run_strategy_with_rationale",
+    "ask_with_reasoning",
+    "RationaleResponse",
+
     # Benchmarks
-    "Benchmark",
-    "BenchmarkTask",
     "load_benchmark",
     "get_baseline_scores",
     "BENCHMARKS",
