@@ -58,6 +58,15 @@ from .evals import (
     batch_evaluate,
 )
 
+from .benchmarks import (
+    BenchmarkDataset,
+    load_uicrit,
+    load_uicrit_for_comparison,
+    list_available_benchmarks,
+    print_benchmark_info,
+    compare_to_experts,
+)
+
 __version__ = "0.1.0"
 
 __all__ = [
@@ -101,4 +110,12 @@ __all__ = [
     "evaluate_critique",
     "compare_strategies",
     "batch_evaluate",
+
+    # Benchmarks
+    "BenchmarkDataset",
+    "load_uicrit",
+    "load_uicrit_for_comparison",
+    "list_available_benchmarks",
+    "print_benchmark_info",
+    "compare_to_experts",
 ]

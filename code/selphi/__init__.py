@@ -58,6 +58,15 @@ from .evals import (
     compare_models,
 )
 
+from .benchmarks import (
+    BenchmarkDataset,
+    load_tombench,
+    load_opentom,
+    load_socialiqa,
+    list_available_benchmarks,
+    print_benchmark_info,
+)
+
 __version__ = "0.1.0"
 
 __all__ = [
@@ -102,4 +111,12 @@ __all__ = [
     "evaluate_scenario",
     "evaluate_batch",
     "compare_models",
+
+    # Benchmarks
+    "BenchmarkDataset",
+    "load_tombench",
+    "load_opentom",
+    "load_socialiqa",
+    "list_available_benchmarks",
+    "print_benchmark_info",
 ]
