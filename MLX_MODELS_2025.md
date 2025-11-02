@@ -104,18 +104,37 @@ Complete guide to the best MLX models for transformer introspection on Apple Sil
 **gpt-oss-20b** (Recommended for Development)
 ```python
 "mlx-community/gpt-oss-20b-4bit"
-# Or via Ollama (faster):
-# ollama pull gpt-oss:20b
 ```
 - **RAM**: ~20GB
-- **Speed**: ~20-25 tok/s
+- **Speed**: ~20-25 tok/s (MLX)
 - **Quality**: Excellent reasoning
 - **Best for**: All-around development
 
-### Ollama vs MLX for gpt-oss
-- **Ollama**: Faster (19.7 t/s), cross-platform
-- **MLX**: Slower (5.2 t/s) but works in Python notebooks
-- **Recommendation**: Use Ollama for CLI, MLX for notebooks
+### ⚠️ IMPORTANT: Ollama vs MLX for gpt-oss
+
+**For Introspection Research → MUST use MLX**:
+```python
+from mlx_lm import load
+model, tokenizer = load("mlx-community/gpt-oss-20b-4bit")
+```
+- ✅ Full activation access for steering
+- ✅ Can inject concepts into layers
+- ✅ Works for introspection experiments
+- ❌ Slower (5.2 t/s MLX vs 19.7 t/s Ollama)
+
+**For Normal Chat/Generation → Can use Ollama**:
+```bash
+ollama pull gpt-oss:20b
+ollama run gpt-oss:20b
+```
+- ✅ Much faster
+- ✅ Simple CLI interface
+- ❌ NO activation access
+- ❌ CANNOT do introspection research
+
+**Bottom line**: If you need introspection, you MUST use MLX. Ollama is faster but won't work for this research.
+
+See `PROVIDER_LIMITATIONS.md` for detailed explanation.
 
 ## 3. Legacy Models (Still Good)
 
