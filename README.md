@@ -157,7 +157,11 @@ print(f"Average latency: {summary['avg_latency_s']:.2f}s")
 ```python
 from harness import run_strategy
 
-# Test if model can detect injected concepts
+# Test with latest models (Nov 2025)
+# MLX: Qwen3-8B, gpt-oss-20b, Qwen3-235B-A22B
+# API: GPT-5, Claude Sonnet 4.5, Claude Haiku 4.5
+
+# Local MLX introspection
 result = run_strategy(
     "introspection",
     task_input="Describe your current internal state",
@@ -166,22 +170,35 @@ result = run_strategy(
     strength=1.5,
     task_type="detection",
     provider="mlx",
-    model="mlx-community/Llama-3.2-3B-Instruct-4bit"
+    model="mlx-community/Qwen3-8B-4bit"  # Qwen3 (April 2025)
 )
 
 print(f"Model detected injection: {result.metadata['introspection_correct']}")
 print(f"Confidence: {result.metadata['introspection_confidence']:.2f}")
 
+# API frontier models (prompt-based steering)
+result_api = run_strategy(
+    "introspection",
+    task_input="Describe your current internal state",
+    concept="happiness",
+    task_type="detection",
+    provider="anthropic",
+    model="claude-sonnet-4-5",  # Claude 4.5 (Sept 2025)
+    api_strength="moderate"
+)
+
 # Build concept library
 from harness import ActivationSteerer, build_emotion_library
 from mlx_lm import load
 
-model, tokenizer = load("mlx-community/Llama-3.2-3B-Instruct-4bit")
+model, tokenizer = load("mlx-community/Qwen3-8B-4bit")
 steerer = ActivationSteerer(model, tokenizer)
 
-library = build_emotion_library(steerer, layer=15, model_name="llama-3.2-3b")
+library = build_emotion_library(steerer, layer=15, model_name="qwen3-8b")
 library.save("concepts/emotions.pkl")
 ```
+
+See `MLX_MODELS_2025.md` for complete guide to current models.
 
 See `INTROSPECTION.md` for full documentation and `notebooks/03_introspection_experiments.ipynb` for detailed examples.
 

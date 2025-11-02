@@ -168,7 +168,7 @@ Complete workflow for systematic introspection experiments.
 ```python
 from harness import run_strategy
 
-# MLX with true activation steering
+# MLX with true activation steering (November 2025 - Latest Models)
 result = run_strategy(
     "introspection",
     task_input="Tell me a story",
@@ -177,22 +177,29 @@ result = run_strategy(
     strength=2.0,
     task_type="detection",
     provider="mlx",
-    model="mlx-community/Llama-3.2-3B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",  # Qwen3 (April 2025) - Recommended!
     verbose=True
 )
 ```
+
+**💡 Model Selection**: See `MLX_MODELS_2025.md` for comprehensive guide including:
+- **Qwen3 series**: 235B MoE flagship, 32B/14B/8B dense models (Released April 2025)
+- **gpt-oss series**: OpenAI's open-weight 120B/20B models (Released Aug 2025)
+- Performance benchmarks and recommendations for your M4 Max 128GB
 
 ### 1b. Run a Test (API - Frontier Models)
 
 ```python
 # API with prompt-based steering (requires ANTHROPIC_API_KEY)
+# November 2025 - Latest frontier models
 result = run_strategy(
     "introspection",
     task_input="Tell me a story",
     concept="happiness",
     task_type="detection",
     provider="anthropic",
-    model="claude-3-5-sonnet-20241022",
+    model="claude-sonnet-4-5",  # Claude 4.5 (Sept 2025) - Best for introspection
+    # Or try: "gpt-5" (Aug 2025), "claude-haiku-4-5" (Oct 2025), "gpt-5-mini"
     api_strength="moderate",  # "subtle", "moderate", "strong"
     steering_style="implicit", # "implicit" or "explicit"
     verbose=True
@@ -380,17 +387,18 @@ for r in results:
     print()
 ```
 
-### Recommended Models
+### Recommended Models (November 2025)
 
 **Anthropic (Best for introspection)**:
-- `claude-3-5-sonnet-20241022` - Best quality, SOTA introspection
-- `claude-3-5-haiku-20241022` - Fast and cheap, good introspection
-- `claude-opus-3-20240229` - Excellent (but expensive)
+- `claude-sonnet-4-5` - SOTA coding and introspection (Released Sept 2025)
+- `claude-haiku-4-5` - Fastest and most affordable, excellent introspection (Released Oct 2025)
+- `claude-3-5-sonnet-20241022` - Previous generation, still excellent
 
-**OpenAI**:
-- `gpt-4o` - Good introspection
-- `gpt-4o-mini` - Fast and cheap, reasonable introspection
-- `gpt-4-turbo` - Strong reasoning
+**OpenAI (Frontier)**:
+- `gpt-5` - SOTA across all benchmarks (Released Aug 2025) - Best for introspection research
+- `gpt-5-mini` - Balanced performance/cost
+- `gpt-5-nano` - Fast and cheap
+- `gpt-4o` - Previous generation, still strong
 
 ### Prompt-Based Steering Modes
 
