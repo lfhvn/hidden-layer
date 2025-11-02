@@ -78,6 +78,18 @@ try:
 except ImportError:
     _has_introspection = False
 
+# API Introspection (always available - doesn't require MLX)
+try:
+    from .introspection_api import (
+        APIIntrospectionTester,
+        PromptSteerer,
+        PromptSteeringConfig,
+        NATURAL_INTROSPECTION_PROMPTS
+    )
+    _has_api_introspection = True
+except ImportError:
+    _has_api_introspection = False
+
 __version__ = "0.1.0"
 
 __all__ = [
@@ -158,4 +170,14 @@ if _has_introspection:
         "IntrospectionTaskType",
         "IntrospectionTaskGenerator",
         "IntrospectionEvaluator",
+    ])
+
+# Add API introspection exports if available
+if _has_api_introspection:
+    __all__.extend([
+        # API Introspection
+        "APIIntrospectionTester",
+        "PromptSteerer",
+        "PromptSteeringConfig",
+        "NATURAL_INTROSPECTION_PROMPTS",
     ])

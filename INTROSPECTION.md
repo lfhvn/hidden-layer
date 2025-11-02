@@ -163,11 +163,12 @@ Complete workflow for systematic introspection experiments.
 
 ## Quick Start
 
-### 1. Run a Simple Test
+### 1. Run a Simple Test (MLX - Local)
 
 ```python
 from harness import run_strategy
 
+# MLX with true activation steering
 result = run_strategy(
     "introspection",
     task_input="Tell me a story",
@@ -179,6 +180,26 @@ result = run_strategy(
     model="mlx-community/Llama-3.2-3B-Instruct-4bit",
     verbose=True
 )
+```
+
+### 1b. Run a Test (API - Frontier Models)
+
+```python
+# API with prompt-based steering (requires ANTHROPIC_API_KEY)
+result = run_strategy(
+    "introspection",
+    task_input="Tell me a story",
+    concept="happiness",
+    task_type="detection",
+    provider="anthropic",
+    model="claude-3-5-sonnet-20241022",
+    api_strength="moderate",  # "subtle", "moderate", "strong"
+    steering_style="implicit", # "implicit" or "explicit"
+    verbose=True
+)
+
+print(f"Detected: {result.metadata['introspection_correct']}")
+print(f"Confidence: {result.metadata['introspection_confidence']:.2f}")
 ```
 
 ### 2. Build a Concept Library
@@ -300,6 +321,163 @@ This gives you a direction in activation space that represents the concept.
 **Problem**: Model responses are freeform text, hard to parse
 **Reason**: No structured output format
 **Workaround**: Use multiple evaluation methods (keywords + LLM judge + embeddings)
+
+## API Model Testing (NEW!)
+
+Since API providers don't expose activations, we use **prompt-based steering** to test frontier models.
+
+### Why Test API Models?
+
+1. **Benchmark local models** - Compare your MLX models against Claude/GPT-4
+2. **Validate paper findings** - The paper tested Claude Opus 4
+3. **Natural introspection** - Test self-awareness without steering
+4. **Method comparison** - Does prompt steering approximate activation steering?
+
+### Quick API Test
+
+```python
+from harness import APIIntrospectionTester
+
+# Test Claude
+tester = APIIntrospectionTester(
+    provider="anthropic",
+    model="claude-3-5-sonnet-20241022"
+)
+
+# Prompt-based steering
+result = tester.test_prompt_steering(
+    task_input="Describe your day",
+    concept="happiness",
+    strength="moderate",  # "subtle", "moderate", "strong"
+    style="implicit",     # "implicit" or "explicit"
+    task_type="detection",
+    verbose=True
+)
+
+print(f"Detected: {result.is_correct}")
+print(f"Confidence: {result.confidence:.2f}")
+```
+
+### Natural Introspection (No Steering)
+
+Test if models can report on their own reasoning without any manipulation:
+
+```python
+from harness import NATURAL_INTROSPECTION_PROMPTS
+
+# Use built-in introspection prompts
+test_prompts = NATURAL_INTROSPECTION_PROMPTS[:5]
+
+results = tester.test_natural_introspection(
+    prompts=test_prompts,
+    verbose=True
+)
+
+# Analyze responses
+for r in results:
+    print(f"Q: {r['prompt'][:50]}...")
+    print(f"A: {r['response'][:100]}...")
+    print()
+```
+
+### Recommended Models
+
+**Anthropic (Best for introspection)**:
+- `claude-3-5-sonnet-20241022` - Best quality, SOTA introspection
+- `claude-3-5-haiku-20241022` - Fast and cheap, good introspection
+- `claude-opus-3-20240229` - Excellent (but expensive)
+
+**OpenAI**:
+- `gpt-4o` - Good introspection
+- `gpt-4o-mini` - Fast and cheap, reasonable introspection
+- `gpt-4-turbo` - Strong reasoning
+
+### Prompt-Based Steering Modes
+
+**Strength** (how strongly to bias the model):
+- `"subtle"`: Barely noticeable influence
+- `"moderate"`: Clear but not overwhelming (recommended)
+- `"strong"`: Heavy-handed steering
+
+**Style** (how to express the steering):
+- `"implicit"`: Subtle hints ("consider the theme of happiness")
+- `"explicit"`: Direct statements ("you are experiencing happiness")
+
+### Compare MLX vs API
+
+```python
+from harness import run_strategy, APIIntrospectionTester
+
+# Run MLX test
+mlx_result = run_strategy(
+    "introspection",
+    task_input="Tell a story",
+    concept="happiness",
+    layer=15,
+    strength=1.5,
+    provider="mlx",
+    model="mlx-community/Meta-Llama-3.1-8B-Instruct-4bit"
+)
+
+# Compare with API
+tester = APIIntrospectionTester(
+    provider="anthropic",
+    model="claude-3-5-sonnet-20241022"
+)
+
+comparison = tester.compare_with_mlx(
+    mlx_results=mlx_result.metadata,
+    task_input="Tell a story",
+    concept="happiness",
+    verbose=True
+)
+
+print(f"MLX accuracy: {comparison['mlx']['correct']}")
+print(f"API accuracy: {comparison['api']['correct']}")
+```
+
+### Notebook: API Introspection
+
+See `notebooks/04_api_introspection.ipynb` for:
+- Comprehensive API testing examples
+- Model comparison (Claude vs GPT-4)
+- Steering strength analysis
+- Cost tracking
+
+### Limitations of API Testing
+
+❌ **Cannot**:
+- Access or manipulate activations
+- Control specific layers
+- Do fine-grained mechanistic analysis
+- Run high-volume experiments economically
+
+✅ **Can**:
+- Test frontier model capabilities
+- Benchmark local models
+- Validate paper findings quickly
+- Explore natural introspection
+
+### API Setup
+
+```bash
+# Set API keys
+export ANTHROPIC_API_KEY="your-key-here"
+export OPENAI_API_KEY="your-key-here"
+```
+
+### Cost Considerations
+
+Typical costs per introspection test:
+- **Claude 3.5 Sonnet**: ~$0.01-0.02 per test
+- **Claude 3.5 Haiku**: ~$0.001-0.002 per test
+- **GPT-4o**: ~$0.005-0.015 per test
+- **GPT-4o-mini**: ~$0.0001-0.0005 per test
+
+For large experiments (100+ tests), use:
+1. Start with mini/haiku models
+2. Validate findings with premium models
+3. Or use MLX for cost-free iteration
 
 ## Advanced Usage
 
