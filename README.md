@@ -51,6 +51,13 @@ cd notebooks && jupyter notebook
 - Debate (n-agent with judge)
 - Self-consistency (sample & aggregate)
 - Manager-worker (decompose, execute, synthesize)
+- Introspection (activation steering & self-awareness testing)
+
+### ✅ Introspection & Interpretability (NEW!)
+- Activation steering for MLX models
+- Concept vector extraction and injection
+- Test model self-awareness and introspection
+- Replicates [Anthropic's introspection paper](https://transformer-circuits.pub/2025/introspection/index.html)
 
 ### ✅ Experiment Tracking
 - Automatic logging to disk (JSON/JSONL)
@@ -144,6 +151,39 @@ for task in tasks:
 summary = tracker.finish_experiment()
 print(f"Average latency: {summary['avg_latency_s']:.2f}s")
 ```
+
+### Test Model Introspection
+
+```python
+from harness import run_strategy
+
+# Test if model can detect injected concepts
+result = run_strategy(
+    "introspection",
+    task_input="Describe your current internal state",
+    concept="happiness",
+    layer=15,
+    strength=1.5,
+    task_type="detection",
+    provider="mlx",
+    model="mlx-community/Llama-3.2-3B-Instruct-4bit"
+)
+
+print(f"Model detected injection: {result.metadata['introspection_correct']}")
+print(f"Confidence: {result.metadata['introspection_confidence']:.2f}")
+
+# Build concept library
+from harness import ActivationSteerer, build_emotion_library
+from mlx_lm import load
+
+model, tokenizer = load("mlx-community/Llama-3.2-3B-Instruct-4bit")
+steerer = ActivationSteerer(model, tokenizer)
+
+library = build_emotion_library(steerer, layer=15, model_name="llama-3.2-3b")
+library.save("concepts/emotions.pkl")
+```
+
+See `INTROSPECTION.md` for full documentation and `notebooks/03_introspection_experiments.ipynb` for detailed examples.
 
 ## Research Questions
 
