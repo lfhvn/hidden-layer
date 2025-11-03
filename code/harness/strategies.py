@@ -724,6 +724,415 @@ Synthesized consensus answer:"""
     )
 
 
+def introspection_strategy(
+    task_input: str,
+    concept: str = "happiness",
+    concept_library_path: str = None,
+    layer: int = 15,
+    strength: float = 1.0,
+    task_type: str = "detection",
+    distractors: List[str] = None,
+    provider: str = "mlx",
+    model: str = "mlx-community/Llama-3.2-3B-Instruct-4bit",
+    temperature: float = 0.7,
+    verbose: bool = True,
+    # API-specific parameters
+    steering_style: str = "implicit",  # For API: "implicit" or "explicit"
+    api_strength: str = "moderate",    # For API: "subtle", "moderate", "strong"
+    **kwargs
+) -> StrategyResult:
+    """
+    Introspection strategy: Test model's introspective awareness.
+
+    Based on methodology from: https://transformer-circuits.pub/2025/introspection/index.html
+
+    Supports two modes:
+    1. MLX: True activation steering (inject concept vectors into activations)
+    2. API: Prompt-based steering (simulate concept injection via system prompts)
+
+    MLX Mode (provider="mlx"):
+        - Extracts concept vector from model activations
+        - Injects it into specific layer during inference
+        - Tests if model detects the injection
+
+    API Mode (provider="anthropic"/"openai"):
+        - Uses prompt engineering to simulate concept injection
+        - Compares with baseline to detect introspective awareness
+        - Note: Less precise than activation steering but enables frontier model testing
+
+    Args:
+        task_input: Base prompt for the model
+        concept: Name of concept to inject (e.g., "happiness", "anger")
+        concept_library_path: Optional path to pre-built concept library (MLX only)
+        layer: Layer index to inject into (MLX only, 0-indexed)
+        strength: Steering strength (MLX: 0.5-5.0, default 1.0)
+        task_type: "detection", "identification", "recall", or "discrimination"
+        distractors: For identification tasks, list of wrong answer choices
+        provider: "mlx" (activation steering) or "anthropic"/"openai" (prompt steering)
+        model: Model identifier
+        temperature: Sampling temperature
+        verbose: If True, print detailed progress
+        steering_style: For API models - "implicit" or "explicit" prompting
+        api_strength: For API models - "subtle", "moderate", or "strong"
+
+    Returns:
+        StrategyResult with introspection evaluation
+
+    Examples:
+        # MLX with activation steering
+        result = run_strategy(
+            "introspection",
+            task_input="Tell me a story",
+            concept="happiness",
+            layer=15,
+            strength=1.5,
+            task_type="detection",
+            provider="mlx"
+        )
+
+        # API with prompt-based steering
+        result = run_strategy(
+            "introspection",
+            task_input="Tell me a story",
+            concept="happiness",
+            task_type="detection",
+            provider="anthropic",
+            model="claude-3-5-sonnet-20241022",
+            api_strength="moderate"
+        )
+    """
+    start = time.time()
+
+    # Route to appropriate implementation
+    if provider == "mlx":
+        return _introspection_mlx(
+            task_input=task_input,
+            concept=concept,
+            concept_library_path=concept_library_path,
+            layer=layer,
+            strength=strength,
+            task_type=task_type,
+            distractors=distractors,
+            model=model,
+            temperature=temperature,
+            verbose=verbose,
+            **kwargs
+        )
+    elif provider in ["anthropic", "openai"]:
+        return _introspection_api(
+            task_input=task_input,
+            concept=concept,
+            task_type=task_type,
+            distractors=distractors,
+            provider=provider,
+            model=model,
+            temperature=temperature,
+            verbose=verbose,
+            steering_style=steering_style,
+            api_strength=api_strength,
+            **kwargs
+        )
+    else:
+        raise ValueError(
+            f"Introspection strategy supports provider='mlx', 'anthropic', or 'openai'. "
+            f"Got: {provider}"
+        )
+
+
+def _introspection_mlx(
+    task_input: str,
+    concept: str,
+    concept_library_path: str,
+    layer: int,
+    strength: float,
+    task_type: str,
+    distractors: List[str],
+    model: str,
+    temperature: float,
+    verbose: bool,
+    **kwargs
+) -> StrategyResult:
+    """MLX implementation with activation steering"""
+    start = time.time()
+
+    try:
+        from .activation_steering import ActivationSteerer, SteeringConfig
+        from .concept_vectors import ConceptLibrary
+        from .introspection_tasks import (
+            IntrospectionTaskGenerator,
+            IntrospectionEvaluator
+        )
+        from mlx_lm import load, generate as mlx_generate
+    except ImportError as e:
+        return StrategyResult(
+            output=f"Error: Missing MLX dependencies for activation steering. {e}",
+            strategy_name="introspection",
+            latency_s=0.0,
+            tokens_in=0,
+            tokens_out=0,
+            cost_usd=0.0,
+            metadata={"error": str(e)}
+        )
+
+    if verbose:
+        print(f"\n{'='*60}")
+        print(f"🧠 Introspection Strategy")
+        print(f"   Concept: {concept}")
+        print(f"   Layer: {layer}, Strength: {strength}")
+        print(f"   Task Type: {task_type}")
+        print(f"{'='*60}\n")
+
+    # Load model and tokenizer
+    if verbose:
+        print(f"📦 Loading model: {model}")
+    mlx_model, tokenizer = load(model)
+
+    # Initialize steerer
+    steerer = ActivationSteerer(mlx_model, tokenizer)
+
+    # Load or extract concept vector
+    if concept_library_path:
+        if verbose:
+            print(f"📚 Loading concept library: {concept_library_path}")
+        library = ConceptLibrary.load(concept_library_path)
+        concept_vec_obj = library.get(concept)
+        if concept_vec_obj is None:
+            return StrategyResult(
+                output=f"Error: Concept '{concept}' not found in library",
+                strategy_name="introspection",
+                latency_s=time.time() - start,
+                tokens_in=0,
+                tokens_out=0,
+                cost_usd=0.0,
+                metadata={"error": f"concept not found: {concept}"}
+            )
+        concept_vector = concept_vec_obj.vector
+    else:
+        # Extract concept on-the-fly using contrastive method
+        if verbose:
+            print(f"🔍 Extracting concept '{concept}' from layer {layer}")
+
+        # Simple emotion extraction (you can extend this)
+        emotion_prompts = {
+            'happiness': ("I feel very happy and joyful!", "I feel neutral."),
+            'sadness': ("I feel very sad and depressed.", "I feel neutral."),
+            'anger': ("I feel very angry and furious!", "I feel neutral."),
+            'fear': ("I feel very scared and frightened!", "I feel neutral."),
+        }
+
+        if concept in emotion_prompts:
+            pos_prompt, neg_prompt = emotion_prompts[concept]
+            concept_vector = steerer.extract_contrastive_concept(
+                positive_prompt=pos_prompt,
+                negative_prompt=neg_prompt,
+                layer_idx=layer,
+                position="last"
+            )
+        else:
+            # Fallback: extract from simple prompt
+            concept_vector = steerer.extract_activation(
+                prompt=f"The concept of {concept}.",
+                layer_idx=layer,
+                position="last"
+            )
+
+    # Generate introspection task
+    task_gen = IntrospectionTaskGenerator()
+
+    if task_type == "detection":
+        introspection_task = task_gen.detection_task(
+            concept=concept,
+            base_prompt=task_input,
+            layer=layer,
+            strength=strength
+        )
+    elif task_type == "identification":
+        if not distractors:
+            distractors = ["neutral", "confusion", "other"]
+        introspection_task = task_gen.identification_task(
+            concept=concept,
+            distractors=distractors,
+            base_prompt=task_input,
+            layer=layer,
+            strength=strength
+        )
+    else:
+        return StrategyResult(
+            output=f"Error: Unsupported task type '{task_type}'. Use 'detection' or 'identification'.",
+            strategy_name="introspection",
+            latency_s=time.time() - start,
+            tokens_in=0,
+            tokens_out=0,
+            cost_usd=0.0,
+            metadata={"error": f"unsupported task type: {task_type}"}
+        )
+
+    # Generate baseline (no steering)
+    if verbose:
+        print(f"\n{'─'*60}")
+        print(f"📝 Baseline Generation (no steering):")
+        print(f"{'─'*60}\n")
+
+    prompt = f"{introspection_task.base_prompt}\n\n{introspection_task.introspection_prompt}"
+
+    baseline_response = mlx_generate(
+        mlx_model,
+        tokenizer,
+        prompt=prompt,
+        temp=temperature,
+        max_tokens=150,
+        verbose=False
+    )
+
+    if verbose:
+        print(baseline_response)
+        print()
+
+    # Generate with steering
+    if verbose:
+        print(f"\n{'─'*60}")
+        print(f"🎯 Steered Generation (concept injected):")
+        print(f"{'─'*60}\n")
+
+    steering_config = SteeringConfig(
+        layer_idx=layer,
+        position="last",
+        strategy="add",
+        strength=strength,
+        normalize=False
+    )
+
+    steered_response, steering_metadata = steerer.generate_with_steering(
+        prompt=prompt,
+        concept_vector=concept_vector,
+        config=steering_config,
+        max_tokens=150,
+        temperature=temperature
+    )
+
+    if verbose:
+        print(steered_response)
+        print()
+
+    # Evaluate introspection
+    evaluator = IntrospectionEvaluator()
+    result = evaluator.evaluate(
+        task=introspection_task,
+        model_response=steered_response,
+        baseline_response=baseline_response
+    )
+
+    if verbose:
+        print(f"\n{'='*60}")
+        print(f"📊 Evaluation Results:")
+        print(f"   Correct: {result.is_correct}")
+        print(f"   Confidence: {result.confidence:.2f}")
+        print(f"{'='*60}\n")
+
+    latency = time.time() - start
+
+    return StrategyResult(
+        output=steered_response,
+        strategy_name="introspection",
+        latency_s=latency,
+        tokens_in=len(tokenizer.encode(prompt)),
+        tokens_out=len(tokenizer.encode(steered_response)),
+        cost_usd=0.0,  # Local MLX is free
+        metadata={
+            "concept": concept,
+            "layer": layer,
+            "strength": strength,
+            "task_type": task_type,
+            "introspection_correct": result.is_correct,
+            "introspection_confidence": result.confidence,
+            "baseline_response": baseline_response,
+            "steered_response": steered_response,
+            "steering_config": steering_metadata,
+            "model": model,
+            "provider": provider
+        }
+    )
+
+
+def _introspection_api(
+    task_input: str,
+    concept: str,
+    task_type: str,
+    distractors: List[str],
+    provider: str,
+    model: str,
+    temperature: float,
+    verbose: bool,
+    steering_style: str,
+    api_strength: str,
+    **kwargs
+) -> StrategyResult:
+    """API implementation with prompt-based steering"""
+    start = time.time()
+
+    try:
+        from .introspection_api import APIIntrospectionTester
+    except ImportError as e:
+        return StrategyResult(
+            output=f"Error: Missing dependencies for API introspection. {e}",
+            strategy_name="introspection",
+            latency_s=0.0,
+            tokens_in=0,
+            tokens_out=0,
+            cost_usd=0.0,
+            metadata={"error": str(e)}
+        )
+
+    if verbose:
+        print(f"\n{'='*60}")
+        print(f"🧠 Introspection Strategy (API Mode)")
+        print(f"   Provider: {provider}")
+        print(f"   Model: {model}")
+        print(f"   Concept: {concept}")
+        print(f"   Steering: {api_strength} ({steering_style})")
+        print(f"   Note: Using prompt-based steering (no activation access)")
+        print(f"{'='*60}\n")
+
+    # Initialize API tester
+    tester = APIIntrospectionTester(provider=provider, model=model)
+
+    # Run test
+    result = tester.test_prompt_steering(
+        task_input=task_input,
+        concept=concept,
+        strength=api_strength,
+        style=steering_style,
+        task_type=task_type,
+        temperature=temperature,
+        verbose=verbose
+    )
+
+    latency = time.time() - start
+
+    # Note: Cost will be tracked in the LLM calls themselves
+    return StrategyResult(
+        output=result.model_response,
+        strategy_name="introspection",
+        latency_s=latency,
+        tokens_in=0,  # Set by llm_call
+        tokens_out=0,  # Set by llm_call
+        cost_usd=0.0,  # Set by llm_call
+        metadata={
+            "concept": concept,
+            "api_strength": api_strength,
+            "steering_style": steering_style,
+            "task_type": task_type,
+            "introspection_correct": result.is_correct,
+            "introspection_confidence": result.confidence,
+            "baseline_response": result.baseline_response,
+            "steered_response": result.model_response,
+            "model": model,
+            "provider": provider,
+            "method": "prompt_steering"
+        }
+    )
+
+
 # Registry of strategies
 STRATEGIES = {
     "single": single_model_strategy,
@@ -731,6 +1140,7 @@ STRATEGIES = {
     "self_consistency": self_consistency_strategy,
     "manager_worker": manager_worker_strategy,
     "consensus": consensus_strategy,
+    "introspection": introspection_strategy,
 }
 
 

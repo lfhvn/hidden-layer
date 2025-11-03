@@ -13,6 +13,7 @@ from .strategies import (
     consensus_strategy,
     self_consistency_strategy,
     manager_worker_strategy,
+    introspection_strategy,
     StrategyResult,
     STRATEGIES
 )
@@ -61,6 +62,42 @@ from .system_prompts import (
     SystemPromptMetadata
 )
 
+# Introspection modules (optional - only if MLX is available)
+try:
+    from .activation_steering import (
+        ActivationSteerer,
+        SteeringConfig,
+        ActivationCache
+    )
+    from .concept_vectors import (
+        ConceptLibrary,
+        ConceptVector,
+        build_emotion_library,
+        build_topic_library
+    )
+    from .introspection_tasks import (
+        IntrospectionTask,
+        IntrospectionResult,
+        IntrospectionTaskType,
+        IntrospectionTaskGenerator,
+        IntrospectionEvaluator
+    )
+    _has_introspection = True
+except ImportError:
+    _has_introspection = False
+
+# API Introspection (always available - doesn't require MLX)
+try:
+    from .introspection_api import (
+        APIIntrospectionTester,
+        PromptSteerer,
+        PromptSteeringConfig,
+        NATURAL_INTROSPECTION_PROMPTS
+    )
+    _has_api_introspection = True
+except ImportError:
+    _has_api_introspection = False
+
 __version__ = "0.1.0"
 
 __all__ = [
@@ -78,6 +115,7 @@ __all__ = [
     "consensus_strategy",
     "self_consistency_strategy",
     "manager_worker_strategy",
+    "introspection_strategy",
     "StrategyResult",
     "STRATEGIES",
 
@@ -127,3 +165,35 @@ __all__ = [
     "show_prompt",
     "SystemPromptMetadata",
 ]
+
+# Add introspection exports if available
+if _has_introspection:
+    __all__.extend([
+        # Activation Steering
+        "ActivationSteerer",
+        "SteeringConfig",
+        "ActivationCache",
+
+        # Concept Vectors
+        "ConceptLibrary",
+        "ConceptVector",
+        "build_emotion_library",
+        "build_topic_library",
+
+        # Introspection Tasks
+        "IntrospectionTask",
+        "IntrospectionResult",
+        "IntrospectionTaskType",
+        "IntrospectionTaskGenerator",
+        "IntrospectionEvaluator",
+    ])
+
+# Add API introspection exports if available
+if _has_api_introspection:
+    __all__.extend([
+        # API Introspection
+        "APIIntrospectionTester",
+        "PromptSteerer",
+        "PromptSteeringConfig",
+        "NATURAL_INTROSPECTION_PROMPTS",
+    ])

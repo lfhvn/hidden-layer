@@ -14,7 +14,7 @@ Think in terms of research programs, not just features. Question assumptions. Pu
 
 ## Project Overview
 
-This is a research experimentation harness for comparing single-model and multi-agent LLM strategies on Apple Silicon (M4 Max with 128GB RAM). The project enables notebook-first research workflows with proper experiment tracking, designed for rapid iteration on multi-agent architectures and interpretability research.
+Hidden Layer is a comprehensive research platform for exploring multi-agent LLM systems on Apple Silicon (M4 Max with 128GB RAM). The project consists of three major integrated subsystems designed for rapid experimentation and interpretability research.
 
 **Core Research Question**: When and why do multi-agent strategies outperform single models, and what can we learn from their internal representations?
 
@@ -170,7 +170,8 @@ hidden-layer/
 
 ## Development Principles
 
-### When Making Changes
+# CRIT
+from crit import run_critique_strategy, MOBILE_CHECKOUT
 
 1. **Maintain Backward Compatibility**: Notebooks depend on stable APIs
 2. **Log Everything**: Use experiment tracker for all runs
@@ -182,9 +183,9 @@ hidden-layer/
    - Make existing research faster/easier/more reproducible
 7. **Architectural Creativity**: Question existing patterns. If there's a simpler way, use it.
 
-### Code Patterns
+## Development Workflows
 
-#### Adding a New Strategy
+### Adding a New Strategy (Harness)
 
 ```python
 # In code/harness/strategies.py
@@ -199,7 +200,7 @@ def my_new_strategy(task_input: str, **kwargs) -> StrategyResult:
     model = kwargs.get('model', 'llama3.2:latest')
 
     # Implement your logic
-    response = llm_call(task_input, provider=provider, model=model, **kwargs)
+    response = llm_call(task_input, provider=provider, model=model)
 
     return StrategyResult(
         output=response.text,
@@ -211,14 +212,24 @@ def my_new_strategy(task_input: str, **kwargs) -> StrategyResult:
         metadata={"custom": "data"}  # Include strategy-specific insights
     )
 
-# Add to registry
+# Register it
 STRATEGIES["my_new"] = my_new_strategy
 ```
 
-#### Adding a New Evaluation Function
+### Adding a New Problem (CRIT)
 
 ```python
-# In code/harness/evals.py
+# In code/crit/problems.py
+
+MY_PROBLEM = DesignProblem(
+    name="my_problem",
+    domain=DesignDomain.UI_UX,
+    description="...",
+    current_design="...",
+    success_criteria=[...],
+    difficulty="medium"
+)
+```
 
 def my_eval(output: str, expected: Any) -> float:
     """Your custom evaluation.
@@ -230,47 +241,37 @@ def my_eval(output: str, expected: Any) -> float:
     score = calculate_score(output, expected)
     return score
 
-# Add to registry
-EVAL_FUNCTIONS["my_eval"] = my_eval
+```python
+# In code/selphi/scenarios.py
+
+MY_SCENARIO = ToMScenario(
+    name="my_scenario",
+    tom_type=ToMType.FALSE_BELIEF,
+    scenario_text="...",
+    question="...",
+    correct_answer="...",
+    difficulty="easy"
+)
 ```
 
-#### Using in Notebooks
+### Adding a New Evaluation Function
 
 ```python
-import sys
-sys.path.append('../code')
+# Works in any subsystem (harness, crit, selphi)
 
-from harness import (
-    run_strategy,
-    get_tracker,
-    evaluate_task,
-    get_model_config
-)
+def my_eval(output: str, expected: Any) -> float:
+    """Return score 0-1."""
+    # Implementation
+    return score
 
-# Load configuration
-config = get_model_config("gpt-oss-20b-reasoning")
-
-# Start tracking
-tracker = get_tracker()
-experiment_dir = tracker.start_experiment(ExperimentConfig(
-    experiment_name="my_experiment",
-    strategy="debate",
-    **config.to_dict()
-))
-
-# Run and log
-result = run_strategy("debate", task_input, **config.to_kwargs())
-tracker.log_result(ExperimentResult(...))
-
-# Finish
-summary = tracker.finish_experiment()
+# Register in appropriate module
+EVAL_FUNCTIONS["my_eval"] = my_eval
 ```
 
 ---
 
 ## Common Tasks
 
-### Quick Testing
 ```bash
 # Activate environment
 source venv/bin/activate
@@ -278,8 +279,11 @@ source venv/bin/activate
 # Start Ollama
 ollama serve &
 
-# Test with CLI
-python code/cli.py "What is 2+2?" --strategy single --provider ollama
+# Test harness
+python -c "from harness import llm_call; print(llm_call('Hi!', provider='ollama').text)"
+
+# Test CRIT
+python -c "from crit import MOBILE_CHECKOUT; print('CRIT ready')"
 
 # Test with config
 python code/cli.py "Complex question" --config gpt-oss-20b-reasoning
@@ -289,31 +293,73 @@ python code/cli.py "Design a new architecture" --config claude-researcher
 ```
 
 ### Running Experiments
+
+**Harness**:
 ```bash
-# Debate with 3 agents
-python code/cli.py "Should we invest in solar?" --strategy debate --n-debaters 3
-
-# Self-consistency with 5 samples
-python code/cli.py "What is..." --strategy self_consistency --n-samples 5
-
-# Manager-worker decomposition
-python code/cli.py "Plan a research project" --strategy manager_worker --n-workers 3
+python code/cli.py "Question?" --strategy debate --n-debaters 3
 ```
 
-### Working with Notebooks
-```bash
-cd notebooks
-jupyter notebook
-# Open 01_baseline_experiments.ipynb
+**CRIT**:
+```python
+from crit import run_critique_strategy, MOBILE_CHECKOUT
+
+result = run_critique_strategy("multi_perspective", MOBILE_CHECKOUT)
 ```
 
-### Adding New Models
-```bash
-# Ollama
-ollama pull model-name:latest
+**SELPHI**:
+```python
+from selphi import run_multiple_scenarios, get_scenarios_by_difficulty
 
-# MLX (downloaded automatically on first use)
-# Models from: https://huggingface.co/mlx-community
+scenarios = get_scenarios_by_difficulty("medium")
+results = run_multiple_scenarios(scenarios, provider="ollama")
+```
+
+### Cross-Subsystem Integration
+
+```python
+# Use harness experiment tracking with CRIT
+from harness import get_tracker, ExperimentConfig
+from crit import run_critique_strategy, MOBILE_CHECKOUT
+
+config = ExperimentConfig(
+    experiment_name="crit_experiments",
+    task_type="design_critique"
+)
+
+tracker = get_tracker()
+tracker.start_experiment(config)
+
+result = run_critique_strategy("multi_perspective", MOBILE_CHECKOUT)
+
+tracker.log_result(...)
+tracker.finish_experiment()
+```
+
+## Hardware Optimization (M4 Max 128GB)
+
+### What You Can Run
+
+- **70B models**: ~35GB (4-bit quantized)
+- **3-4 agents in parallel**: 3x 7B models (~12GB total)
+- **Fine-tune 13B**: LoRA training (~20GB)
+
+### Recommended Configurations
+
+```python
+# Fast iteration
+provider="ollama"
+model="llama3.2:3b"  # ~2GB, ~120 tok/s
+
+# Quality experiments
+provider="ollama"
+model="llama3.1:70b"  # ~35GB, ~15 tok/s
+
+# Multi-agent (3-4 agents)
+model="llama3.1:8b"  # ~4GB each
+
+# API baseline
+provider="anthropic"
+model="claude-3-5-sonnet-20241022"
 ```
 
 ---
@@ -384,27 +430,31 @@ ollama pull model-name:latest
 **Ollama Issues**:
 ```bash
 killall ollama && ollama serve &
-ollama list  # Check available models
+ollama list
 ```
 
-**MLX Issues**:
+**Imports**:
+```python
+import sys
+sys.path.append('../code')  # In notebooks
+```
+
+**MLX**:
 ```python
 import mlx.core as mx
-print(mx.__version__)  # Verify installation
-```
-
-**Import Issues**:
-```python
-# In notebooks, ensure path is correct
-import sys
-sys.path.append('../code')
+print(mx.__version__)
 ```
 
 ---
 
 ## Integration Points
 
-### For New Features
+- **README.md** - Project overview
+- **ARCHITECTURE.md** - Deep dive (all subsystems)
+- **QUICKSTART.md** - Cheat sheet
+- **SETUP.md** - Installation
+- **BENCHMARKS.md** - Benchmark datasets
+- **CLAUDE.md** - This file (development guide)
 
 1. **New Provider**: Extend `llm_provider.py` with new provider class
 2. **New Strategy**: Add function to `strategies.py` and register
@@ -432,12 +482,9 @@ sys.path.append('../code')
 
 ## Next Steps for Development
 
-Based on the roadmap, prioritize:
+## Development Philosophy
 
-1. **Immediate**: Run more baseline experiments, expand task suite
-2. **Short-term**: Analyze multi-agent vs single performance systematically
-3. **Medium-term**: Add fine-tuning workflows, interpretability probes
-4. **Long-term**: Build hidden layer analysis tools, draft findings
+**Remember**: This is a research tool for rapid experimentation, not production.
 
 ---
 
@@ -477,4 +524,6 @@ While developing, constantly ask:
 
 ---
 
-**Remember**: This is a research tool for rapid experimentation *and* paradigm-shifting discovery. Favor simplicity and hackability over robustness and scale. Make it easy to try new ideas quickly. But also think deeply: we're not just benchmarking models, we're probing the nature of collaborative intelligence. Every design choice should serve that larger mission.
+**For detailed architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md)
+**For quick start**: See [QUICKSTART.md](QUICKSTART.md)
+**For setup**: See [SETUP.md](SETUP.md)

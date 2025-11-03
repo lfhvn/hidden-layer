@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - API_KEY=${API_KEY:-dev-key-change-in-production}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./steerability.db}
+      - DEVICE=${DEVICE:-cpu}
+    volumes:
+      - ./backend/app:/app/app
+      - ./steering_vectors:/app/steering_vectors
+      - ./model_cache:/app/model_cache
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8001
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+
+volumes:
+  steering_vectors:
+  model_cache:
