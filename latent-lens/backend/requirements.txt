@@ -1,0 +1,14 @@
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-dotenv==1.0.0
+sqlmodel==0.0.14
+pydantic==2.5.3
+pydantic-settings==2.1.0
+torch==2.1.2
+transformers==4.36.2
+einops==0.7.0
+datasets==2.16.1
+numpy==1.26.3
+python-multipart==0.0.6
+websockets==12.0
+httpx==0.26.0
