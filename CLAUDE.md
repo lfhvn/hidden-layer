@@ -2,125 +2,57 @@
 
 ## Project Overview
 
-This is a research experimentation harness for comparing single-model and multi-agent LLM strategies on Apple Silicon (M4 Max with 128GB RAM). The project enables notebook-first research workflows with proper experiment tracking, designed for rapid iteration on multi-agent architectures and interpretability research.
+Hidden Layer is a comprehensive research platform for exploring multi-agent LLM systems on Apple Silicon (M4 Max with 128GB RAM). The project consists of three major integrated subsystems designed for rapid experimentation and interpretability research.
 
 **Core Research Question**: When and why do multi-agent strategies outperform single models, and what can we learn from their internal representations?
 
-## Project Architecture
+**System Components**:
+1. **Harness** - Core multi-agent infrastructure (1,900 LOC)
+2. **CRIT** - Collective Reasoning for Iterative Testing (1,500+ LOC)
+3. **SELPHI** - Study of Epistemic and Logical Processing (1,200+ LOC)
 
-### Design Philosophy
+**Total**: 6,613 lines of Python + 5,641 lines of documentation
 
-1. **Local-First**: Prioritize MLX and Ollama for fast, cost-effective iteration
-2. **Hybrid Approach**: Seamlessly switch between local and API providers for comparison
-3. **Notebook-Centric**: All core functions work directly in Jupyter with minimal boilerplate
-4. **Reproducible**: Automatic experiment logging, configuration tracking, git hash capture
-5. **Hackable**: Simple, well-commented code over heavy frameworks
+## Quick Reference
 
-### Core Components
+For detailed architecture, see [ARCHITECTURE.md](ARCHITECTURE.md).
+For getting started, see [QUICKSTART.md](QUICKSTART.md).
 
-#### 1. LLM Provider (`code/harness/llm_provider.py`)
-- **Purpose**: Unified interface for all LLM providers
-- **Providers**: MLX (Apple Silicon), Ollama, Anthropic Claude, OpenAI
-- **Features**: Automatic cost tracking, token counting, easy provider switching
-- **Key Function**: `llm_call(prompt, provider, model, **kwargs)` - universal LLM interface
+## System Structure
 
-#### 2. Multi-Agent Strategies (`code/harness/strategies.py`)
-- **Purpose**: Implement and compare different multi-agent approaches
-- **Available Strategies**:
-  - `single`: Single-model baseline
-  - `debate`: n-agent debate with judge
-  - `self_consistency`: Sample multiple times and aggregate
-  - `manager_worker`: Decompose, execute in parallel, synthesize
-- **Key Function**: `run_strategy(strategy_name, task_input, **kwargs)` - execute any strategy
-- **Extensible**: Easy to add new strategies to registry
+All three subsystems share common infrastructure:
 
-#### 3. Experiment Tracking (`code/harness/experiment_tracker.py`)
-- **Purpose**: Automatic logging and reproducibility
-- **Features**:
-  - Unique experiment IDs (name + timestamp + hash)
-  - JSON/JSONL streaming logs
-  - Metrics aggregation (latency, tokens, cost)
-  - Comparison across runs
-- **Output Structure**: `experiments/{name}_{timestamp}_{hash}/`
-  - `config.json`: Experiment configuration
-  - `results.jsonl`: Streaming results (one per line)
-  - `summary.json`: Aggregated metrics
-  - `README.md`: Human-readable summary
+- **Unified LLM Provider**: Same interface across harness, CRIT, SELPHI
+- **Experiment Tracking**: Common logging format
+- **Model Configuration**: Shared YAML presets
+- **Benchmark Interface**: Unified access to all datasets
 
-#### 4. Evaluation Suite (`code/harness/evals.py`)
-- **Purpose**: Systematic evaluation of outputs
-- **Methods**: Exact match, keyword match, numeric match, LLM-as-judge
-- **Metrics**: Win-rate comparison, coherence scoring
-- **Extensible**: Easy to add custom evaluation functions
+**Import Pattern**:
+```python
+# Harness
+from harness import run_strategy, llm_call, load_benchmark
 
-#### 5. Configuration Management (`config/models.yaml`, `config/README.md`)
-- **Purpose**: Manage model presets and hyperparameters
-- **Features**: Named configurations, parameter overrides, task-specific setups
-- **Built-in Configs**:
-  - Reasoning models (extended thinking budget)
-  - Creative models (high temperature)
-  - Fast models (quick iteration)
-  - API models (Claude, GPT)
-- **Usage**: `--config gpt-oss-20b-reasoning` in CLI or `get_model_config()` in Python
+# CRIT
+from crit import run_critique_strategy, MOBILE_CHECKOUT
 
-### File Structure
-
-```
-hidden-layer/
-├── code/
-│   ├── harness/              # Core library (import from notebooks)
-│   │   ├── __init__.py       # Package exports
-│   │   ├── llm_provider.py   # Unified LLM interface
-│   │   ├── strategies.py     # Multi-agent strategies
-│   │   ├── experiment_tracker.py  # Experiment logging
-│   │   └── evals.py          # Evaluation functions
-│   └── cli.py                # Command-line interface
-│
-├── notebooks/                # Experimentation notebooks
-│   ├── 01_baseline_experiments.ipynb
-│   ├── 02_debate_experiments.ipynb
-│   └── (future notebooks)
-│
-├── config/                   # Model configurations
-│   ├── models.yaml           # Named model presets
-│   └── README.md             # Config documentation
-│
-├── experiments/              # Auto-generated experiment logs
-│   └── {name}_{timestamp}_{hash}/
-│
-├── README.md                 # Project overview and features
-├── SETUP.md                  # Installation guide for M4 Max
-├── QUICKSTART.md            # Cheat sheet for common operations
-├── IMPLEMENTATION.md        # What was built and why
-├── START_HERE.md            # Quick start for new users
-├── CLAUDE.md                # This file - development guide
-└── requirements.txt         # Python dependencies
+# SELPHI
+from selphi import run_scenario, SALLY_ANNE
 ```
 
-## Development Principles
+## Development Workflows
 
-### When Making Changes
-
-1. **Maintain Backward Compatibility**: Notebooks depend on stable APIs
-2. **Log Everything**: Use experiment tracker for all runs
-3. **Document Decisions**: Update relevant .md files
-4. **Test Locally First**: Use small models for rapid iteration
-5. **Version Control Configs**: Commit `models.yaml` changes
-
-### Code Patterns
-
-#### Adding a New Strategy
+### Adding a New Strategy (Harness)
 
 ```python
 # In code/harness/strategies.py
 
 def my_new_strategy(task_input: str, **kwargs) -> StrategyResult:
-    """Your custom strategy."""
+    """Your custom multi-agent strategy."""
     provider = kwargs.get('provider', 'ollama')
     model = kwargs.get('model', 'llama3.2:latest')
 
     # Implement your logic
-    response = llm_call(task_input, provider=provider, model=model, **kwargs)
+    response = llm_call(task_input, provider=provider, model=model)
 
     return StrategyResult(
         output=response.text,
@@ -132,60 +64,58 @@ def my_new_strategy(task_input: str, **kwargs) -> StrategyResult:
         metadata={"custom": "data"}
     )
 
-# Add to registry
+# Register it
 STRATEGIES["my_new"] = my_new_strategy
 ```
 
-#### Adding a New Evaluation Function
+### Adding a New Problem (CRIT)
 
 ```python
-# In code/harness/evals.py
+# In code/crit/problems.py
+
+MY_PROBLEM = DesignProblem(
+    name="my_problem",
+    domain=DesignDomain.UI_UX,
+    description="...",
+    current_design="...",
+    success_criteria=[...],
+    difficulty="medium"
+)
+```
+
+### Adding a New Scenario (SELPHI)
+
+```python
+# In code/selphi/scenarios.py
+
+MY_SCENARIO = ToMScenario(
+    name="my_scenario",
+    tom_type=ToMType.FALSE_BELIEF,
+    scenario_text="...",
+    question="...",
+    correct_answer="...",
+    difficulty="easy"
+)
+```
+
+### Adding a New Evaluation Function
+
+```python
+# Works in any subsystem (harness, crit, selphi)
 
 def my_eval(output: str, expected: Any) -> float:
-    """Your custom evaluation."""
-    # Return score 0-1
-    score = calculate_score(output, expected)
+    """Return score 0-1."""
+    # Implementation
     return score
 
-# Add to registry
+# Register in appropriate module
 EVAL_FUNCTIONS["my_eval"] = my_eval
 ```
 
-#### Using in Notebooks
+## Common Development Tasks
 
-```python
-import sys
-sys.path.append('../code')
+### Testing Locally
 
-from harness import (
-    run_strategy,
-    get_tracker,
-    evaluate_task,
-    get_model_config
-)
-
-# Load configuration
-config = get_model_config("gpt-oss-20b-reasoning")
-
-# Start tracking
-tracker = get_tracker()
-experiment_dir = tracker.start_experiment(ExperimentConfig(
-    experiment_name="my_experiment",
-    strategy="debate",
-    **config.to_dict()
-))
-
-# Run and log
-result = run_strategy("debate", task_input, **config.to_kwargs())
-tracker.log_result(ExperimentResult(...))
-
-# Finish
-summary = tracker.finish_experiment()
-```
-
-## Common Tasks
-
-### Quick Testing
 ```bash
 # Activate environment
 source venv/bin/activate
@@ -193,160 +123,235 @@ source venv/bin/activate
 # Start Ollama
 ollama serve &
 
-# Test with CLI
-python code/cli.py "What is 2+2?" --strategy single --provider ollama
+# Test harness
+python -c "from harness import llm_call; print(llm_call('Hi!', provider='ollama').text)"
 
-# Test with config
-python code/cli.py "Complex question" --config gpt-oss-20b-reasoning
+# Test CRIT
+python -c "from crit import MOBILE_CHECKOUT; print('CRIT ready')"
+
+# Test SELPHI
+python -c "from selphi import SALLY_ANNE; print('SELPHI ready')"
 ```
 
 ### Running Experiments
+
+**Harness**:
 ```bash
-# Debate with 3 agents
-python code/cli.py "Should we invest in solar?" --strategy debate --n-debaters 3
-
-# Self-consistency with 5 samples
-python code/cli.py "What is..." --strategy self_consistency --n-samples 5
-
-# Manager-worker decomposition
-python code/cli.py "Plan a research project" --strategy manager_worker --n-workers 3
+python code/cli.py "Question?" --strategy debate --n-debaters 3
 ```
 
-### Working with Notebooks
-```bash
-cd notebooks
-jupyter notebook
-# Open 01_baseline_experiments.ipynb
+**CRIT**:
+```python
+from crit import run_critique_strategy, MOBILE_CHECKOUT
+
+result = run_critique_strategy("multi_perspective", MOBILE_CHECKOUT)
 ```
 
-### Adding New Models
-```bash
-# Ollama
-ollama pull model-name:latest
+**SELPHI**:
+```python
+from selphi import run_multiple_scenarios, get_scenarios_by_difficulty
 
-# MLX (downloaded automatically on first use)
-# Models from: https://huggingface.co/mlx-community
+scenarios = get_scenarios_by_difficulty("medium")
+results = run_multiple_scenarios(scenarios, provider="ollama")
 ```
 
-## Key Context for Claude
+### Cross-Subsystem Integration
 
-### Hardware Capabilities (M4 Max 128GB)
-- Can run models up to 70B (4-bit quantized)
-- Can run 3-4 7B models simultaneously for multi-agent
-- Can fine-tune 13B models with LoRA
-- MLX optimized for unified memory architecture
+```python
+# Use harness experiment tracking with CRIT
+from harness import get_tracker, ExperimentConfig
+from crit import run_critique_strategy, MOBILE_CHECKOUT
 
-### Research Direction
-- Focus on **when** multi-agent helps (task types, complexity)
-- Focus on **why** it helps (interpretability, hidden layers)
-- Cost/latency tradeoffs vs quality improvements
-- Fine-tuning impact on multi-agent performance
+config = ExperimentConfig(
+    experiment_name="crit_experiments",
+    task_type="design_critique"
+)
 
-### Current Status
-- ✅ Core harness implemented and tested
-- ✅ Baseline experiments established
-- ✅ Debate strategy validated
-- ✅ Configuration management in place
-- 🚧 Advanced interpretability features (future)
-- 🚧 Fine-tuning workflows (future)
-- 🚧 Hidden layer analysis (future)
+tracker = get_tracker()
+tracker.start_experiment(config)
 
-### Important Conventions
+result = run_critique_strategy("multi_perspective", MOBILE_CHECKOUT)
 
-1. **Provider Naming**: Use consistent provider strings
-   - `"ollama"` for Ollama
-   - `"mlx"` for MLX
-   - `"anthropic"` for Claude
-   - `"openai"` for GPT
+tracker.log_result(...)
+tracker.finish_experiment()
+```
 
-2. **Model Naming**:
-   - Ollama: `"model-name:tag"` (e.g., `"llama3.2:latest"`)
-   - MLX: Full HF path (e.g., `"mlx-community/Llama-3.2-3B-Instruct-4bit"`)
-   - API: Official model IDs (e.g., `"claude-3-5-sonnet-20241022"`)
+## Hardware Optimization (M4 Max 128GB)
 
-3. **Strategy Naming**: Use lowercase with underscores
-   - `"single"`, `"debate"`, `"self_consistency"`, `"manager_worker"`
+### What You Can Run
 
-4. **Temperature Guidelines**:
-   - 0.1-0.3: Deterministic, factual tasks
-   - 0.7-0.8: Balanced, general reasoning
-   - 0.9+: Creative, diverse outputs
+- **70B models**: ~35GB (4-bit quantized)
+- **3-4 agents in parallel**: 3x 7B models (~12GB total)
+- **Fine-tune 13B**: LoRA training (~20GB)
 
-5. **Thinking Budget**: For reasoning-capable models
-   - 1000-2000: Standard reasoning tasks
-   - 2500-3000: Complex multi-step problems
-   - 5000+: Extended chain-of-thought
+### Recommended Configurations
 
-### Performance Optimization
+```python
+# Fast iteration
+provider="ollama"
+model="llama3.2:3b"  # ~2GB, ~120 tok/s
 
-1. **Start Small**: Use 3B/7B models for iteration, scale up for quality
-2. **Use Configs**: Leverage presets to avoid repeating parameters
-3. **Batch Wisely**: Keep batch_size 1-4 for most experiments
-4. **Cache Models**: Ollama and HF cache models for faster loading
-5. **Monitor Memory**: Use Activity Monitor to track RAM usage
+# Quality experiments
+provider="ollama"
+model="llama3.1:70b"  # ~35GB, ~15 tok/s
 
-### Troubleshooting
+# Multi-agent (3-4 agents)
+model="llama3.1:8b"  # ~4GB each
 
-**Ollama Issues**:
+# API baseline
+provider="anthropic"
+model="claude-3-5-sonnet-20241022"
+```
+
+## Important Conventions
+
+### Provider Names
+- `"ollama"`, `"mlx"`, `"anthropic"`, `"openai"`
+
+### Model Names
+- Ollama: `"llama3.2:latest"`
+- MLX: `"mlx-community/Llama-3.2-3B-Instruct-4bit"`
+- API: `"claude-3-5-sonnet-20241022"`
+
+### Strategy Names
+- Use lowercase with underscores: `"single"`, `"debate"`, `"multi_perspective"`
+
+### Temperature Guidelines
+- **0.1-0.3**: Deterministic tasks
+- **0.7-0.8**: Balanced reasoning
+- **0.9+**: Creative outputs
+
+## Key Files by Subsystem
+
+### Harness (1,900 LOC)
+- `llm_provider.py` (527 LOC) - Unified LLM interface
+- `strategies.py` (749 LOC) - Multi-agent strategies
+- `experiment_tracker.py` - Logging
+- `evals.py` - Evaluation functions
+- `benchmarks.py` - Unified benchmark interface
+- `rationale.py` (285 LOC) - Reasoning extraction
+- `model_config.py` - YAML config
+
+### CRIT (1,500+ LOC)
+- `problems.py` (584 LOC) - 8 design problems
+- `strategies.py` - 4 critique strategies
+- `evals.py` - Critique quality metrics
+- `benchmarks.py` - UICrit dataset (11,344 critiques)
+
+### SELPHI (1,200+ LOC)
+- `scenarios.py` - 9+ ToM scenarios
+- `evals.py` - ToM evaluation
+- `benchmarks.py` - ToMBench, OpenToM, SocialIQA
+
+## Research Direction
+
+### Core Questions
+1. **When** do multi-agent strategies outperform?
+2. **Why** do they outperform?
+3. **What** are the tradeoffs?
+
+### CRIT Questions
+- Do multi-perspective critiques cover more design issues?
+- Is iterative refinement better than one-shot?
+- Can adversarial critique find edge cases?
+
+### SELPHI Questions
+- Which ToM types are hardest for LLMs?
+- Do larger models have better ToM?
+- Can fine-tuning improve ToM?
+
+## Status
+
+### ✅ Completed
+- Core harness with 5 strategies
+- CRIT with 8 problems, 4 strategies
+- SELPHI with 9+ scenarios, 3 benchmarks
+- Experiment tracking
+- Model configuration
+- Unified benchmark interface
+- Rationale extraction
+
+### 🚧 In Progress
+- Baseline experiments
+- Performance benchmarking
+- Documentation
+
+### 📋 Planned
+- Fine-tuning workflows (MLX + LoRA)
+- Interpretability tools
+- Advanced visualization
+
+## Performance Tips
+
+1. **Start small**: 3B/7B for iteration, 70B for quality
+2. **Use configs**: Leverage model presets
+3. **Batch wisely**: 1-4 items per batch
+4. **Cache models**: Ollama/HF cache for speed
+5. **Monitor memory**: Use Activity Monitor
+
+## Troubleshooting
+
+**Ollama**:
 ```bash
 killall ollama && ollama serve &
-ollama list  # Check available models
+ollama list
 ```
 
-**MLX Issues**:
+**Imports**:
+```python
+import sys
+sys.path.append('../code')  # In notebooks
+```
+
+**MLX**:
 ```python
 import mlx.core as mx
-print(mx.__version__)  # Verify installation
+print(mx.__version__)
 ```
 
-**Import Issues**:
-```python
-# In notebooks, ensure path is correct
-import sys
-sys.path.append('../code')
-```
+## Documentation Map
 
-## Integration Points
+- **README.md** - Project overview
+- **ARCHITECTURE.md** - Deep dive (all subsystems)
+- **QUICKSTART.md** - Cheat sheet
+- **SETUP.md** - Installation
+- **BENCHMARKS.md** - Benchmark datasets
+- **CLAUDE.md** - This file (development guide)
 
-### For New Features
-
-1. **New Provider**: Extend `llm_provider.py` with new provider class
-2. **New Strategy**: Add function to `strategies.py` and register
-3. **New Eval**: Add function to `evals.py` and register
-4. **New Config**: Add entry to `config/models.yaml`
-5. **New Notebook**: Create in `notebooks/` with imports from harness
-
-### For External Tools
-
-- Experiment logs are JSON/JSONL (easy to parse)
-- CLI can be scripted for automation
-- Harness can be imported as Python package
+Subsystem docs:
+- **code/crit/README.md** - CRIT details
+- **code/selphi/README.md** - SELPHI details
+- **config/README.md** - Model configs
 
 ## References
 
-- **MLX**: https://github.com/ml-explore/mlx
-- **MLX-LM**: https://github.com/ml-explore/mlx-examples/tree/main/llms
-- **Ollama**: https://ollama.ai
-- **MLX Models**: https://huggingface.co/mlx-community
+- MLX: https://github.com/ml-explore/mlx
+- Ollama: https://ollama.ai
+- MLX Models: https://huggingface.co/mlx-community
+- UICrit: https://github.com/google-research-datasets/uicrit
+- ToMBench: https://github.com/wadimiusz/ToMBench
 
-## Next Steps for Development
+## Development Philosophy
 
-Based on the roadmap, prioritize:
+**Remember**: This is a research tool for rapid experimentation, not production.
 
-1. **Immediate**: Run more baseline experiments, expand task suite
-2. **Short-term**: Analyze multi-agent vs single performance systematically
-3. **Medium-term**: Add fine-tuning workflows, interpretability probes
-4. **Long-term**: Build hidden layer analysis tools, draft findings
+Key principles:
+1. Local-first (MLX, Ollama)
+2. Notebook-centric
+3. Reproducible (auto-logging)
+4. Hackable (simple code)
+5. Modular (clear subsystem boundaries)
+6. Extensible (registry patterns)
 
-## Questions to Keep in Mind
-
-While developing, constantly ask:
-1. Does this maintain the local-first philosophy?
-2. Is this notebook-friendly?
-3. Is this reproducible (logged, versioned)?
-4. Is this extensible (easy for future additions)?
-5. Does this help answer the core research questions?
+Ask yourself:
+- Is this local-first?
+- Is this notebook-friendly?
+- Is this reproducible?
+- Is this extensible?
+- Does this help answer research questions?
 
 ---
 
-**Remember**: This is a research tool for rapid experimentation, not a production system. Favor simplicity and hackability over robustness and scale. Make it easy to try new ideas quickly.
+**For detailed architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md)
+**For quick start**: See [QUICKSTART.md](QUICKSTART.md)
+**For setup**: See [SETUP.md](SETUP.md)
