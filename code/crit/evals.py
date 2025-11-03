@@ -5,22 +5,19 @@ This module provides evaluation methods for assessing the quality
 of design critiques and recommendations.
 """
 
-from typing import List, Dict, Any, Optional
-import sys
 import os
+import sys
+from typing import Any, Dict, List, Optional
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from harness import llm_call
 from crit.problems import DesignProblem
 from crit.strategies import CritiqueResult
+from harness import llm_call
 
 
-def evaluate_critique_coverage(
-    problem: DesignProblem,
-    critique_result: CritiqueResult
-) -> Dict[str, Any]:
+def evaluate_critique_coverage(problem: DesignProblem, critique_result: CritiqueResult) -> Dict[str, Any]:
     """
     Evaluate how well the critique covers important aspects.
 
@@ -97,7 +94,7 @@ def evaluate_recommendation_quality(
     critique_result: CritiqueResult,
     judge_provider: str = "ollama",
     judge_model: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     Use LLM judge to evaluate recommendation quality.
@@ -167,12 +164,7 @@ Recommendation 2:
 Overall Assessment: [summary]
 """
 
-    judge_response = llm_call(
-        judge_prompt,
-        provider=judge_provider,
-        model=judge_model,
-        **kwargs
-    )
+    judge_response = llm_call(judge_prompt, provider=judge_provider, model=judge_model, **kwargs)
 
     # Parse scores
     import re
@@ -182,10 +174,10 @@ Overall Assessment: [summary]
     relevance_scores = []
     feasibility_scores = []
 
-    specificity_pattern = r'Specificity:\s*(\d+(?:\.\d+)?)/10'
-    actionability_pattern = r'Actionability:\s*(\d+(?:\.\d+)?)/10'
-    relevance_pattern = r'Relevance:\s*(\d+(?:\.\d+)?)/10'
-    feasibility_pattern = r'Feasibility:\s*(\d+(?:\.\d+)?)/10'
+    specificity_pattern = r"Specificity:\s*(\d+(?:\.\d+)?)/10"
+    actionability_pattern = r"Actionability:\s*(\d+(?:\.\d+)?)/10"
+    relevance_pattern = r"Relevance:\s*(\d+(?:\.\d+)?)/10"
+    feasibility_pattern = r"Feasibility:\s*(\d+(?:\.\d+)?)/10"
 
     specificity_scores = [float(s) for s in re.findall(specificity_pattern, judge_response.text)]
     actionability_scores = [float(s) for s in re.findall(actionability_pattern, judge_response.text)]
@@ -200,12 +192,10 @@ Overall Assessment: [summary]
     relevance_avg = avg(relevance_scores)
     feasibility_avg = avg(feasibility_scores)
 
-    overall_quality = (
-        specificity_avg + actionability_avg + relevance_avg + feasibility_avg
-    ) / 4.0
+    overall_quality = (specificity_avg + actionability_avg + relevance_avg + feasibility_avg) / 4.0
 
     # Extract overall assessment
-    overall_match = re.search(r'Overall Assessment:\s*(.+)', judge_response.text, re.DOTALL)
+    overall_match = re.search(r"Overall Assessment:\s*(.+)", judge_response.text, re.DOTALL)
     overall_assessment = overall_match.group(1).strip() if overall_match else "No assessment"
 
     return {
@@ -223,9 +213,7 @@ Overall Assessment: [summary]
     }
 
 
-def evaluate_critique_depth(
-    critique_result: CritiqueResult
-) -> Dict[str, Any]:
+def evaluate_critique_depth(critique_result: CritiqueResult) -> Dict[str, Any]:
     """
     Evaluate the depth and thoroughness of critique.
 
@@ -250,10 +238,7 @@ def evaluate_critique_depth(
         elif "content" in critique:
             total_critique_length += len(critique["content"])
 
-    avg_critique_length = (
-        total_critique_length / len(critique_result.critiques)
-        if critique_result.critiques else 0
-    )
+    avg_critique_length = total_critique_length / len(critique_result.critiques) if critique_result.critiques else 0
 
     # Simple depth score based on heuristics
     # More critiques, longer text, more recommendations = deeper analysis
@@ -290,7 +275,7 @@ def evaluate_critique(
     method: str = "combined",
     judge_provider: str = "ollama",
     judge_model: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     Comprehensive evaluation of a design critique.
@@ -318,11 +303,7 @@ def evaluate_critique(
 
     if method in ["quality", "combined"]:
         quality = evaluate_recommendation_quality(
-            problem,
-            critique_result,
-            judge_provider=judge_provider,
-            judge_model=judge_model,
-            **kwargs
+            problem, critique_result, judge_provider=judge_provider, judge_model=judge_model, **kwargs
         )
         results["quality"] = quality
 
@@ -333,9 +314,9 @@ def evaluate_critique(
     # Combined score
     if method == "combined":
         combined_score = (
-            coverage.get("overall_coverage", 0) * 0.3 +
-            quality.get("overall_quality", 0) * 0.5 +
-            depth.get("depth_score", 0) * 0.2
+            coverage.get("overall_coverage", 0) * 0.3
+            + quality.get("overall_quality", 0) * 0.5
+            + depth.get("depth_score", 0) * 0.2
         )
         results["combined_score"] = combined_score
 
@@ -347,7 +328,7 @@ def compare_strategies(
     results: Dict[str, CritiqueResult],
     judge_provider: str = "ollama",
     judge_model: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     Compare multiple critique strategies on the same problem.
@@ -371,7 +352,7 @@ def compare_strategies(
             method="combined",
             judge_provider=judge_provider,
             judge_model=judge_model,
-            **kwargs
+            **kwargs,
         )
         evaluations[strategy_name] = eval_result
 
@@ -385,38 +366,21 @@ def compare_strategies(
 
     # Rank by combined score
     if all("combined_score" in ev for ev in evaluations.values()):
-        ranked = sorted(
-            evaluations.items(),
-            key=lambda x: x[1]["combined_score"],
-            reverse=True
-        )
-        comparison["rankings"]["combined"] = [
-            {"strategy": name, "score": ev["combined_score"]}
-            for name, ev in ranked
-        ]
+        ranked = sorted(evaluations.items(), key=lambda x: x[1]["combined_score"], reverse=True)
+        comparison["rankings"]["combined"] = [{"strategy": name, "score": ev["combined_score"]} for name, ev in ranked]
 
     # Rank by coverage
     if all("coverage" in ev for ev in evaluations.values()):
-        ranked = sorted(
-            evaluations.items(),
-            key=lambda x: x[1]["coverage"]["overall_coverage"],
-            reverse=True
-        )
+        ranked = sorted(evaluations.items(), key=lambda x: x[1]["coverage"]["overall_coverage"], reverse=True)
         comparison["rankings"]["coverage"] = [
-            {"strategy": name, "score": ev["coverage"]["overall_coverage"]}
-            for name, ev in ranked
+            {"strategy": name, "score": ev["coverage"]["overall_coverage"]} for name, ev in ranked
         ]
 
     # Rank by quality
     if all("quality" in ev for ev in evaluations.values()):
-        ranked = sorted(
-            evaluations.items(),
-            key=lambda x: x[1]["quality"]["overall_quality"],
-            reverse=True
-        )
+        ranked = sorted(evaluations.items(), key=lambda x: x[1]["quality"]["overall_quality"], reverse=True)
         comparison["rankings"]["quality"] = [
-            {"strategy": name, "score": ev["quality"]["overall_quality"]}
-            for name, ev in ranked
+            {"strategy": name, "score": ev["quality"]["overall_quality"]} for name, ev in ranked
         ]
 
     # Cost and latency comparison
@@ -433,10 +397,7 @@ def compare_strategies(
 
 
 def batch_evaluate(
-    results: List[Dict[str, Any]],
-    judge_provider: str = "ollama",
-    judge_model: Optional[str] = None,
-    **kwargs
+    results: List[Dict[str, Any]], judge_provider: str = "ollama", judge_model: Optional[str] = None, **kwargs
 ) -> Dict[str, Any]:
     """
     Evaluate multiple critique results.
@@ -462,31 +423,19 @@ def batch_evaluate(
             method="combined",
             judge_provider=judge_provider,
             judge_model=judge_model,
-            **kwargs
+            **kwargs,
         )
 
         evaluations.append(eval_result)
 
     # Aggregate
-    combined_scores = [
-        ev["combined_score"] for ev in evaluations
-        if "combined_score" in ev
-    ]
+    combined_scores = [ev["combined_score"] for ev in evaluations if "combined_score" in ev]
 
-    coverage_scores = [
-        ev["coverage"]["overall_coverage"] for ev in evaluations
-        if "coverage" in ev
-    ]
+    coverage_scores = [ev["coverage"]["overall_coverage"] for ev in evaluations if "coverage" in ev]
 
-    quality_scores = [
-        ev["quality"]["overall_quality"] for ev in evaluations
-        if "quality" in ev
-    ]
+    quality_scores = [ev["quality"]["overall_quality"] for ev in evaluations if "quality" in ev]
 
-    depth_scores = [
-        ev["depth"]["depth_score"] for ev in evaluations
-        if "depth" in ev
-    ]
+    depth_scores = [ev["depth"]["depth_score"] for ev in evaluations if "depth" in ev]
 
     return {
         "evaluations": evaluations,

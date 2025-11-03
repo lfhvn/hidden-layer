@@ -5,22 +5,23 @@ This module provides functions to run ToM scenarios with language models
 and collect results for analysis.
 """
 
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, asdict
-import sys
 import os
+import sys
 import time
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, List, Optional
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from harness import llm_call, LLMResponse
-from selphi.scenarios import ToMScenario, ToMType, ALL_SCENARIOS, get_scenarios_by_type, get_scenarios_by_difficulty
+from harness import llm_call
+from selphi.scenarios import ALL_SCENARIOS, ToMScenario, ToMType, get_scenarios_by_difficulty, get_scenarios_by_type
 
 
 @dataclass
 class ToMTaskResult:
     """Result of running a ToM scenario with a model"""
+
     scenario_name: str
     scenario_type: str
     difficulty: str
@@ -40,11 +41,7 @@ class ToMTaskResult:
 
 
 def run_scenario(
-    scenario: ToMScenario,
-    provider: str = "ollama",
-    model: Optional[str] = None,
-    include_context: bool = True,
-    **kwargs
+    scenario: ToMScenario, provider: str = "ollama", model: Optional[str] = None, include_context: bool = True, **kwargs
 ) -> ToMTaskResult:
     """
     Run a single ToM scenario with a language model.
@@ -80,10 +77,7 @@ def run_scenario(
         provider=provider,
         model=model or response.model or "unknown",
         timestamp=time.time(),
-        metadata={
-            "scenario": scenario.to_dict(),
-            "prompt": prompt
-        }
+        metadata={"scenario": scenario.to_dict(), "prompt": prompt},
     )
 
 
@@ -93,7 +87,7 @@ def run_multiple_scenarios(
     model: Optional[str] = None,
     include_context: bool = True,
     verbose: bool = False,
-    **kwargs
+    **kwargs,
 ) -> List[ToMTaskResult]:
     """
     Run multiple ToM scenarios with a language model.
@@ -115,13 +109,7 @@ def run_multiple_scenarios(
         if verbose:
             print(f"Running scenario {i}/{len(scenarios)}: {scenario.name}")
 
-        result = run_scenario(
-            scenario,
-            provider=provider,
-            model=model,
-            include_context=include_context,
-            **kwargs
-        )
+        result = run_scenario(scenario, provider=provider, model=model, include_context=include_context, **kwargs)
 
         results.append(result)
 
@@ -132,11 +120,7 @@ def run_multiple_scenarios(
 
 
 def run_all_scenarios(
-    provider: str = "ollama",
-    model: Optional[str] = None,
-    include_context: bool = True,
-    verbose: bool = False,
-    **kwargs
+    provider: str = "ollama", model: Optional[str] = None, include_context: bool = True, verbose: bool = False, **kwargs
 ) -> List[ToMTaskResult]:
     """
     Run all available ToM scenarios.
@@ -152,12 +136,7 @@ def run_all_scenarios(
         List of ToMTaskResults
     """
     return run_multiple_scenarios(
-        ALL_SCENARIOS,
-        provider=provider,
-        model=model,
-        include_context=include_context,
-        verbose=verbose,
-        **kwargs
+        ALL_SCENARIOS, provider=provider, model=model, include_context=include_context, verbose=verbose, **kwargs
     )
 
 
@@ -167,7 +146,7 @@ def run_scenarios_by_type(
     model: Optional[str] = None,
     include_context: bool = True,
     verbose: bool = False,
-    **kwargs
+    **kwargs,
 ) -> List[ToMTaskResult]:
     """
     Run all scenarios of a specific ToM type.
@@ -185,12 +164,7 @@ def run_scenarios_by_type(
     """
     scenarios = get_scenarios_by_type(tom_type)
     return run_multiple_scenarios(
-        scenarios,
-        provider=provider,
-        model=model,
-        include_context=include_context,
-        verbose=verbose,
-        **kwargs
+        scenarios, provider=provider, model=model, include_context=include_context, verbose=verbose, **kwargs
     )
 
 
@@ -200,7 +174,7 @@ def run_scenarios_by_difficulty(
     model: Optional[str] = None,
     include_context: bool = True,
     verbose: bool = False,
-    **kwargs
+    **kwargs,
 ) -> List[ToMTaskResult]:
     """
     Run all scenarios of a specific difficulty level.
@@ -218,12 +192,7 @@ def run_scenarios_by_difficulty(
     """
     scenarios = get_scenarios_by_difficulty(difficulty)
     return run_multiple_scenarios(
-        scenarios,
-        provider=provider,
-        model=model,
-        include_context=include_context,
-        verbose=verbose,
-        **kwargs
+        scenarios, provider=provider, model=model, include_context=include_context, verbose=verbose, **kwargs
     )
 
 
@@ -232,7 +201,7 @@ def compare_models_on_scenarios(
     models: List[Dict[str, Any]],
     include_context: bool = True,
     verbose: bool = False,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, List[ToMTaskResult]]:
     """
     Compare multiple models on the same scenarios.
@@ -250,9 +219,9 @@ def compare_models_on_scenarios(
     results_by_model = {}
 
     for model_config in models:
-        provider = model_config.get('provider', 'ollama')
-        model = model_config.get('model')
-        model_name = model_config.get('name', f"{provider}:{model}")
+        provider = model_config.get("provider", "ollama")
+        model = model_config.get("model")
+        model_name = model_config.get("name", f"{provider}:{model}")
 
         if verbose:
             print(f"\n{'='*60}")
@@ -260,16 +229,11 @@ def compare_models_on_scenarios(
             print(f"{'='*60}")
 
         # Merge kwargs
-        model_kwargs = {**kwargs, **model_config.get('kwargs', {})}
+        model_kwargs = {**kwargs, **model_config.get("kwargs", {})}
 
         # Run scenarios
         results = run_multiple_scenarios(
-            scenarios,
-            provider=provider,
-            model=model,
-            include_context=include_context,
-            verbose=verbose,
-            **model_kwargs
+            scenarios, provider=provider, model=model, include_context=include_context, verbose=verbose, **model_kwargs
         )
 
         results_by_model[model_name] = results
@@ -280,10 +244,6 @@ def compare_models_on_scenarios(
 def results_to_dict_list(results: List[ToMTaskResult]) -> List[Dict[str, Any]]:
     """Convert list of results to list of dictionaries for evaluation"""
     return [
-        {
-            'scenario': result.metadata['scenario'],
-            'response': result.model_response,
-            'result': result.to_dict()
-        }
+        {"scenario": result.metadata["scenario"], "response": result.model_response, "result": result.to_dict()}
         for result in results
     ]

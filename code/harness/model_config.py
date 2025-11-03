@@ -7,11 +7,12 @@ Allows defining and loading model-specific configurations including:
 - Thinking budgets and reasoning controls
 - Provider-specific options
 """
-import os
-import yaml
+
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Dict, Any, Optional
-from dataclasses import dataclass, field, asdict
+from typing import Any, Dict, Optional
+
+import yaml
 
 
 @dataclass
@@ -46,32 +47,32 @@ class ModelConfig:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary, excluding None values"""
-        return {k: v for k, v in asdict(self).items() if v is not None and k not in ['name', 'description', 'tags']}
+        return {k: v for k, v in asdict(self).items() if v is not None and k not in ["name", "description", "tags"]}
 
     def to_kwargs(self) -> Dict[str, Any]:
         """Convert to kwargs for llm_call/run_strategy"""
         kwargs = {
-            'provider': self.provider,
-            'model': self.model,
-            'temperature': self.temperature,
-            'max_tokens': self.max_tokens,
+            "provider": self.provider,
+            "model": self.model,
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
         }
 
         # Add optional parameters
         if self.system_prompt:
-            kwargs['system_prompt'] = self.system_prompt
+            kwargs["system_prompt"] = self.system_prompt
         if self.top_k:
-            kwargs['top_k'] = self.top_k
+            kwargs["top_k"] = self.top_k
         if self.top_p:
-            kwargs['top_p'] = self.top_p
+            kwargs["top_p"] = self.top_p
         if self.thinking_budget:
-            kwargs['thinking_budget'] = self.thinking_budget
+            kwargs["thinking_budget"] = self.thinking_budget
         if self.num_ctx:
-            kwargs['num_ctx'] = self.num_ctx
+            kwargs["num_ctx"] = self.num_ctx
         if self.repeat_penalty:
-            kwargs['repeat_penalty'] = self.repeat_penalty
+            kwargs["repeat_penalty"] = self.repeat_penalty
         if self.seed:
-            kwargs['seed'] = self.seed
+            kwargs["seed"] = self.seed
 
         return kwargs
 
@@ -92,11 +93,11 @@ class ModelConfigManager:
             return
 
         try:
-            with open(self.config_file, 'r') as f:
+            with open(self.config_file, "r") as f:
                 data = yaml.safe_load(f) or {}
 
             for name, config_data in data.items():
-                config_data['name'] = name
+                config_data["name"] = name
                 self._configs[name] = ModelConfig(**config_data)
         except Exception as e:
             print(f"Warning: Could not load model configs: {e}")
@@ -121,11 +122,11 @@ class ModelConfigManager:
         for name, config in self._configs.items():
             config_dict = asdict(config)
             # Remove name from the dict as it's the key
-            config_dict.pop('name')
+            config_dict.pop("name")
             # Remove None values
             data[name] = {k: v for k, v in config_dict.items() if v is not None}
 
-        with open(self.config_file, 'w') as f:
+        with open(self.config_file, "w") as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)
 
     def create_default_configs(self):
@@ -139,7 +140,7 @@ class ModelConfigManager:
                 thinking_budget=2000,
                 num_ctx=4096,
                 description="GPT-OSS 20B with extended reasoning budget",
-                tags=["reasoning", "large"]
+                tags=["reasoning", "large"],
             ),
             ModelConfig(
                 name="gpt-oss-20b-creative",
@@ -149,7 +150,7 @@ class ModelConfigManager:
                 top_p=0.95,
                 num_ctx=4096,
                 description="GPT-OSS 20B optimized for creative tasks",
-                tags=["creative", "large"]
+                tags=["creative", "large"],
             ),
             ModelConfig(
                 name="gpt-oss-20b-precise",
@@ -160,7 +161,7 @@ class ModelConfigManager:
                 num_ctx=4096,
                 seed=42,
                 description="GPT-OSS 20B for precise, deterministic outputs",
-                tags=["precise", "deterministic"]
+                tags=["precise", "deterministic"],
             ),
             ModelConfig(
                 name="gpt-oss-20b-fast",
@@ -169,7 +170,7 @@ class ModelConfigManager:
                 temperature=0.7,
                 max_tokens=1024,
                 description="GPT-OSS 20B for fast iteration and testing with lower token limits",
-                tags=["fast"]
+                tags=["fast"],
             ),
             ModelConfig(
                 name="claude-sonnet",
@@ -178,7 +179,7 @@ class ModelConfigManager:
                 temperature=0.7,
                 max_tokens=4096,
                 description="Claude 3.5 Sonnet for high-quality outputs",
-                tags=["api", "premium"]
+                tags=["api", "premium"],
             ),
             ModelConfig(
                 name="claude-haiku",
@@ -187,7 +188,7 @@ class ModelConfigManager:
                 temperature=0.7,
                 max_tokens=2048,
                 description="Claude 3.5 Haiku for fast, cost-effective API usage",
-                tags=["api", "fast", "cheap"]
+                tags=["api", "fast", "cheap"],
             ),
         ]
 
@@ -200,6 +201,7 @@ class ModelConfigManager:
 
 # Singleton instance
 _manager = None
+
 
 def get_config_manager() -> ModelConfigManager:
     """Get or create singleton config manager"""

@@ -1,0 +1,26 @@
+[flake8]
+max-line-length = 120
+extend-ignore = E203
+exclude = 
+    venv,
+    __pycache__,
+    .git,
+    *.egg-info,
+    .pytest_cache,
+    .mypy_cache
+
+# Ignore unused imports in __init__.py files (they're for re-exporting)
+per-file-ignores =
+    __init__.py:F401
+    tests/test_imports.py:F401,E402
+    tests/test_core.py:E402,F401
+    code/cli.py:E402
+    code/crit/benchmarks.py:E402
+    code/crit/evals.py:E402
+    code/crit/strategies.py:E402,E501
+    code/selphi/benchmarks.py:E402
+    code/selphi/evals.py:E402,F541
+    code/selphi/tasks.py:E402
+    code/selphi/scenarios.py:E501
+    code/harness/rationale.py:E501
+    code/harness/strategies.py:E501

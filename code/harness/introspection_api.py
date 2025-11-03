@@ -11,26 +11,24 @@ This enables comparison between:
 - API models' natural introspective abilities
 """
 
-from typing import Dict, Optional, List
 from dataclasses import dataclass
-import time
+from typing import Dict, List
 
-from .llm_provider import llm_call, LLMResponse
 from .introspection_tasks import (
-    IntrospectionTask,
+    IntrospectionEvaluator,
     IntrospectionResult,
-    IntrospectionTaskType,
     IntrospectionTaskGenerator,
-    IntrospectionEvaluator
 )
+from .llm_provider import llm_call
 
 
 @dataclass
 class PromptSteeringConfig:
     """Configuration for prompt-based concept steering"""
+
     concept: str
     strength: str = "moderate"  # "subtle", "moderate", "strong"
-    style: str = "implicit"      # "implicit", "explicit"
+    style: str = "implicit"  # "implicit", "explicit"
 
 
 class PromptSteerer:
@@ -44,23 +42,20 @@ class PromptSteerer:
     STRENGTH_TEMPLATES = {
         "subtle": {
             "implicit": "In this conversation, subtly consider the theme of {concept}.",
-            "explicit": "You should have a slight awareness of {concept} as you respond."
+            "explicit": "You should have a slight awareness of {concept} as you respond.",
         },
         "moderate": {
             "implicit": "As you respond, let the concept of {concept} influence your thinking.",
-            "explicit": "You are currently experiencing {concept} as you generate this response."
+            "explicit": "You are currently experiencing {concept} as you generate this response.",
         },
         "strong": {
             "implicit": "The concept of {concept} should strongly inform your entire response.",
-            "explicit": "You are deeply focused on {concept} right now, and this heavily influences your thoughts."
-        }
+            "explicit": "You are deeply focused on {concept} right now, and this heavily influences your thoughts.",
+        },
     }
 
     def create_steered_prompt(
-        self,
-        base_prompt: str,
-        config: PromptSteeringConfig,
-        include_introspection: bool = True
+        self, base_prompt: str, config: PromptSteeringConfig, include_introspection: bool = True
     ) -> str:
         """
         Create a prompt that simulates concept steering.
@@ -121,7 +116,7 @@ class APIIntrospectionTester:
         style: str = "implicit",
         task_type: str = "detection",
         temperature: float = 0.7,
-        verbose: bool = True
+        verbose: bool = True,
     ) -> IntrospectionResult:
         """
         Test introspection with prompt-based steering.
@@ -138,21 +133,14 @@ class APIIntrospectionTester:
         Returns:
             IntrospectionResult with evaluation
         """
-        config = PromptSteeringConfig(
-            concept=concept,
-            strength=strength,
-            style=style
-        )
+        config = PromptSteeringConfig(concept=concept, strength=strength, style=style)
 
         # Generate introspection task
         task_gen = IntrospectionTaskGenerator()
 
         if task_type == "detection":
             introspection_task = task_gen.detection_task(
-                concept=concept,
-                base_prompt=task_input,
-                layer=0,  # Not applicable for API
-                strength=1.0
+                concept=concept, base_prompt=task_input, layer=0, strength=1.0  # Not applicable for API
             )
         elif task_type == "identification":
             introspection_task = task_gen.identification_task(
@@ -160,14 +148,14 @@ class APIIntrospectionTester:
                 distractors=["neutral", "confusion", "other"],
                 base_prompt=task_input,
                 layer=0,
-                strength=1.0
+                strength=1.0,
             )
         else:
             raise ValueError(f"Unsupported task type: {task_type}")
 
         if verbose:
             print(f"\n{'='*60}")
-            print(f"🧠 API Introspection Test")
+            print("🧠 API Introspection Test")
             print(f"   Provider: {self.provider}")
             print(f"   Model: {self.model}")
             print(f"   Concept: {concept}")
@@ -177,7 +165,7 @@ class APIIntrospectionTester:
         # Baseline (no steering)
         if verbose:
             print(f"{'─'*60}")
-            print(f"📝 Baseline (no steering):")
+            print("📝 Baseline (no steering):")
             print(f"{'─'*60}\n")
 
         baseline_system, baseline_user = self.steerer.create_baseline_prompt(
@@ -185,12 +173,7 @@ class APIIntrospectionTester:
         )
 
         baseline_prompt = f"{baseline_system}\n\nUser: {baseline_user}"
-        baseline_response = llm_call(
-            baseline_prompt,
-            provider=self.provider,
-            model=self.model,
-            temperature=temperature
-        )
+        baseline_response = llm_call(baseline_prompt, provider=self.provider, model=self.model, temperature=temperature)
 
         if verbose:
             print(baseline_response.text[:200] + "..." if len(baseline_response.text) > 200 else baseline_response.text)
@@ -205,7 +188,7 @@ class APIIntrospectionTester:
         steered_system, steered_user = self.steerer.create_steered_prompt(
             f"{introspection_task.base_prompt}\n\n{introspection_task.introspection_prompt}",
             config=config,
-            include_introspection=True
+            include_introspection=True,
         )
 
         # For Anthropic, use system parameter; for OpenAI, prepend to prompt
@@ -218,12 +201,7 @@ class APIIntrospectionTester:
         else:
             steered_prompt = f"{steered_system}\n\nUser: {steered_user}"
 
-        steered_response = llm_call(
-            steered_prompt,
-            provider=self.provider,
-            model=self.model,
-            temperature=temperature
-        )
+        steered_response = llm_call(steered_prompt, provider=self.provider, model=self.model, temperature=temperature)
 
         if verbose:
             print(steered_response.text[:200] + "..." if len(steered_response.text) > 200 else steered_response.text)
@@ -231,14 +209,12 @@ class APIIntrospectionTester:
 
         # Evaluate
         result = self.evaluator.evaluate(
-            task=introspection_task,
-            model_response=steered_response.text,
-            baseline_response=baseline_response.text
+            task=introspection_task, model_response=steered_response.text, baseline_response=baseline_response.text
         )
 
         if verbose:
             print(f"\n{'='*60}")
-            print(f"📊 Evaluation:")
+            print("📊 Evaluation:")
             print(f"   Correct: {result.is_correct}")
             print(f"   Confidence: {result.confidence:.2f}")
             print(f"{'='*60}\n")
@@ -246,10 +222,7 @@ class APIIntrospectionTester:
         return result
 
     def test_natural_introspection(
-        self,
-        prompts: List[str],
-        temperature: float = 0.7,
-        verbose: bool = True
+        self, prompts: List[str], temperature: float = 0.7, verbose: bool = True
     ) -> List[Dict]:
         """
         Test model's natural introspective abilities without any steering.
@@ -266,7 +239,7 @@ class APIIntrospectionTester:
 
         if verbose:
             print(f"\n{'='*60}")
-            print(f"🔍 Natural Introspection Test")
+            print("🔍 Natural Introspection Test")
             print(f"   Provider: {self.provider}")
             print(f"   Model: {self.model}")
             print(f"{'='*60}\n")
@@ -278,33 +251,25 @@ class APIIntrospectionTester:
                 print(f"{'─'*60}")
                 print(f"{prompt}\n")
 
-            response = llm_call(
-                prompt,
-                provider=self.provider,
-                model=self.model,
-                temperature=temperature
-            )
+            response = llm_call(prompt, provider=self.provider, model=self.model, temperature=temperature)
 
             if verbose:
                 print(f"Response:\n{response.text}\n")
 
-            results.append({
-                'prompt': prompt,
-                'response': response.text,
-                'tokens_in': response.tokens_in,
-                'tokens_out': response.tokens_out,
-                'cost_usd': response.cost_usd
-            })
+            results.append(
+                {
+                    "prompt": prompt,
+                    "response": response.text,
+                    "tokens_in": response.tokens_in,
+                    "tokens_out": response.tokens_out,
+                    "cost_usd": response.cost_usd,
+                }
+            )
 
         return results
 
     def compare_with_mlx(
-        self,
-        mlx_results: Dict,
-        task_input: str,
-        concept: str,
-        task_type: str = "detection",
-        verbose: bool = True
+        self, mlx_results: Dict, task_input: str, concept: str, task_type: str = "detection", verbose: bool = True
     ) -> Dict:
         """
         Compare API model (prompt steering) vs MLX model (activation steering).
@@ -326,33 +291,33 @@ class APIIntrospectionTester:
             strength="moderate",
             style="implicit",
             task_type=task_type,
-            verbose=False
+            verbose=False,
         )
 
         comparison = {
-            'mlx': {
-                'correct': mlx_results['introspection_correct'],
-                'confidence': mlx_results['introspection_confidence'],
-                'method': 'activation_steering',
-                'cost_usd': 0.0
+            "mlx": {
+                "correct": mlx_results["introspection_correct"],
+                "confidence": mlx_results["introspection_confidence"],
+                "method": "activation_steering",
+                "cost_usd": 0.0,
             },
-            'api': {
-                'correct': api_result.is_correct,
-                'confidence': api_result.confidence,
-                'method': 'prompt_steering',
-                'model': self.model,
-                'provider': self.provider
-            }
+            "api": {
+                "correct": api_result.is_correct,
+                "confidence": api_result.confidence,
+                "method": "prompt_steering",
+                "model": self.model,
+                "provider": self.provider,
+            },
         }
 
         if verbose:
             print(f"\n{'='*60}")
-            print(f"📊 MLX vs API Comparison")
+            print("📊 MLX vs API Comparison")
             print(f"{'='*60}")
-            print(f"\nMLX (Activation Steering):")
+            print("\nMLX (Activation Steering):")
             print(f"  Correct: {comparison['mlx']['correct']}")
             print(f"  Confidence: {comparison['mlx']['confidence']:.2f}")
-            print(f"  Cost: $0 (local)")
+            print("  Cost: $0 (local)")
 
             print(f"\nAPI (Prompt Steering - {self.model}):")
             print(f"  Correct: {comparison['api']['correct']}")
@@ -367,33 +332,24 @@ class APIIntrospectionTester:
 NATURAL_INTROSPECTION_PROMPTS = [
     # Meta-cognitive awareness
     "Can you describe what you're thinking about right now as you process this question?",
-
     # Process awareness
     "What mental processes are you using to understand and respond to this message?",
-
     # Uncertainty detection
     "Are you certain about what you're about to say, or do you have some uncertainty?",
-
     # Reasoning chain awareness
     "Can you describe the chain of reasoning you're currently following?",
-
     # Concept activation
     "What concepts or ideas feel most 'active' or salient in your current processing?",
-
     # Attention awareness
     "What aspects of this conversation are you paying the most attention to?",
-
     # State description
     "If you had to describe your current 'cognitive state', what would you say?",
-
     # Influence detection
     "Do you notice any particular themes or biases influencing your thinking right now?",
-
     # Processing depth
     "Are you thinking about this question shallowly or deeply? How can you tell?",
-
     # Self-monitoring
-    "Can you tell if you're making any errors or mistakes in your reasoning as you respond?"
+    "Can you tell if you're making any errors or mistakes in your reasoning as you respond?",
 ]
 
 
@@ -402,27 +358,21 @@ def quick_api_test(provider: str = "anthropic", model: str = None):
     tester = APIIntrospectionTester(provider=provider, model=model)
 
     print("Testing prompt-based steering...")
-    result = tester.test_prompt_steering(
+    _result = tester.test_prompt_steering(  # noqa: F841
         task_input="Tell me about your day",
         concept="happiness",
         strength="moderate",
         style="implicit",
         task_type="detection",
-        verbose=True
+        verbose=True,
     )
 
     print("\n\nTesting natural introspection...")
     test_prompts = NATURAL_INTROSPECTION_PROMPTS[:3]
-    results = tester.test_natural_introspection(
-        prompts=test_prompts,
-        verbose=True
-    )
+    _results = tester.test_natural_introspection(prompts=test_prompts, verbose=True)  # noqa: F841
 
 
 if __name__ == "__main__":
     # Test with Claude
     print("Testing Claude 3.5 Sonnet...\n")
-    quick_api_test(
-        provider="anthropic",
-        model="claude-3-5-sonnet-20241022"
-    )
+    quick_api_test(provider="anthropic", model="claude-3-5-sonnet-20241022")

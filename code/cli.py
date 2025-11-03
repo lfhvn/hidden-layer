@@ -15,8 +15,8 @@ from pathlib import Path
 # Add harness to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from harness import run_strategy, STRATEGIES, get_model_config, list_model_configs
-from harness.defaults import DEFAULT_PROVIDER, DEFAULT_MODEL
+from harness import STRATEGIES, get_model_config, list_model_configs, run_strategy
+from harness.defaults import DEFAULT_MODEL, DEFAULT_PROVIDER
 
 
 def list_configs_command():
@@ -28,9 +28,9 @@ def list_configs_command():
         print("Default configs will be created in config/models.yaml")
         return
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Available Model Configurations")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     for name, config in configs.items():
         print(f"📦 {name}")
@@ -71,129 +71,59 @@ Examples:
 
   # Use API for comparison
   python cli.py "Explain quantum computing" --provider anthropic --model claude-3-5-haiku-20241022
-        """
+        """,
     )
 
-    parser.add_argument(
-        "input",
-        nargs="?",
-        help="Task input / question"
-    )
+    parser.add_argument("input", nargs="?", help="Task input / question")
+
+    parser.add_argument("--list-configs", action="store_true", help="List all available model configurations and exit")
+
+    parser.add_argument("--config", help="Use a named configuration from config/models.yaml")
+
+    parser.add_argument("--strategy", choices=list(STRATEGIES.keys()), default="single", help="Strategy to use")
 
     parser.add_argument(
-        "--list-configs",
-        action="store_true",
-        help="List all available model configurations and exit"
-    )
-    
-    parser.add_argument(
-        "--config",
-        help="Use a named configuration from config/models.yaml"
+        "--provider", choices=["ollama", "mlx", "anthropic", "openai"], help="LLM provider (overrides config)"
     )
 
-    parser.add_argument(
-        "--strategy",
-        choices=list(STRATEGIES.keys()),
-        default="single",
-        help="Strategy to use"
-    )
+    parser.add_argument("--model", help="Model identifier (overrides config)")
 
-    parser.add_argument(
-        "--provider",
-        choices=["ollama", "mlx", "anthropic", "openai"],
-        help="LLM provider (overrides config)"
-    )
-
-    parser.add_argument(
-        "--model",
-        help="Model identifier (overrides config)"
-    )
-    
-    parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0.7,
-        help="Sampling temperature"
-    )
+    parser.add_argument("--temperature", type=float, default=0.7, help="Sampling temperature")
 
     # Reasoning parameters
-    parser.add_argument(
-        "--thinking-budget",
-        type=int,
-        help="Thinking budget for reasoning models (number of tokens)"
-    )
+    parser.add_argument("--thinking-budget", type=int, help="Thinking budget for reasoning models (number of tokens)")
 
-    parser.add_argument(
-        "--num-ctx",
-        type=int,
-        help="Context window size"
-    )
+    parser.add_argument("--num-ctx", type=int, help="Context window size")
 
-    parser.add_argument(
-        "--top-k",
-        type=int,
-        help="Top-K sampling parameter"
-    )
+    parser.add_argument("--top-k", type=int, help="Top-K sampling parameter")
 
-    parser.add_argument(
-        "--top-p",
-        type=float,
-        help="Top-P (nucleus) sampling parameter"
-    )
+    parser.add_argument("--top-p", type=float, help="Top-P (nucleus) sampling parameter")
 
     # Strategy-specific args
     parser.add_argument(
-        "--n-debaters",
-        type=int,
-        help="Number of debaters (for debate strategy, default from defaults.py)"
+        "--n-debaters", type=int, help="Number of debaters (for debate strategy, default from defaults.py)"
+    )
+
+    parser.add_argument("--n-rounds", type=int, help="Number of debate/consensus rounds (default from defaults.py)")
+
+    parser.add_argument(
+        "--n-agents", type=int, help="Number of agents (for consensus strategy, default from defaults.py)"
+    )
+
+    parser.add_argument("--n-samples", type=int, default=5, help="Number of samples (for self_consistency strategy)")
+
+    parser.add_argument("--n-workers", type=int, default=3, help="Number of workers (for manager_worker strategy)")
+
+    parser.add_argument("--json", action="store_true", help="Output as JSON")
+
+    parser.add_argument(
+        "--verbose", action="store_true", default=True, help="Stream thinking/debating in real-time (default: True)"
     )
 
     parser.add_argument(
-        "--n-rounds",
-        type=int,
-        help="Number of debate/consensus rounds (default from defaults.py)"
+        "--no-verbose", dest="verbose", action="store_false", help="Disable streaming, return complete response only"
     )
 
-    parser.add_argument(
-        "--n-agents",
-        type=int,
-        help="Number of agents (for consensus strategy, default from defaults.py)"
-    )
-
-    parser.add_argument(
-        "--n-samples",
-        type=int,
-        default=5,
-        help="Number of samples (for self_consistency strategy)"
-    )
-
-    parser.add_argument(
-        "--n-workers",
-        type=int,
-        default=3,
-        help="Number of workers (for manager_worker strategy)"
-    )
-
-    parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Output as JSON"
-    )
-
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        default=True,
-        help="Stream thinking/debating in real-time (default: True)"
-    )
-
-    parser.add_argument(
-        "--no-verbose",
-        dest="verbose",
-        action="store_false",
-        help="Disable streaming, return complete response only"
-    )
-    
     args = parser.parse_args()
 
     # Handle --list-configs
@@ -211,7 +141,7 @@ Examples:
         config = get_model_config(args.config)
         if not config:
             print(f"Error: Configuration '{args.config}' not found.", file=sys.stderr)
-            print(f"Run: python cli.py --list-configs", file=sys.stderr)
+            print("Run: python cli.py --list-configs", file=sys.stderr)
             sys.exit(1)
 
         # Start with config kwargs
@@ -268,7 +198,7 @@ Examples:
         kwargs["n_samples"] = args.n_samples
     elif args.strategy == "manager_worker":
         kwargs["n_workers"] = args.n_workers
-    
+
     # Run strategy
     if not args.json and not args.verbose:
         print(f"Running {args.strategy} strategy...")
@@ -288,7 +218,7 @@ Examples:
                 "tokens_in": result.tokens_in,
                 "tokens_out": result.tokens_out,
                 "cost_usd": result.cost_usd,
-                "metadata": result.metadata
+                "metadata": result.metadata,
             }
             print(json.dumps(output, indent=2))
         else:
@@ -298,24 +228,25 @@ Examples:
                 print(f"\nOutput:\n{result.output}\n")
 
             print("=" * 60)
-            print(f"✅ Complete!")
+            print("✅ Complete!")
             print("=" * 60)
             print(f"Latency: {result.latency_s:.2f}s")
             print(f"Tokens: {result.tokens_in} in, {result.tokens_out} out")
             if result.cost_usd > 0:
                 print(f"Cost: ${result.cost_usd:.4f}")
 
-            if result.metadata and (args.verbose or 'thinking_budget' in result.metadata):
+            if result.metadata and (args.verbose or "thinking_budget" in result.metadata):
                 print("\nMetadata:")
-                if 'thinking_budget' in result.metadata:
+                if "thinking_budget" in result.metadata:
                     print(f"  Thinking Budget: {result.metadata['thinking_budget']}")
                 if args.verbose:
                     print(json.dumps(result.metadata, indent=2))
-    
+
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 

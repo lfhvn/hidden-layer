@@ -2,14 +2,15 @@
 Multi-agent strategies for the simulation harness.
 Each strategy is a function that takes task input and returns output + metadata.
 """
-from typing import Dict, Any, List
-from dataclasses import dataclass
-from collections import Counter
-import time
-import re
 
-from .llm_provider import llm_call, llm_call_stream, LLMResponse
-from .defaults import DEFAULT_PROVIDER, DEFAULT_MODEL, DEFAULT_N_DEBATERS, DEFAULT_N_ROUNDS
+import re
+import time
+from collections import Counter
+from dataclasses import dataclass
+from typing import Any, Dict, List
+
+from .defaults import DEFAULT_MODEL, DEFAULT_N_DEBATERS, DEFAULT_N_ROUNDS, DEFAULT_PROVIDER
+from .llm_provider import LLMResponse, llm_call, llm_call_stream
 
 
 def _extract_answer(text: str) -> str:
@@ -21,9 +22,9 @@ def _extract_answer(text: str) -> str:
 
     # Try to find "answer is X" patterns
     patterns = [
-        r'(?:answer|result|solution) is:?\s*([^\n.]+)',
-        r'(?:therefore|thus|so),?\s*(?:the answer is)?\s*([^\n.]+)',
-        r'^\s*([0-9]+(?:\.[0-9]+)?)\s*$',  # Just a number
+        r"(?:answer|result|solution) is:?\s*([^\n.]+)",
+        r"(?:therefore|thus|so),?\s*(?:the answer is)?\s*([^\n.]+)",
+        r"^\s*([0-9]+(?:\.[0-9]+)?)\s*$",  # Just a number
     ]
 
     for pattern in patterns:
@@ -32,7 +33,7 @@ def _extract_answer(text: str) -> str:
             return match.group(1).strip()
 
     # If no pattern found, return first sentence or first 100 chars
-    sentences = text.split('.')
+    sentences = text.split(".")
     if sentences:
         return sentences[0].strip()
 
@@ -74,6 +75,7 @@ def _aggregate_samples(samples: List[str]) -> str:
 @dataclass
 class StrategyResult:
     """Result from a strategy execution"""
+
     output: str
     strategy_name: str
     latency_s: float
@@ -81,7 +83,7 @@ class StrategyResult:
     tokens_out: int
     cost_usd: float
     metadata: Dict[str, Any]
-    
+
     @classmethod
     def from_llm_response(cls, response: LLMResponse, strategy_name: str, metadata: Dict[str, Any] = None):
         """Create StrategyResult from LLMResponse"""
@@ -92,7 +94,7 @@ class StrategyResult:
             tokens_in=response.tokens_in or 0,
             tokens_out=response.tokens_out or 0,
             cost_usd=response.cost_usd or 0.0,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
 
@@ -103,7 +105,7 @@ def single_model_strategy(
     temperature: float = 0.7,
     system_prompt: str = None,
     verbose: bool = True,
-    **kwargs
+    **kwargs,
 ) -> StrategyResult:
     """
     Single model baseline.
@@ -116,7 +118,7 @@ def single_model_strategy(
         system_prompt: Optional system prompt
         verbose: If True, stream output in real-time
     """
-    start = time.time()
+    _start = time.time()  # noqa: F841
 
     # Construct prompt
     if system_prompt:
@@ -140,16 +142,12 @@ def single_model_strategy(
         print("\n")
 
         return StrategyResult.from_llm_response(
-            response,
-            strategy_name="single",
-            metadata={"provider": provider, "model": model}
+            response, strategy_name="single", metadata={"provider": provider, "model": model}
         )
     else:
         response = llm_call(prompt, provider=provider, model=model, temperature=temperature, **kwargs)
         return StrategyResult.from_llm_response(
-            response,
-            strategy_name="single",
-            metadata={"provider": provider, "model": model}
+            response, strategy_name="single", metadata={"provider": provider, "model": model}
         )
 
 
@@ -165,7 +163,7 @@ def debate_strategy(
     verbose: bool = True,
     debater_prompts: list = None,
     judge_prompt: str = None,
-    **kwargs
+    **kwargs,
 ) -> StrategyResult:
     """
     Multi-agent debate strategy.
@@ -215,14 +213,14 @@ def debate_strategy(
     for i in range(n_debaters):
         # Use custom debater prompt if provided, otherwise use default
         if debater_prompts and i < len(debater_prompts):
-            system_msg = debater_prompts[i]
-            debater_prompt = f"""{system_msg}
+            _system_msg = debater_prompts[i]  # noqa: F841
+            debater_prompt = """{system_msg}
 
 Question: {task_input}
 
 Your answer:"""
         else:
-            debater_prompt = f"""You are Debater {i+1} in a debate. Provide your best answer to the following question.
+            debater_prompt = """You are Debater {i+1} in a debate. Provide your best answer to the following question.
 
 Question: {task_input}
 
@@ -235,7 +233,9 @@ Your answer:"""
 
             full_text = ""
             response = None
-            for chunk in llm_call_stream(debater_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+            for chunk in llm_call_stream(
+                debater_prompt, provider=provider, model=model, temperature=temperature, **kwargs
+            ):
                 if isinstance(chunk, str):
                     print(chunk, end="", flush=True)
                     full_text += chunk
@@ -250,7 +250,7 @@ Your answer:"""
         total_tokens_in += response.tokens_in or 0
         total_tokens_out += response.tokens_out or 0
         total_cost += response.cost_usd or 0.0
-    
+
     # Optional: Multiple rounds (each debater sees others' arguments)
     for round_num in range(1, n_rounds):
         if verbose:
@@ -261,12 +261,11 @@ Your answer:"""
         new_arguments = []
         for i in range(n_debaters):
             # Show other arguments
-            other_args = "\n\n".join([
-                f"Debater {j+1}: {arg}"
-                for j, arg in enumerate(arguments) if j != i
-            ])
+            _other_args = "\n\n".join(  # noqa: F841
+                [f"Debater {j+1}: {arg}" for j, arg in enumerate(arguments) if j != i]
+            )
 
-            rebuttal_prompt = f"""You are Debater {i+1}. You've seen other debaters' arguments. Refine or defend your position.
+            rebuttal_prompt = """You are Debater {i+1}. You've seen other debaters' arguments. Refine or defend your position.
 
 Question: {task_input}
 
@@ -285,7 +284,9 @@ Your refined answer:"""
 
                 full_text = ""
                 response = None
-                for chunk in llm_call_stream(rebuttal_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+                for chunk in llm_call_stream(
+                    rebuttal_prompt, provider=provider, model=model, temperature=temperature, **kwargs
+                ):
                     if isinstance(chunk, str):
                         print(chunk, end="", flush=True)
                         full_text += chunk
@@ -306,7 +307,7 @@ Your refined answer:"""
     # Judge selects best
     if verbose:
         print(f"\n{'='*60}")
-        print(f"⚖️  Judge Deliberating...")
+        print("⚖️  Judge Deliberating...")
         print(f"{'='*60}\n")
 
     # Use custom judge prompt if provided, otherwise use default
@@ -318,7 +319,7 @@ Your refined answer:"""
             final_judge_prompt += f"\nAnswer {i+1}:\n{arg}\n"
     else:
         # Default judge prompt
-        final_judge_prompt = f"""You are a judge evaluating {n_debaters} answers to a question. Choose the best answer and explain why.
+        final_judge_prompt = """You are a judge evaluating {n_debaters} answers to a question. Choose the best answer and explain why.
 
 Question: {task_input}
 
@@ -332,7 +333,9 @@ Answers:
     if verbose:
         full_text = ""
         judge_response = None
-        for chunk in llm_call_stream(final_judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs):
+        for chunk in llm_call_stream(
+            final_judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs
+        ):
             if isinstance(chunk, str):
                 print(chunk, end="", flush=True)
                 full_text += chunk
@@ -340,14 +343,16 @@ Answers:
                 judge_response = chunk
         print("\n")
     else:
-        judge_response = llm_call(final_judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs)
-    
+        judge_response = llm_call(
+            final_judge_prompt, provider=judge_provider, model=judge_model, temperature=0.3, **kwargs
+        )
+
     total_tokens_in += judge_response.tokens_in or 0
     total_tokens_out += judge_response.tokens_out or 0
     total_cost += judge_response.cost_usd or 0.0
-    
+
     latency = time.time() - start
-    
+
     return StrategyResult(
         output=judge_response.text,
         strategy_name="debate",
@@ -362,24 +367,19 @@ Answers:
             "provider": provider,
             "model": model,
             "judge_provider": judge_provider,
-            "judge_model": judge_model
-        }
+            "judge_model": judge_model,
+        },
     )
 
 
 def self_consistency_strategy(
-    task_input: str,
-    n_samples: int = 5,
-    provider: str = None,
-    model: str = None,
-    temperature: float = 0.8,
-    **kwargs
+    task_input: str, n_samples: int = 5, provider: str = None, model: str = None, temperature: float = 0.8, **kwargs
 ) -> StrategyResult:
     """
     Self-consistency strategy: sample N times and take majority vote or aggregate.
-    
+
     Good for reasoning tasks with clear right/wrong answers.
-    
+
     Args:
         task_input: The task/question
         n_samples: Number of samples to generate
@@ -387,26 +387,26 @@ def self_consistency_strategy(
         temperature: Higher temperature for diversity
     """
     start = time.time()
-    
+
     total_tokens_in = 0
     total_tokens_out = 0
     total_cost = 0.0
-    
+
     samples = []
     for i in range(n_samples):
         response = llm_call(task_input, provider=provider, model=model, temperature=temperature, **kwargs)
         samples.append(response.text)
-        
+
         total_tokens_in += response.tokens_in or 0
         total_tokens_out += response.tokens_out or 0
         total_cost += response.cost_usd or 0.0
-    
+
     # Aggregate: majority vote on answers
     # Try to extract answers and find most common one
     aggregated_output = _aggregate_samples(samples)
-    
+
     latency = time.time() - start
-    
+
     return StrategyResult(
         output=aggregated_output,
         strategy_name="self_consistency",
@@ -414,12 +414,7 @@ def self_consistency_strategy(
         tokens_in=total_tokens_in,
         tokens_out=total_tokens_out,
         cost_usd=total_cost,
-        metadata={
-            "n_samples": n_samples,
-            "all_samples": samples,
-            "provider": provider,
-            "model": model
-        }
+        metadata={"n_samples": n_samples, "all_samples": samples, "provider": provider, "model": model},
     )
 
 
@@ -431,11 +426,11 @@ def manager_worker_strategy(
     manager_provider: str = None,
     manager_model: str = None,
     temperature: float = 0.7,
-    **kwargs
+    **kwargs,
 ) -> StrategyResult:
     """
     Manager-worker strategy: Manager decomposes task, workers execute subtasks, manager synthesizes.
-    
+
     Args:
         task_input: The task/question
         n_workers: Number of worker agents
@@ -444,51 +439,53 @@ def manager_worker_strategy(
         temperature: Sampling temperature
     """
     start = time.time()
-    
+
     if manager_provider is None:
         manager_provider = provider
     if manager_model is None:
         manager_model = model
-    
+
     total_tokens_in = 0
     total_tokens_out = 0
     total_cost = 0.0
-    
+
     # Manager: decompose task
-    decompose_prompt = f"""You are a task manager. Break down the following task into {n_workers} subtasks that can be worked on independently.
+    decompose_prompt = """You are a task manager. Break down the following task into {n_workers} subtasks that can be worked on independently.
 
 Task: {task_input}
 
 List {n_workers} subtasks (numbered):"""
-    
-    manager_response = llm_call(decompose_prompt, provider=manager_provider, model=manager_model, temperature=0.3, **kwargs)
+
+    manager_response = llm_call(
+        decompose_prompt, provider=manager_provider, model=manager_model, temperature=0.3, **kwargs
+    )
     subtasks_text = manager_response.text
-    
+
     total_tokens_in += manager_response.tokens_in or 0
     total_tokens_out += manager_response.tokens_out or 0
     total_cost += manager_response.cost_usd or 0.0
-    
+
     # Parse subtasks (simple line-based parsing)
-    subtasks = [line.strip() for line in subtasks_text.split('\n') if line.strip()][:n_workers]
-    
+    subtasks = [line.strip() for line in subtasks_text.split("\n") if line.strip()][:n_workers]
+
     # Workers: execute subtasks
     worker_results = []
     for i, subtask in enumerate(subtasks):
-        worker_prompt = f"""You are Worker {i+1}. Complete this subtask:
+        worker_prompt = """You are Worker {i+1}. Complete this subtask:
 
 {subtask}
 
 Your result:"""
-        
+
         worker_response = llm_call(worker_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
         worker_results.append(worker_response.text)
-        
+
         total_tokens_in += worker_response.tokens_in or 0
         total_tokens_out += worker_response.tokens_out or 0
         total_cost += worker_response.cost_usd or 0.0
-    
+
     # Manager: synthesize
-    synthesize_prompt = f"""You are a task manager. Synthesize the workers' results into a final answer.
+    synthesize_prompt = """You are a task manager. Synthesize the workers' results into a final answer.
 
 Original task: {task_input}
 
@@ -496,17 +493,19 @@ Worker results:
 """
     for i, result in enumerate(worker_results):
         synthesize_prompt += f"\nWorker {i+1}: {result}\n"
-    
+
     synthesize_prompt += "\nFinal synthesized answer:"
-    
-    final_response = llm_call(synthesize_prompt, provider=manager_provider, model=manager_model, temperature=0.3, **kwargs)
-    
+
+    final_response = llm_call(
+        synthesize_prompt, provider=manager_provider, model=manager_model, temperature=0.3, **kwargs
+    )
+
     total_tokens_in += final_response.tokens_in or 0
     total_tokens_out += final_response.tokens_out or 0
     total_cost += final_response.cost_usd or 0.0
-    
+
     latency = time.time() - start
-    
+
     return StrategyResult(
         output=final_response.text,
         strategy_name="manager_worker",
@@ -521,8 +520,8 @@ Worker results:
             "provider": provider,
             "model": model,
             "manager_provider": manager_provider,
-            "manager_model": manager_model
-        }
+            "manager_model": manager_model,
+        },
     )
 
 
@@ -535,7 +534,7 @@ def consensus_strategy(
     temperature: float = 0.7,
     verbose: bool = True,
     agent_prompts: list = None,
-    **kwargs
+    **kwargs,
 ) -> StrategyResult:
     """
     Consensus-building strategy: Multiple agents debate and reach consensus WITHOUT a separate judge.
@@ -578,14 +577,14 @@ def consensus_strategy(
     for i in range(n_agents):
         # Use custom agent prompt if provided
         if agent_prompts and i < len(agent_prompts):
-            system_msg = agent_prompts[i]
-            agent_prompt = f"""{system_msg}
+            _system_msg = agent_prompts[i]  # noqa: F841
+            agent_prompt = """{system_msg}
 
 Question: {task_input}
 
 Your initial position:"""
         else:
-            agent_prompt = f"""You are Agent {i+1} working with other agents to reach consensus on a question.
+            agent_prompt = """You are Agent {i+1} working with other agents to reach consensus on a question.
 Provide your initial position.
 
 Question: {task_input}
@@ -599,7 +598,9 @@ Your initial position:"""
 
             full_text = ""
             response = None
-            for chunk in llm_call_stream(agent_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+            for chunk in llm_call_stream(
+                agent_prompt, provider=provider, model=model, temperature=temperature, **kwargs
+            ):
                 if isinstance(chunk, str):
                     print(chunk, end="", flush=True)
                     full_text += chunk
@@ -625,12 +626,11 @@ Your initial position:"""
         new_positions = []
         for i in range(n_agents):
             # Show all other positions
-            other_positions = "\n\n".join([
-                f"Agent {j+1}'s position:\n{pos}"
-                for j, pos in enumerate(positions) if j != i
-            ])
+            _other_positions = "\n\n".join(  # noqa: F841
+                [f"Agent {j+1}'s position:\n{pos}" for j, pos in enumerate(positions) if j != i]
+            )
 
-            consensus_prompt = f"""You are Agent {i+1}. You've seen the positions of other agents working on this question.
+            consensus_prompt = """You are Agent {i+1}. You've seen the positions of other agents working on this question.
 Review their perspectives and refine your position to move toward consensus.
 
 Question: {task_input}
@@ -650,7 +650,9 @@ After considering other perspectives, provide your refined position (be open to 
 
                 full_text = ""
                 response = None
-                for chunk in llm_call_stream(consensus_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+                for chunk in llm_call_stream(
+                    consensus_prompt, provider=provider, model=model, temperature=temperature, **kwargs
+                ):
                     if isinstance(chunk, str):
                         print(chunk, end="", flush=True)
                         full_text += chunk
@@ -671,15 +673,14 @@ After considering other perspectives, provide your refined position (be open to 
     # Final synthesis by first agent
     if verbose:
         print(f"\n{'='*60}")
-        print(f"✨ Final Consensus Synthesis:")
+        print("✨ Final Consensus Synthesis:")
         print(f"{'='*60}\n")
 
-    all_positions = "\n\n".join([
-        f"Agent {i+1}'s final position:\n{pos}"
-        for i, pos in enumerate(positions)
-    ])
+    _all_positions = "\n\n".join(  # noqa: F841
+        [f"Agent {i+1}'s final position:\n{pos}" for i, pos in enumerate(positions)]
+    )
 
-    synthesis_prompt = f"""Based on all agents' final positions, synthesize the consensus answer to the question.
+    synthesis_prompt = """Based on all agents' final positions, synthesize the consensus answer to the question.
 
 Question: {task_input}
 
@@ -719,8 +720,8 @@ Synthesized consensus answer:"""
             "n_rounds": n_rounds,
             "all_positions": positions,
             "provider": provider,
-            "model": model
-        }
+            "model": model,
+        },
     )
 
 
@@ -738,8 +739,8 @@ def introspection_strategy(
     verbose: bool = True,
     # API-specific parameters
     steering_style: str = "implicit",  # For API: "implicit" or "explicit"
-    api_strength: str = "moderate",    # For API: "subtle", "moderate", "strong"
-    **kwargs
+    api_strength: str = "moderate",  # For API: "subtle", "moderate", "strong"
+    **kwargs,
 ) -> StrategyResult:
     """
     Introspection strategy: Test model's introspective awareness.
@@ -801,7 +802,7 @@ def introspection_strategy(
             api_strength="moderate"
         )
     """
-    start = time.time()
+    _start = time.time()  # noqa: F841
 
     # Route to appropriate implementation
     if provider == "mlx":
@@ -816,7 +817,7 @@ def introspection_strategy(
             model=model,
             temperature=temperature,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
     elif provider in ["anthropic", "openai"]:
         return _introspection_api(
@@ -830,12 +831,11 @@ def introspection_strategy(
             verbose=verbose,
             steering_style=steering_style,
             api_strength=api_strength,
-            **kwargs
+            **kwargs,
         )
     else:
         raise ValueError(
-            f"Introspection strategy supports provider='mlx', 'anthropic', or 'openai'. "
-            f"Got: {provider}"
+            "Introspection strategy supports provider='mlx', 'anthropic', or 'openai'. " f"Got: {provider}"
         )
 
 
@@ -850,19 +850,18 @@ def _introspection_mlx(
     model: str,
     temperature: float,
     verbose: bool,
-    **kwargs
+    **kwargs,
 ) -> StrategyResult:
     """MLX implementation with activation steering"""
     start = time.time()
 
     try:
+        from mlx_lm import generate as mlx_generate
+        from mlx_lm import load
+
         from .activation_steering import ActivationSteerer, SteeringConfig
         from .concept_vectors import ConceptLibrary
-        from .introspection_tasks import (
-            IntrospectionTaskGenerator,
-            IntrospectionEvaluator
-        )
-        from mlx_lm import load, generate as mlx_generate
+        from .introspection_tasks import IntrospectionEvaluator, IntrospectionTaskGenerator
     except ImportError as e:
         return StrategyResult(
             output=f"Error: Missing MLX dependencies for activation steering. {e}",
@@ -871,12 +870,12 @@ def _introspection_mlx(
             tokens_in=0,
             tokens_out=0,
             cost_usd=0.0,
-            metadata={"error": str(e)}
+            metadata={"error": str(e)},
         )
 
     if verbose:
         print(f"\n{'='*60}")
-        print(f"🧠 Introspection Strategy")
+        print("🧠 Introspection Strategy")
         print(f"   Concept: {concept}")
         print(f"   Layer: {layer}, Strength: {strength}")
         print(f"   Task Type: {task_type}")
@@ -904,7 +903,7 @@ def _introspection_mlx(
                 tokens_in=0,
                 tokens_out=0,
                 cost_usd=0.0,
-                metadata={"error": f"concept not found: {concept}"}
+                metadata={"error": f"concept not found: {concept}"},
             )
         concept_vector = concept_vec_obj.vector
     else:
@@ -914,26 +913,21 @@ def _introspection_mlx(
 
         # Simple emotion extraction (you can extend this)
         emotion_prompts = {
-            'happiness': ("I feel very happy and joyful!", "I feel neutral."),
-            'sadness': ("I feel very sad and depressed.", "I feel neutral."),
-            'anger': ("I feel very angry and furious!", "I feel neutral."),
-            'fear': ("I feel very scared and frightened!", "I feel neutral."),
+            "happiness": ("I feel very happy and joyful!", "I feel neutral."),
+            "sadness": ("I feel very sad and depressed.", "I feel neutral."),
+            "anger": ("I feel very angry and furious!", "I feel neutral."),
+            "fear": ("I feel very scared and frightened!", "I feel neutral."),
         }
 
         if concept in emotion_prompts:
             pos_prompt, neg_prompt = emotion_prompts[concept]
             concept_vector = steerer.extract_contrastive_concept(
-                positive_prompt=pos_prompt,
-                negative_prompt=neg_prompt,
-                layer_idx=layer,
-                position="last"
+                positive_prompt=pos_prompt, negative_prompt=neg_prompt, layer_idx=layer, position="last"
             )
         else:
             # Fallback: extract from simple prompt
             concept_vector = steerer.extract_activation(
-                prompt=f"The concept of {concept}.",
-                layer_idx=layer,
-                position="last"
+                prompt=f"The concept of {concept}.", layer_idx=layer, position="last"
             )
 
     # Generate introspection task
@@ -941,20 +935,13 @@ def _introspection_mlx(
 
     if task_type == "detection":
         introspection_task = task_gen.detection_task(
-            concept=concept,
-            base_prompt=task_input,
-            layer=layer,
-            strength=strength
+            concept=concept, base_prompt=task_input, layer=layer, strength=strength
         )
     elif task_type == "identification":
         if not distractors:
             distractors = ["neutral", "confusion", "other"]
         introspection_task = task_gen.identification_task(
-            concept=concept,
-            distractors=distractors,
-            base_prompt=task_input,
-            layer=layer,
-            strength=strength
+            concept=concept, distractors=distractors, base_prompt=task_input, layer=layer, strength=strength
         )
     else:
         return StrategyResult(
@@ -964,24 +951,19 @@ def _introspection_mlx(
             tokens_in=0,
             tokens_out=0,
             cost_usd=0.0,
-            metadata={"error": f"unsupported task type: {task_type}"}
+            metadata={"error": f"unsupported task type: {task_type}"},
         )
 
     # Generate baseline (no steering)
     if verbose:
         print(f"\n{'─'*60}")
-        print(f"📝 Baseline Generation (no steering):")
+        print("📝 Baseline Generation (no steering):")
         print(f"{'─'*60}\n")
 
     prompt = f"{introspection_task.base_prompt}\n\n{introspection_task.introspection_prompt}"
 
     baseline_response = mlx_generate(
-        mlx_model,
-        tokenizer,
-        prompt=prompt,
-        temp=temperature,
-        max_tokens=150,
-        verbose=False
+        mlx_model, tokenizer, prompt=prompt, temp=temperature, max_tokens=150, verbose=False
     )
 
     if verbose:
@@ -991,23 +973,15 @@ def _introspection_mlx(
     # Generate with steering
     if verbose:
         print(f"\n{'─'*60}")
-        print(f"🎯 Steered Generation (concept injected):")
+        print("🎯 Steered Generation (concept injected):")
         print(f"{'─'*60}\n")
 
     steering_config = SteeringConfig(
-        layer_idx=layer,
-        position="last",
-        strategy="add",
-        strength=strength,
-        normalize=False
+        layer_idx=layer, position="last", strategy="add", strength=strength, normalize=False
     )
 
     steered_response, steering_metadata = steerer.generate_with_steering(
-        prompt=prompt,
-        concept_vector=concept_vector,
-        config=steering_config,
-        max_tokens=150,
-        temperature=temperature
+        prompt=prompt, concept_vector=concept_vector, config=steering_config, max_tokens=150, temperature=temperature
     )
 
     if verbose:
@@ -1017,14 +991,12 @@ def _introspection_mlx(
     # Evaluate introspection
     evaluator = IntrospectionEvaluator()
     result = evaluator.evaluate(
-        task=introspection_task,
-        model_response=steered_response,
-        baseline_response=baseline_response
+        task=introspection_task, model_response=steered_response, baseline_response=baseline_response
     )
 
     if verbose:
         print(f"\n{'='*60}")
-        print(f"📊 Evaluation Results:")
+        print("📊 Evaluation Results:")
         print(f"   Correct: {result.is_correct}")
         print(f"   Confidence: {result.confidence:.2f}")
         print(f"{'='*60}\n")
@@ -1049,8 +1021,8 @@ def _introspection_mlx(
             "steered_response": steered_response,
             "steering_config": steering_metadata,
             "model": model,
-            "provider": provider
-        }
+            "provider": "mlx",
+        },
     )
 
 
@@ -1065,7 +1037,7 @@ def _introspection_api(
     verbose: bool,
     steering_style: str,
     api_strength: str,
-    **kwargs
+    **kwargs,
 ) -> StrategyResult:
     """API implementation with prompt-based steering"""
     start = time.time()
@@ -1080,17 +1052,17 @@ def _introspection_api(
             tokens_in=0,
             tokens_out=0,
             cost_usd=0.0,
-            metadata={"error": str(e)}
+            metadata={"error": str(e)},
         )
 
     if verbose:
         print(f"\n{'='*60}")
-        print(f"🧠 Introspection Strategy (API Mode)")
+        print("🧠 Introspection Strategy (API Mode)")
         print(f"   Provider: {provider}")
         print(f"   Model: {model}")
         print(f"   Concept: {concept}")
         print(f"   Steering: {api_strength} ({steering_style})")
-        print(f"   Note: Using prompt-based steering (no activation access)")
+        print("   Note: Using prompt-based steering (no activation access)")
         print(f"{'='*60}\n")
 
     # Initialize API tester
@@ -1104,7 +1076,7 @@ def _introspection_api(
         style=steering_style,
         task_type=task_type,
         temperature=temperature,
-        verbose=verbose
+        verbose=verbose,
     )
 
     latency = time.time() - start
@@ -1128,8 +1100,8 @@ def _introspection_api(
             "steered_response": result.model_response,
             "model": model,
             "provider": provider,
-            "method": "prompt_steering"
-        }
+            "method": "prompt_steering",
+        },
     )
 
 
@@ -1147,7 +1119,7 @@ STRATEGIES = {
 def run_strategy(strategy_name: str, task_input: str, **kwargs) -> StrategyResult:
     """
     Run a strategy by name.
-    
+
     Args:
         strategy_name: One of: "single", "debate", "self_consistency", "manager_worker"
         task_input: The task/question
@@ -1155,5 +1127,5 @@ def run_strategy(strategy_name: str, task_input: str, **kwargs) -> StrategyResul
     """
     if strategy_name not in STRATEGIES:
         raise ValueError(f"Unknown strategy: {strategy_name}. Available: {list(STRATEGIES.keys())}")
-    
+
     return STRATEGIES[strategy_name](task_input, **kwargs)

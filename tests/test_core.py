@@ -5,14 +5,15 @@ These tests verify basic functionality without requiring
 external services (no LLM calls).
 """
 
-import sys
 import os
+import sys
 
 # Add code directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'code'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "code"))
+
+from unittest.mock import MagicMock, Mock
 
 import pytest
-from unittest.mock import Mock, MagicMock
 
 
 class TestHarnessCore:
@@ -23,7 +24,7 @@ class TestHarnessCore:
         from harness import STRATEGIES
 
         # Should have all 5 strategies
-        expected_strategies = ['single', 'debate', 'self_consistency', 'manager_worker', 'consensus']
+        expected_strategies = ["single", "debate", "self_consistency", "manager_worker", "consensus"]
         for strategy in expected_strategies:
             assert strategy in STRATEGIES, f"Strategy '{strategy}' not found in registry"
             assert callable(STRATEGIES[strategy])
@@ -33,7 +34,7 @@ class TestHarnessCore:
         from harness import EVAL_FUNCTIONS
 
         # Should have basic eval functions
-        expected_evals = ['exact_match', 'keyword_match', 'numeric_match']
+        expected_evals = ["exact_match", "keyword_match", "numeric_match"]
         for eval_func in expected_evals:
             assert eval_func in EVAL_FUNCTIONS, f"Eval function '{eval_func}' not found"
             assert callable(EVAL_FUNCTIONS[eval_func])
@@ -75,10 +76,7 @@ class TestHarnessCore:
         from harness import ExperimentConfig
 
         config = ExperimentConfig(
-            experiment_name="test_exp",
-            strategy="debate",
-            provider="ollama",
-            model="llama3.2:latest"
+            experiment_name="test_exp", strategy="debate", provider="ollama", model="llama3.2:latest"
         )
 
         assert config.experiment_name == "test_exp"
@@ -96,7 +94,7 @@ class TestHarnessCore:
             tokens_in=100,
             tokens_out=50,
             cost_usd=0.01,
-            metadata={"test": "data"}
+            metadata={"test": "data"},
         )
 
         assert result.output == "Test output"
@@ -112,13 +110,24 @@ class TestCRITCore:
         from crit import DesignDomain
 
         # Should have all expected domains
-        expected_domains = ['UI_UX', 'API_DESIGN', 'SYSTEM_ARCHITECTURE', 'DATA_MODELING', 'WORKFLOW']
+        expected_domains = ["UI_UX", "API_DESIGN", "SYSTEM_ARCHITECTURE", "DATA_MODELING", "WORKFLOW"]
         for domain in expected_domains:
             assert hasattr(DesignDomain, domain), f"Domain '{domain}' not found"
 
     def test_design_problems_exist(self):
         """Test that all design problems are defined."""
         from crit import (
+            API_VERSIONING,
+            APPROVAL_WORKFLOW,
+            CACHING_STRATEGY,
+            DASHBOARD_LAYOUT,
+            GRAPHQL_SCHEMA,
+            MICROSERVICES,
+            MOBILE_CHECKOUT,
+            PERMISSION_SYSTEM,
+        )
+
+        problems = [
             MOBILE_CHECKOUT,
             DASHBOARD_LAYOUT,
             API_VERSIONING,
@@ -126,27 +135,29 @@ class TestCRITCore:
             MICROSERVICES,
             CACHING_STRATEGY,
             PERMISSION_SYSTEM,
-            APPROVAL_WORKFLOW
-        )
-
-        problems = [
-            MOBILE_CHECKOUT, DASHBOARD_LAYOUT, API_VERSIONING, GRAPHQL_SCHEMA,
-            MICROSERVICES, CACHING_STRATEGY, PERMISSION_SYSTEM, APPROVAL_WORKFLOW
+            APPROVAL_WORKFLOW,
         ]
 
         for problem in problems:
             assert problem.name is not None
             assert problem.description is not None
             assert len(problem.success_criteria) > 0
-            assert problem.difficulty in ['easy', 'medium', 'hard']
+            assert problem.difficulty in ["easy", "medium", "hard"]
 
     def test_critique_perspectives(self):
         """Test that critique perspectives are defined."""
         from crit.strategies import PERSPECTIVES
 
         expected_perspectives = [
-            'usability', 'security', 'accessibility', 'performance',
-            'aesthetics', 'scalability', 'maintainability', 'cost_efficiency', 'user_delight'
+            "usability",
+            "security",
+            "accessibility",
+            "performance",
+            "aesthetics",
+            "scalability",
+            "maintainability",
+            "cost_efficiency",
+            "user_delight",
         ]
 
         for perspective in expected_perspectives:
@@ -163,7 +174,7 @@ class TestCRITCore:
             latency_s=2.0,
             tokens_in=200,
             tokens_out=150,
-            metadata={"perspectives": ["usability"]}
+            metadata={"perspectives": ["usability"]},
         )
 
         assert result.critique == "Test critique"
@@ -179,8 +190,13 @@ class TestSELPHICore:
         from selphi import ToMType
 
         expected_types = [
-            'FALSE_BELIEF', 'KNOWLEDGE_ATTRIBUTION', 'PERSPECTIVE_TAKING',
-            'BELIEF_UPDATING', 'SECOND_ORDER_BELIEF', 'EPISTEMIC_STATE', 'PRAGMATIC_REASONING'
+            "FALSE_BELIEF",
+            "KNOWLEDGE_ATTRIBUTION",
+            "PERSPECTIVE_TAKING",
+            "BELIEF_UPDATING",
+            "SECOND_ORDER_BELIEF",
+            "EPISTEMIC_STATE",
+            "PRAGMATIC_REASONING",
         ]
 
         for tom_type in expected_types:
@@ -189,15 +205,27 @@ class TestSELPHICore:
     def test_scenarios_exist(self):
         """Test that all scenarios are defined."""
         from selphi import (
-            SALLY_ANNE, CHOCOLATE_BAR, BIRTHDAY_PUPPY,
-            ICE_CREAM_VAN, MUSEUM_TRIP, PAINTED_ROOM,
-            LIBRARY_BOOK, RESTAURANT_BILL, COFFEE_SHOP
+            BIRTHDAY_PUPPY,
+            CHOCOLATE_BAR,
+            COFFEE_SHOP,
+            ICE_CREAM_VAN,
+            LIBRARY_BOOK,
+            MUSEUM_TRIP,
+            PAINTED_ROOM,
+            RESTAURANT_BILL,
+            SALLY_ANNE,
         )
 
         scenarios = [
-            SALLY_ANNE, CHOCOLATE_BAR, BIRTHDAY_PUPPY,
-            ICE_CREAM_VAN, MUSEUM_TRIP, PAINTED_ROOM,
-            LIBRARY_BOOK, RESTAURANT_BILL, COFFEE_SHOP
+            SALLY_ANNE,
+            CHOCOLATE_BAR,
+            BIRTHDAY_PUPPY,
+            ICE_CREAM_VAN,
+            MUSEUM_TRIP,
+            PAINTED_ROOM,
+            LIBRARY_BOOK,
+            RESTAURANT_BILL,
+            COFFEE_SHOP,
         ]
 
         for scenario in scenarios:
@@ -205,7 +233,7 @@ class TestSELPHICore:
             assert scenario.scenario_text is not None
             assert scenario.question is not None
             assert scenario.correct_answer is not None
-            assert scenario.difficulty in ['easy', 'medium', 'hard']
+            assert scenario.difficulty in ["easy", "medium", "hard"]
 
     def test_get_scenarios_by_difficulty(self):
         """Test filtering scenarios by difficulty."""
@@ -225,7 +253,7 @@ class TestSELPHICore:
 
     def test_get_scenarios_by_type(self):
         """Test filtering scenarios by ToM type."""
-        from selphi import get_scenarios_by_type, ToMType
+        from selphi import ToMType, get_scenarios_by_type
 
         false_belief_scenarios = get_scenarios_by_type(ToMType.FALSE_BELIEF)
         assert len(false_belief_scenarios) > 0
@@ -245,7 +273,7 @@ class TestSELPHICore:
             latency_s=1.2,
             tokens_in=150,
             tokens_out=10,
-            metadata={"tom_type": "false_belief"}
+            metadata={"tom_type": "false_belief"},
         )
 
         assert result.scenario_name == "sally_anne"
@@ -264,44 +292,44 @@ class TestBenchmarkInterface:
         assert len(BENCHMARKS) >= 4
 
         # Check specific benchmarks
-        assert 'uicrit' in BENCHMARKS
-        assert 'tombench' in BENCHMARKS
-        assert 'opentom' in BENCHMARKS
-        assert 'socialiqa' in BENCHMARKS
+        assert "uicrit" in BENCHMARKS
+        assert "tombench" in BENCHMARKS
+        assert "opentom" in BENCHMARKS
+        assert "socialiqa" in BENCHMARKS
 
     def test_benchmark_info_structure(self):
         """Test that benchmark info has correct structure."""
         from harness import BENCHMARKS
 
         for name, info in BENCHMARKS.items():
-            assert hasattr(info, 'name')
-            assert hasattr(info, 'subsystem')
-            assert hasattr(info, 'size')
-            assert hasattr(info, 'source')
-            assert hasattr(info, 'description')
-            assert info.subsystem in ['crit', 'selphi', 'harness']
+            assert hasattr(info, "name")
+            assert hasattr(info, "subsystem")
+            assert hasattr(info, "size")
+            assert hasattr(info, "source")
+            assert hasattr(info, "description")
+            assert info.subsystem in ["crit", "selphi", "harness"]
 
     def test_get_baseline_scores(self):
         """Test getting baseline scores."""
         from harness import get_baseline_scores
 
         # Test with known benchmark
-        scores = get_baseline_scores('tombench')
+        scores = get_baseline_scores("tombench")
 
-        assert 'human_performance' in scores
-        assert 'gpt4_performance' in scores
-        assert 'metric' in scores
-        assert scores['metric'] == 'accuracy'
+        assert "human_performance" in scores
+        assert "gpt4_performance" in scores
+        assert "metric" in scores
+        assert scores["metric"] == "accuracy"
 
     def test_baseline_scores_with_model_filter(self):
         """Test getting baseline scores for specific model."""
         from harness import get_baseline_scores
 
-        scores = get_baseline_scores('tombench', model='gpt4')
+        scores = get_baseline_scores("tombench", model="gpt4")
 
-        assert 'score' in scores
-        assert 'model' in scores
-        assert scores['model'] == 'gpt4'
+        assert "score" in scores
+        assert "model" in scores
+        assert scores["model"] == "gpt4"
 
 
 class TestModelConfig:
@@ -312,11 +340,7 @@ class TestModelConfig:
         from harness import ModelConfig
 
         config = ModelConfig(
-            name="test-config",
-            provider="ollama",
-            model="llama3.2:latest",
-            temperature=0.7,
-            max_tokens=1000
+            name="test-config", provider="ollama", model="llama3.2:latest", temperature=0.7, max_tokens=1000
         )
 
         assert config.name == "test-config"
@@ -327,19 +351,14 @@ class TestModelConfig:
         """Test converting config to dict."""
         from harness import ModelConfig
 
-        config = ModelConfig(
-            name="test-config",
-            provider="ollama",
-            model="llama3.2:latest",
-            temperature=0.7
-        )
+        config = ModelConfig(name="test-config", provider="ollama", model="llama3.2:latest", temperature=0.7)
 
         config_dict = config.to_dict()
 
         assert isinstance(config_dict, dict)
-        assert config_dict['provider'] == 'ollama'
-        assert config_dict['temperature'] == 0.7
+        assert config_dict["provider"] == "ollama"
+        assert config_dict["temperature"] == 0.7
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

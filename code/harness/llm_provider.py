@@ -1,18 +1,20 @@
 """
 LLM Provider Layer - supports local MLX models, Ollama, and API providers
 """
-import os
-from typing import Optional, Dict, Any, Generator
-from dataclasses import dataclass
-import time
-import sys
 
-from .defaults import DEFAULT_PROVIDER, DEFAULT_MODEL
+import os
+import time
+from dataclasses import dataclass
+from typing import Any, Dict, Generator, Optional
+
+from .defaults import DEFAULT_MODEL, DEFAULT_PROVIDER
 from .system_prompts import resolve_system_prompt
+
 
 @dataclass
 class LLMResponse:
     """Standardized response format"""
+
     text: str
     model: str
     provider: str
@@ -28,11 +30,11 @@ class LLMProvider:
     Unified interface for calling different LLM providers.
     Supports: MLX (local), Ollama (local), Anthropic, OpenAI
     """
-    
+
     def __init__(self):
         self.mlx_model = None
         self.mlx_tokenizer = None
-        
+
     def call(
         self,
         prompt: str,
@@ -41,7 +43,7 @@ class LLMProvider:
         temperature: float = 0.7,
         max_tokens: int = 1024,
         system_prompt: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> LLMResponse:
         """
         Route to appropriate provider.
@@ -91,7 +93,7 @@ class LLMProvider:
         temperature: float = 0.7,
         max_tokens: int = 1024,
         system_prompt: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> Generator[str, None, LLMResponse]:
         """
         Stream response from LLM provider.
@@ -117,28 +119,35 @@ class LLMProvider:
         # Resolve system prompt
         resolved_system_prompt = resolve_system_prompt(system_prompt)
 
-        start = time.time()
+        _start = time.time()  # noqa: F841
 
         if provider == "ollama":
-            yield from self._call_ollama_stream(prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs)
+            yield from self._call_ollama_stream(
+                prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs
+            )
         elif provider == "anthropic":
-            yield from self._call_anthropic_stream(prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs)
+            yield from self._call_anthropic_stream(
+                prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs
+            )
         elif provider == "openai":
-            yield from self._call_openai_stream(prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs)
+            yield from self._call_openai_stream(
+                prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs
+            )
         else:
             # Fallback: non-streaming providers just yield full response
             response = self.call(prompt, provider, model, temperature, max_tokens, system_prompt, **kwargs)
             yield response.text
             yield response
 
-    def _call_mlx(self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs) -> LLMResponse:
+    def _call_mlx(
+        self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
+    ) -> LLMResponse:
         """Call MLX local model"""
         try:
-            import mlx.core as mx
-            from mlx_lm import load, generate
+            from mlx_lm import generate, load
 
             # Lazy load model
-            if self.mlx_model is None or kwargs.get('reload_model'):
+            if self.mlx_model is None or kwargs.get("reload_model"):
                 print(f"Loading MLX model: {model}")
                 self.mlx_model, self.mlx_tokenizer = load(model)
 
@@ -154,7 +163,7 @@ class LLMProvider:
                 prompt=full_prompt,
                 temp=temperature,
                 max_tokens=max_tokens,
-                verbose=False
+                verbose=False,
             )
 
             return LLMResponse(
@@ -163,38 +172,37 @@ class LLMProvider:
                 provider="mlx",
                 latency_s=0.0,  # Will be set by caller
                 tokens_in=len(self.mlx_tokenizer.encode(full_prompt)),
-                tokens_out=len(self.mlx_tokenizer.encode(output))
+                tokens_out=len(self.mlx_tokenizer.encode(output)),
             )
 
         except ImportError:
             return LLMResponse(
-                text="[MLX not installed. Run: pip install mlx mlx-lm]",
-                model=model,
-                provider="mlx",
-                latency_s=0.0
+                text="[MLX not installed. Run: pip install mlx mlx-lm]", model=model, provider="mlx", latency_s=0.0
             )
-    
-    def _call_ollama(self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs) -> LLMResponse:
+
+    def _call_ollama(
+        self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
+    ) -> LLMResponse:
         """Call Ollama local model"""
         try:
             import ollama
 
             # Build options dict with reasoning/thinking parameters
             options = {
-                'temperature': temperature,
-                'num_predict': max_tokens,
+                "temperature": temperature,
+                "num_predict": max_tokens,
             }
 
             # Add thinking budget and other reasoning parameters if provided
             reasoning_params = [
-                'thinking_budget',  # Budget for reasoning tokens
-                'num_ctx',          # Context window size
-                'top_k',            # Top-K sampling
-                'top_p',            # Top-P sampling
-                'repeat_penalty',   # Repetition penalty
-                'num_thread',       # Number of threads
-                'num_gpu',          # Number of GPUs
-                'seed',             # Random seed for reproducibility
+                "thinking_budget",  # Budget for reasoning tokens
+                "num_ctx",  # Context window size
+                "top_k",  # Top-K sampling
+                "top_p",  # Top-P sampling
+                "repeat_penalty",  # Repetition penalty
+                "num_thread",  # Number of threads
+                "num_gpu",  # Number of GPUs
+                "seed",  # Random seed for reproducibility
             ]
             for param in reasoning_params:
                 if param in kwargs:
@@ -205,48 +213,49 @@ class LLMProvider:
             if system_prompt:
                 full_prompt = f"{system_prompt}\n\n{prompt}"
 
-            response = ollama.generate(
-                model=model,
-                prompt=full_prompt,
-                options=options
-            )
+            response = ollama.generate(model=model, prompt=full_prompt, options=options)
 
             return LLMResponse(
-                text=response['response'],
+                text=response["response"],
                 model=model,
                 provider="ollama",
                 latency_s=0.0,  # Will be set by caller
-                tokens_in=response.get('prompt_eval_count'),
-                tokens_out=response.get('eval_count'),
+                tokens_in=response.get("prompt_eval_count"),
+                tokens_out=response.get("eval_count"),
                 metadata={
-                    'total_duration': response.get('total_duration'),
-                    'thinking_budget': options.get('thinking_budget')
-                }
+                    "total_duration": response.get("total_duration"),
+                    "thinking_budget": options.get("thinking_budget"),
+                },
             )
 
         except ImportError:
             return LLMResponse(
-                text="[Ollama not installed. Run: pip install ollama]",
-                model=model,
-                provider="ollama",
-                latency_s=0.0
+                text="[Ollama not installed. Run: pip install ollama]", model=model, provider="ollama", latency_s=0.0
             )
 
-    def _call_ollama_stream(self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs) -> Generator[str, None, LLMResponse]:
+    def _call_ollama_stream(
+        self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
+    ) -> Generator[str, None, LLMResponse]:
         """Stream from Ollama local model"""
         try:
             import ollama
 
             # Build options dict
             options = {
-                'temperature': temperature,
-                'num_predict': max_tokens,
+                "temperature": temperature,
+                "num_predict": max_tokens,
             }
 
             # Add reasoning parameters
             reasoning_params = [
-                'thinking_budget', 'num_ctx', 'top_k', 'top_p',
-                'repeat_penalty', 'num_thread', 'num_gpu', 'seed'
+                "thinking_budget",
+                "num_ctx",
+                "top_k",
+                "top_p",
+                "repeat_penalty",
+                "num_thread",
+                "num_gpu",
+                "seed",
             ]
             for param in reasoning_params:
                 if param in kwargs:
@@ -263,21 +272,16 @@ class LLMProvider:
             total_tokens_out = 0
 
             # Stream the response
-            for chunk in ollama.generate(
-                model=model,
-                prompt=full_prompt,
-                options=options,
-                stream=True
-            ):
-                text_chunk = chunk.get('response', '')
+            for chunk in ollama.generate(model=model, prompt=full_prompt, options=options, stream=True):
+                text_chunk = chunk.get("response", "")
                 full_text += text_chunk
                 yield text_chunk
 
                 # Update token counts if available
-                if 'prompt_eval_count' in chunk:
-                    total_tokens_in = chunk['prompt_eval_count']
-                if 'eval_count' in chunk:
-                    total_tokens_out = chunk['eval_count']
+                if "prompt_eval_count" in chunk:
+                    total_tokens_in = chunk["prompt_eval_count"]
+                if "eval_count" in chunk:
+                    total_tokens_out = chunk["eval_count"]
 
             # Return final response
             latency = time.time() - start
@@ -288,19 +292,16 @@ class LLMProvider:
                 latency_s=latency,
                 tokens_in=total_tokens_in,
                 tokens_out=total_tokens_out,
-                metadata={'thinking_budget': options.get('thinking_budget')}
+                metadata={"thinking_budget": options.get("thinking_budget")},
             )
 
         except ImportError:
             yield "[Ollama not installed. Run: pip install ollama]"
-            yield LLMResponse(
-                text="",
-                model=model,
-                provider="ollama",
-                latency_s=0.0
-            )
+            yield LLMResponse(text="", model=model, provider="ollama", latency_s=0.0)
 
-    def _call_anthropic(self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs) -> LLMResponse:
+    def _call_anthropic(
+        self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
+    ) -> LLMResponse:
         """Call Anthropic API"""
         try:
             import anthropic
@@ -312,7 +313,7 @@ class LLMProvider:
                 "model": model,
                 "max_tokens": max_tokens,
                 "temperature": temperature,
-                "messages": [{"role": "user", "content": prompt}]
+                "messages": [{"role": "user", "content": prompt}],
             }
 
             # Add system prompt if provided (Anthropic native support)
@@ -331,7 +332,7 @@ class LLMProvider:
                 latency_s=0.0,
                 tokens_in=message.usage.input_tokens,
                 tokens_out=message.usage.output_tokens,
-                cost_usd=cost
+                cost_usd=cost,
             )
 
         except ImportError:
@@ -339,10 +340,12 @@ class LLMProvider:
                 text="[Anthropic not installed. Run: pip install anthropic]",
                 model=model,
                 provider="anthropic",
-                latency_s=0.0
+                latency_s=0.0,
             )
-    
-    def _call_openai(self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs) -> LLMResponse:
+
+    def _call_openai(
+        self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
+    ) -> LLMResponse:
         """Call OpenAI API"""
         try:
             from openai import OpenAI
@@ -356,10 +359,7 @@ class LLMProvider:
             messages.append({"role": "user", "content": prompt})
 
             response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens
+                model=model, messages=messages, temperature=temperature, max_tokens=max_tokens
             )
 
             # Calculate cost (approximate)
@@ -372,18 +372,17 @@ class LLMProvider:
                 latency_s=0.0,
                 tokens_in=response.usage.prompt_tokens,
                 tokens_out=response.usage.completion_tokens,
-                cost_usd=cost
+                cost_usd=cost,
             )
 
         except ImportError:
             return LLMResponse(
-                text="[OpenAI not installed. Run: pip install openai]",
-                model=model,
-                provider="openai",
-                latency_s=0.0
+                text="[OpenAI not installed. Run: pip install openai]", model=model, provider="openai", latency_s=0.0
             )
 
-    def _call_anthropic_stream(self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs) -> Generator[str, None, LLMResponse]:
+    def _call_anthropic_stream(
+        self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
+    ) -> Generator[str, None, LLMResponse]:
         """Stream from Anthropic API"""
         try:
             import anthropic
@@ -400,7 +399,7 @@ class LLMProvider:
                 "model": model,
                 "max_tokens": max_tokens,
                 "temperature": temperature,
-                "messages": [{"role": "user", "content": prompt}]
+                "messages": [{"role": "user", "content": prompt}],
             }
 
             # Add system prompt if provided
@@ -428,14 +427,16 @@ class LLMProvider:
                 latency_s=latency,
                 tokens_in=tokens_in,
                 tokens_out=tokens_out,
-                cost_usd=cost
+                cost_usd=cost,
             )
 
         except ImportError:
             yield "[Anthropic not installed. Run: pip install anthropic]"
             yield LLMResponse(text="", model=model, provider="anthropic", latency_s=0.0)
 
-    def _call_openai_stream(self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs) -> Generator[str, None, LLMResponse]:
+    def _call_openai_stream(
+        self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
+    ) -> Generator[str, None, LLMResponse]:
         """Stream from OpenAI API"""
         try:
             from openai import OpenAI
@@ -455,11 +456,7 @@ class LLMProvider:
 
             # Stream the response
             stream = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                stream=True
+                model=model, messages=messages, temperature=temperature, max_tokens=max_tokens, stream=True
             )
 
             for chunk in stream:
@@ -483,7 +480,7 @@ class LLMProvider:
                 latency_s=latency,
                 tokens_in=None,
                 tokens_out=int(tokens_out),
-                cost_usd=cost
+                cost_usd=cost,
             )
 
         except ImportError:
@@ -498,12 +495,12 @@ class LLMProvider:
             "claude-3-5-haiku-20241022": (1.0, 5.0),
             "claude-3-opus-20240229": (15.0, 75.0),
         }
-        
+
         if model in prices:
             input_price, output_price = prices[model]
             return (tokens_in * input_price + tokens_out * output_price) / 1_000_000
         return 0.0
-    
+
     def _estimate_cost_openai(self, model: str, tokens_in: int, tokens_out: int) -> float:
         """Rough cost estimation for OpenAI"""
         # Prices as of Oct 2025 (check https://openai.com/pricing for updates)
@@ -514,7 +511,7 @@ class LLMProvider:
             "gpt-4o-mini": (0.15, 0.6),
             "gpt-3.5-turbo": (0.5, 1.5),
         }
-        
+
         for key, (input_price, output_price) in prices.items():
             if key in model:
                 return (tokens_in * input_price + tokens_out * output_price) / 1_000_000
@@ -524,6 +521,7 @@ class LLMProvider:
 # Singleton instance
 _provider = None
 
+
 def get_provider() -> LLMProvider:
     """Get or create singleton provider"""
     global _provider
@@ -532,7 +530,9 @@ def get_provider() -> LLMProvider:
     return _provider
 
 
-def llm_call(prompt: str, provider: str = None, model: str = None, system_prompt: Optional[str] = None, **kwargs) -> LLMResponse:
+def llm_call(
+    prompt: str, provider: str = None, model: str = None, system_prompt: Optional[str] = None, **kwargs
+) -> LLMResponse:
     """
     Convenience function for calling LLMs.
 
@@ -561,7 +561,9 @@ def llm_call(prompt: str, provider: str = None, model: str = None, system_prompt
     return get_provider().call(prompt, provider=provider, model=model, system_prompt=system_prompt, **kwargs)
 
 
-def llm_call_stream(prompt: str, provider: str = None, model: str = None, system_prompt: Optional[str] = None, **kwargs) -> Generator[str, None, LLMResponse]:
+def llm_call_stream(
+    prompt: str, provider: str = None, model: str = None, system_prompt: Optional[str] = None, **kwargs
+) -> Generator[str, None, LLMResponse]:
     """
     Convenience function for streaming LLM calls.
 

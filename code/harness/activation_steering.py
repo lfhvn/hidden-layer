@@ -6,21 +6,22 @@ to test introspective awareness following the methodology from:
 https://transformer-circuits.pub/2025/introspection/index.html
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Callable
 from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
+
 import mlx.core as mx
-import mlx.nn as nn
+import numpy as np
 
 
 @dataclass
 class SteeringConfig:
     """Configuration for activation steering"""
-    layer_idx: int              # Which layer to inject into
-    position: str = "last"      # "last", "mean", "first", or token index
-    strategy: str = "add"       # "add", "replace", "scale"
-    strength: float = 1.0       # Scaling factor for injection
-    normalize: bool = False     # Normalize vectors before injection
+
+    layer_idx: int  # Which layer to inject into
+    position: str = "last"  # "last", "mean", "first", or token index
+    strategy: str = "add"  # "add", "replace", "scale"
+    strength: float = 1.0  # Scaling factor for injection
+    normalize: bool = False  # Normalize vectors before injection
 
 
 class ActivationSteerer:
@@ -59,9 +60,9 @@ class ActivationSteerer:
     def _get_layer_module(self, layer_idx: int):
         """Get the module for a specific layer"""
         # MLX models typically have a 'layers' attribute
-        if hasattr(self.model, 'layers'):
+        if hasattr(self.model, "layers"):
             return self.model.layers[layer_idx]
-        elif hasattr(self.model, 'model') and hasattr(self.model.model, 'layers'):
+        elif hasattr(self.model, "model") and hasattr(self.model.model, "layers"):
             return self.model.model.layers[layer_idx]
         else:
             raise ValueError("Could not find layers in model structure")
@@ -77,12 +78,7 @@ class ActivationSteerer:
         else:
             raise ValueError(f"Unknown position: {position}")
 
-    def extract_activation(
-        self,
-        prompt: str,
-        layer_idx: int,
-        position: str = "last"
-    ) -> np.ndarray:
+    def extract_activation(self, prompt: str, layer_idx: int, position: str = "last") -> np.ndarray:
         """
         Extract activation vector from a specific layer and position.
 
@@ -101,7 +97,7 @@ class ActivationSteerer:
 
         def hook_fn(module, args, output):
             # Store the output activations
-            self.activations[f'layer_{layer_idx}'] = output
+            self.activations[f"layer_{layer_idx}"] = output
             return output
 
         # Register hook
@@ -117,7 +113,7 @@ class ActivationSteerer:
                 _ = self.model(tokens)
 
             # Extract activations
-            act = self.activations[f'layer_{layer_idx}']
+            act = self.activations[f"layer_{layer_idx}"]
 
             # Select position
             if position == "mean":
@@ -135,11 +131,7 @@ class ActivationSteerer:
             self.activations.clear()
 
     def extract_contrastive_concept(
-        self,
-        positive_prompt: str,
-        negative_prompt: str,
-        layer_idx: int,
-        position: str = "last"
+        self, positive_prompt: str, negative_prompt: str, layer_idx: int, position: str = "last"
     ) -> np.ndarray:
         """
         Extract concept vector using contrastive method.
@@ -171,7 +163,7 @@ class ActivationSteerer:
         concept_vector: np.ndarray,
         config: SteeringConfig,
         max_tokens: int = 100,
-        temperature: float = 0.7
+        temperature: float = 0.7,
     ) -> Tuple[str, Dict]:
         """
         Generate text with concept vector injected into activations.
@@ -216,17 +208,18 @@ class ActivationSteerer:
                 pos_idx = self._position_to_index(config.position, output.shape[1])
 
                 if config.strategy == "add":
-                    output = mx.concatenate([
-                        output[:, :pos_idx],
-                        (output[:, pos_idx:pos_idx+1] + concept_mx).reshape(1, 1, -1),
-                        output[:, pos_idx+1:]
-                    ], axis=1)
+                    output = mx.concatenate(
+                        [
+                            output[:, :pos_idx],
+                            (output[:, pos_idx : pos_idx + 1] + concept_mx).reshape(1, 1, -1),
+                            output[:, pos_idx + 1 :],
+                        ],
+                        axis=1,
+                    )
                 elif config.strategy == "replace":
-                    output = mx.concatenate([
-                        output[:, :pos_idx],
-                        concept_mx.reshape(1, 1, -1),
-                        output[:, pos_idx+1:]
-                    ], axis=1)
+                    output = mx.concatenate(
+                        [output[:, :pos_idx], concept_mx.reshape(1, 1, -1), output[:, pos_idx + 1 :]], axis=1
+                    )
                 # scale strategy modifies globally
 
             return output
@@ -239,20 +232,15 @@ class ActivationSteerer:
             from mlx_lm import generate as mlx_generate
 
             output = mlx_generate(
-                self.model,
-                self.tokenizer,
-                prompt=prompt,
-                temp=temperature,
-                max_tokens=max_tokens,
-                verbose=False
+                self.model, self.tokenizer, prompt=prompt, temp=temperature, max_tokens=max_tokens, verbose=False
             )
 
             metadata = {
-                'layer': config.layer_idx,
-                'position': config.position,
-                'strategy': config.strategy,
-                'strength': config.strength,
-                'normalized': config.normalize
+                "layer": config.layer_idx,
+                "position": config.position,
+                "strategy": config.strategy,
+                "strength": config.strength,
+                "normalized": config.normalize,
             }
 
             return output, metadata
@@ -267,7 +255,7 @@ class ActivationSteerer:
         concept_vector: np.ndarray,
         config: SteeringConfig,
         max_tokens: int = 100,
-        temperature: float = 0.7
+        temperature: float = 0.7,
     ) -> Dict:
         """
         Generate both baseline and steered outputs for comparison.
@@ -279,29 +267,15 @@ class ActivationSteerer:
         from mlx_lm import generate as mlx_generate
 
         baseline = mlx_generate(
-            self.model,
-            self.tokenizer,
-            prompt=prompt,
-            temp=temperature,
-            max_tokens=max_tokens,
-            verbose=False
+            self.model, self.tokenizer, prompt=prompt, temp=temperature, max_tokens=max_tokens, verbose=False
         )
 
         # Steered generation
         steered, metadata = self.generate_with_steering(
-            prompt=prompt,
-            concept_vector=concept_vector,
-            config=config,
-            max_tokens=max_tokens,
-            temperature=temperature
+            prompt=prompt, concept_vector=concept_vector, config=config, max_tokens=max_tokens, temperature=temperature
         )
 
-        return {
-            'baseline': baseline,
-            'steered': steered,
-            'config': metadata,
-            'prompt': prompt
-        }
+        return {"baseline": baseline, "steered": steered, "config": metadata, "prompt": prompt}
 
 
 class ActivationCache:
@@ -358,7 +332,7 @@ def test_steering_basic():
         positive_prompt="I feel very happy and joyful!",
         negative_prompt="I feel neutral, neither happy nor sad.",
         layer_idx=15,
-        position="last"
+        position="last",
     )
 
     print(f"Extracted happiness vector: shape {happiness.shape}")
@@ -368,7 +342,7 @@ def test_steering_basic():
         prompt="Tell me about your day.",
         concept_vector=happiness,
         config=SteeringConfig(layer_idx=15, strength=1.0, strategy="add"),
-        max_tokens=50
+        max_tokens=50,
     )
 
     print(f"\nBaseline: {result['baseline']}")

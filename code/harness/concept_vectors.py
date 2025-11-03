@@ -4,13 +4,14 @@ Concept Vector Library
 Store, manage, and search concept representations extracted from models.
 """
 
-import numpy as np
-import pickle
 import json
+import pickle
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass, asdict
-from datetime import datetime
+
+import numpy as np
 
 
 @dataclass
@@ -28,6 +29,7 @@ class ConceptVector:
         timestamp: When it was created
         metadata: Additional info (e.g., position, method)
     """
+
     name: str
     vector: np.ndarray
     layer: int
@@ -46,23 +48,23 @@ class ConceptVector:
     def to_dict(self) -> Dict:
         """Convert to dictionary for serialization"""
         d = asdict(self)
-        d['vector'] = self.vector.tolist()  # Convert numpy array
+        d["vector"] = self.vector.tolist()  # Convert numpy array
         return d
 
     @classmethod
-    def from_dict(cls, d: Dict) -> 'ConceptVector':
+    def from_dict(cls, d: Dict) -> "ConceptVector":
         """Load from dictionary"""
-        d['vector'] = np.array(d['vector'])  # Convert back to numpy
+        d["vector"] = np.array(d["vector"])  # Convert back to numpy
         return cls(**d)
 
-    def cosine_similarity(self, other: 'ConceptVector') -> float:
+    def cosine_similarity(self, other: "ConceptVector") -> float:
         """Compute cosine similarity with another concept"""
         dot = np.dot(self.vector, other.vector)
         norm_self = np.linalg.norm(self.vector)
         norm_other = np.linalg.norm(other.vector)
         return dot / (norm_self * norm_other) if (norm_self * norm_other) > 0 else 0.0
 
-    def euclidean_distance(self, other: 'ConceptVector') -> float:
+    def euclidean_distance(self, other: "ConceptVector") -> float:
         """Compute Euclidean distance to another concept"""
         return np.linalg.norm(self.vector - other.vector)
 
@@ -93,10 +95,7 @@ class ConceptLibrary:
 
     def __init__(self):
         self.concepts: Dict[str, ConceptVector] = {}
-        self.metadata = {
-            'created': datetime.now().isoformat(),
-            'version': '1.0'
-        }
+        self.metadata = {"created": datetime.now().isoformat(), "version": "1.0"}
 
     def add_concept(
         self,
@@ -107,7 +106,7 @@ class ConceptLibrary:
         contrastive_prompt: Optional[str] = None,
         model_name: str = "unknown",
         metadata: Optional[Dict] = None,
-        overwrite: bool = False
+        overwrite: bool = False,
     ) -> ConceptVector:
         """
         Add a concept to the library.
@@ -135,7 +134,7 @@ class ConceptLibrary:
             extraction_prompt=extraction_prompt,
             contrastive_prompt=contrastive_prompt,
             model_name=model_name,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         self.concepts[name] = concept
@@ -156,12 +155,7 @@ class ConceptLibrary:
         """Get list of all concept names"""
         return list(self.concepts.keys())
 
-    def find_similar(
-        self,
-        query: str,
-        top_k: int = 5,
-        metric: str = "cosine"
-    ) -> List[Tuple[str, float]]:
+    def find_similar(self, query: str, top_k: int = 5, metric: str = "cosine") -> List[Tuple[str, float]]:
         """
         Find concepts similar to a query concept.
 
@@ -198,10 +192,7 @@ class ConceptLibrary:
         return similarities[:top_k]
 
     def find_similar_to_vector(
-        self,
-        vector: np.ndarray,
-        top_k: int = 5,
-        metric: str = "cosine"
+        self, vector: np.ndarray, top_k: int = 5, metric: str = "cosine"
     ) -> List[Tuple[str, float]]:
         """
         Find concepts similar to an arbitrary vector.
@@ -234,13 +225,11 @@ class ConceptLibrary:
 
     def filter_by_layer(self, layer: int) -> List[str]:
         """Get all concepts extracted from a specific layer"""
-        return [name for name, concept in self.concepts.items()
-                if concept.layer == layer]
+        return [name for name, concept in self.concepts.items() if concept.layer == layer]
 
     def filter_by_model(self, model_name: str) -> List[str]:
         """Get all concepts extracted from a specific model"""
-        return [name for name, concept in self.concepts.items()
-                if concept.model_name == model_name]
+        return [name for name, concept in self.concepts.items() if concept.model_name == model_name]
 
     def save(self, path: str):
         """
@@ -253,26 +242,25 @@ class ConceptLibrary:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
 
         data = {
-            'concepts': {name: concept.to_dict()
-                        for name, concept in self.concepts.items()},
-            'metadata': self.metadata
+            "concepts": {name: concept.to_dict() for name, concept in self.concepts.items()},
+            "metadata": self.metadata,
         }
 
-        with open(path, 'wb') as f:
+        with open(path, "wb") as f:
             pickle.dump(data, f)
 
         print(f"Saved {len(self.concepts)} concepts to {path}")
 
     @classmethod
-    def load(cls, path: str) -> 'ConceptLibrary':
+    def load(cls, path: str) -> "ConceptLibrary":
         """Load library from disk"""
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             data = pickle.load(f)
 
         library = cls()
-        library.metadata = data['metadata']
+        library.metadata = data["metadata"]
 
-        for name, concept_dict in data['concepts'].items():
+        for name, concept_dict in data["concepts"].items():
             library.concepts[name] = ConceptVector.from_dict(concept_dict)
 
         print(f"Loaded {len(library.concepts)} concepts from {path}")
@@ -281,29 +269,29 @@ class ConceptLibrary:
     def export_json(self, path: str):
         """Export library to JSON (without vectors, for inspection)"""
         data = {
-            'metadata': self.metadata,
-            'concepts': {
+            "metadata": self.metadata,
+            "concepts": {
                 name: {
-                    'name': c.name,
-                    'layer': c.layer,
-                    'extraction_prompt': c.extraction_prompt,
-                    'contrastive_prompt': c.contrastive_prompt,
-                    'model_name': c.model_name,
-                    'timestamp': c.timestamp,
-                    'vector_shape': c.vector.shape,
-                    'vector_norm': float(np.linalg.norm(c.vector)),
-                    'metadata': c.metadata
+                    "name": c.name,
+                    "layer": c.layer,
+                    "extraction_prompt": c.extraction_prompt,
+                    "contrastive_prompt": c.contrastive_prompt,
+                    "model_name": c.model_name,
+                    "timestamp": c.timestamp,
+                    "vector_shape": c.vector.shape,
+                    "vector_norm": float(np.linalg.norm(c.vector)),
+                    "metadata": c.metadata,
                 }
                 for name, c in self.concepts.items()
-            }
+            },
         }
 
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             json.dump(data, f, indent=2)
 
         print(f"Exported library metadata to {path}")
 
-    def merge(self, other: 'ConceptLibrary', prefix: Optional[str] = None):
+    def merge(self, other: "ConceptLibrary", prefix: Optional[str] = None):
         """
         Merge another library into this one.
 
@@ -338,9 +326,7 @@ class ConceptLibrary:
                 if i == j:
                     matrix[i, j] = 1.0
                 else:
-                    matrix[i, j] = self.concepts[name1].cosine_similarity(
-                        self.concepts[name2]
-                    )
+                    matrix[i, j] = self.concepts[name1].cosine_similarity(self.concepts[name2])
 
         return matrix, names
 
@@ -366,30 +352,12 @@ def build_emotion_library(steerer, layer: int = 15, model_name: str = "unknown")
     library = ConceptLibrary()
 
     emotions = {
-        'happiness': (
-            "I feel extremely happy, joyful, and delighted!",
-            "I feel neutral, neither happy nor sad."
-        ),
-        'sadness': (
-            "I feel very sad, depressed, and sorrowful.",
-            "I feel neutral, neither happy nor sad."
-        ),
-        'anger': (
-            "I feel extremely angry, furious, and enraged!",
-            "I feel calm and neutral."
-        ),
-        'fear': (
-            "I feel very scared, frightened, and terrified!",
-            "I feel safe and calm."
-        ),
-        'surprise': (
-            "I feel shocked, astonished, and amazed!",
-            "I feel unsurprised and calm."
-        ),
-        'disgust': (
-            "I feel disgusted, repulsed, and revolted!",
-            "I feel neutral and calm."
-        )
+        "happiness": ("I feel extremely happy, joyful, and delighted!", "I feel neutral, neither happy nor sad."),
+        "sadness": ("I feel very sad, depressed, and sorrowful.", "I feel neutral, neither happy nor sad."),
+        "anger": ("I feel extremely angry, furious, and enraged!", "I feel calm and neutral."),
+        "fear": ("I feel very scared, frightened, and terrified!", "I feel safe and calm."),
+        "surprise": ("I feel shocked, astonished, and amazed!", "I feel unsurprised and calm."),
+        "disgust": ("I feel disgusted, repulsed, and revolted!", "I feel neutral and calm."),
     }
 
     print(f"Extracting {len(emotions)} emotion concepts from layer {layer}...")
@@ -397,10 +365,7 @@ def build_emotion_library(steerer, layer: int = 15, model_name: str = "unknown")
     for emotion, (positive, negative) in emotions.items():
         print(f"  - {emotion}")
         vector = steerer.extract_contrastive_concept(
-            positive_prompt=positive,
-            negative_prompt=negative,
-            layer_idx=layer,
-            position="last"
+            positive_prompt=positive, negative_prompt=negative, layer_idx=layer, position="last"
         )
 
         library.add_concept(
@@ -410,7 +375,7 @@ def build_emotion_library(steerer, layer: int = 15, model_name: str = "unknown")
             extraction_prompt=positive,
             contrastive_prompt=negative,
             model_name=model_name,
-            metadata={'category': 'emotion'}
+            metadata={"category": "emotion"},
         )
 
     return library
@@ -423,26 +388,14 @@ def build_topic_library(steerer, layer: int = 15, model_name: str = "unknown") -
     library = ConceptLibrary()
 
     topics = {
-        'science': (
+        "science": (
             "Let's discuss scientific research, experiments, and discoveries.",
-            "Let's have a general conversation."
+            "Let's have a general conversation.",
         ),
-        'politics': (
-            "Let's discuss politics, government, and policy.",
-            "Let's have a general conversation."
-        ),
-        'sports': (
-            "Let's talk about sports, athletics, and competition.",
-            "Let's have a general conversation."
-        ),
-        'art': (
-            "Let's discuss art, creativity, and artistic expression.",
-            "Let's have a general conversation."
-        ),
-        'technology': (
-            "Let's talk about technology, computers, and innovation.",
-            "Let's have a general conversation."
-        )
+        "politics": ("Let's discuss politics, government, and policy.", "Let's have a general conversation."),
+        "sports": ("Let's talk about sports, athletics, and competition.", "Let's have a general conversation."),
+        "art": ("Let's discuss art, creativity, and artistic expression.", "Let's have a general conversation."),
+        "technology": ("Let's talk about technology, computers, and innovation.", "Let's have a general conversation."),
     }
 
     print(f"Extracting {len(topics)} topic concepts from layer {layer}...")
@@ -450,10 +403,7 @@ def build_topic_library(steerer, layer: int = 15, model_name: str = "unknown") -
     for topic, (positive, negative) in topics.items():
         print(f"  - {topic}")
         vector = steerer.extract_contrastive_concept(
-            positive_prompt=positive,
-            negative_prompt=negative,
-            layer_idx=layer,
-            position="last"
+            positive_prompt=positive, negative_prompt=negative, layer_idx=layer, position="last"
         )
 
         library.add_concept(
@@ -463,7 +413,7 @@ def build_topic_library(steerer, layer: int = 15, model_name: str = "unknown") -
             extraction_prompt=positive,
             contrastive_prompt=negative,
             model_name=model_name,
-            metadata={'category': 'topic'}
+            metadata={"category": "topic"},
         )
 
     return library
@@ -482,15 +432,11 @@ if __name__ == "__main__":
         vector=np.random.randn(512),
         layer=15,
         extraction_prompt="I feel happy",
-        model_name="test-model"
+        model_name="test-model",
     )
 
     library.add_concept(
-        name="sadness",
-        vector=np.random.randn(512),
-        layer=15,
-        extraction_prompt="I feel sad",
-        model_name="test-model"
+        name="sadness", vector=np.random.randn(512), layer=15, extraction_prompt="I feel sad", model_name="test-model"
     )
 
     print(f"Library: {library}")

@@ -15,12 +15,13 @@ Design problem types include:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class DesignDomain(Enum):
     """Types of design domains"""
+
     UI_UX = "ui_ux"  # User interface and experience
     API = "api"  # API and interface design
     SYSTEM = "system"  # System architecture
@@ -32,6 +33,7 @@ class DesignDomain(Enum):
 
 class CritiquePerspective(Enum):
     """Different critique perspectives"""
+
     USABILITY = "usability"  # User experience and ease of use
     ACCESSIBILITY = "accessibility"  # Inclusive design
     PERFORMANCE = "performance"  # Efficiency and speed
@@ -46,6 +48,7 @@ class CritiquePerspective(Enum):
 @dataclass
 class DesignProblem:
     """A design problem that needs critique"""
+
     name: str
     domain: DesignDomain
     description: str
@@ -56,17 +59,12 @@ class DesignProblem:
     difficulty: str = "medium"  # easy, medium, hard
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def to_critique_prompt(
-        self,
-        perspective: Optional[CritiquePerspective] = None
-    ) -> str:
+    def to_critique_prompt(self, perspective: Optional[CritiquePerspective] = None) -> str:
         """Convert to a prompt for design critique"""
         prompt_parts = []
 
         if perspective:
-            prompt_parts.append(
-                f"You are a {perspective.value} expert reviewing this design.\n"
-            )
+            prompt_parts.append(f"You are a {perspective.value} expert reviewing this design.\n")
         else:
             prompt_parts.append("Review this design and provide constructive critique.\n")
 
@@ -74,7 +72,7 @@ class DesignProblem:
         prompt_parts.append(f"\nCONTEXT:\n{self.context}\n")
         prompt_parts.append(f"\nCURRENT DESIGN:\n{self.current_design}\n")
 
-        prompt_parts.append(f"\nSUCCESS CRITERIA:")
+        prompt_parts.append("\nSUCCESS CRITERIA:")
         for i, criterion in enumerate(self.success_criteria, 1):
             prompt_parts.append(f"{i}. {criterion}")
 
@@ -107,7 +105,7 @@ class DesignProblem:
             "success_criteria": self.success_criteria,
             "known_issues": self.known_issues,
             "difficulty": self.difficulty,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
 
@@ -154,15 +152,15 @@ SCREEN 4: Order Review
         "Clear, unambiguous flow",
         "Accessible to users with disabilities",
         "Secure handling of sensitive data",
-        "Mobile-optimized interactions"
+        "Mobile-optimized interactions",
     ],
     known_issues=[
         "Current flow is 4 screens, users say it's too long",
         "Form fields are small on mobile devices",
         "No guest checkout option",
-        "Error messages appear after form submission, not inline"
+        "Error messages appear after form submission, not inline",
     ],
-    difficulty="medium"
+    difficulty="medium",
 )
 
 DASHBOARD_LAYOUT = DesignProblem(
@@ -193,15 +191,15 @@ LAYOUT:
         "Efficient comparison of data across dimensions",
         "Customizable for different user roles",
         "Clear visual hierarchy",
-        "Performant with large datasets"
+        "Performant with large datasets",
     ],
     known_issues=[
         "Users can't customize which KPIs appear",
         "No way to filter or segment data without leaving page",
         "Chart doesn't support comparison mode",
-        "No drill-down capability from high-level metrics"
+        "No drill-down capability from high-level metrics",
     ],
-    difficulty="medium"
+    difficulty="medium",
 )
 
 # ============================================================================
@@ -245,9 +243,9 @@ PLANNED BREAKING CHANGE:
         "Clear migration path for clients",
         "Minimal maintenance burden for multiple versions",
         "Discoverable and well-documented",
-        "Support both rapid iteration and stability"
+        "Support both rapid iteration and stability",
     ],
-    difficulty="hard"
+    difficulty="hard",
 )
 
 GRAPHQL_SCHEMA = DesignProblem(
@@ -302,16 +300,16 @@ type Query {
         "Scalable for large lists (followers, posts, etc.)",
         "Flexible enough for different client needs",
         "Respect privacy and permissions",
-        "Good developer experience"
+        "Good developer experience",
     ],
     known_issues=[
         "No pagination on lists",
         "No privacy/permissions model",
         "followers/following could be huge arrays",
         "feed query has no filtering options",
-        "Potential for expensive nested queries"
+        "Potential for expensive nested queries",
     ],
-    difficulty="hard"
+    difficulty="hard",
 )
 
 # ============================================================================
@@ -361,16 +359,16 @@ COMMUNICATION:
         "Maintain data consistency",
         "Minimal downtime during migration",
         "Support team autonomy",
-        "Scalable architecture"
+        "Scalable architecture",
     ],
     known_issues=[
         "Shared database creates tight coupling",
         "No clear strategy for cross-service transactions",
         "Notification service seems too generic",
         "No plan for handling service failures",
-        "Data migration strategy unclear"
+        "Data migration strategy unclear",
     ],
-    difficulty="hard"
+    difficulty="hard",
 )
 
 CACHING_STRATEGY = DesignProblem(
@@ -413,9 +411,9 @@ CURRENT ISSUES:
         "Fresh content (no stale data shown)",
         "Efficient invalidation strategy",
         "Cost-effective (optimize Redis usage)",
-        "Scalable to 10x traffic"
+        "Scalable to 10x traffic",
     ],
-    difficulty="medium"
+    difficulty="medium",
 )
 
 # ============================================================================
@@ -474,16 +472,16 @@ ACCESS LOGIC:
         "Support teams/groups, not just individual users",
         "Permission inheritance for nested resources",
         "Auditable (who has access to what)",
-        "Easy to reason about and debug"
+        "Easy to reason about and debug",
     ],
     known_issues=[
         "No team/group concept",
         "No permission inheritance",
         "No time-based permissions",
         "Permission queries are slow",
-        "Hard to answer 'who has access to X'"
+        "Hard to answer 'who has access to X'",
     ],
-    difficulty="hard"
+    difficulty="hard",
 )
 
 # ============================================================================
@@ -532,9 +530,9 @@ LIMITATIONS:
         "Configurable by business users",
         "Handle delegation and escalation",
         "Complete audit trail",
-        "Easy to understand and debug"
+        "Easy to understand and debug",
     ],
-    difficulty="hard"
+    difficulty="hard",
 )
 
 # ============================================================================

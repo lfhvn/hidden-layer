@@ -9,22 +9,23 @@ This module implements different approaches to design critique:
 - Adversarial critique (challenge assumptions)
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
-import sys
 import os
+import sys
 import time
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from harness import llm_call, run_strategy, StrategyResult
-from crit.problems import DesignProblem, CritiquePerspective
+from crit.problems import CritiquePerspective, DesignProblem
+from harness import llm_call
 
 
 @dataclass
 class CritiqueResult:
     """Result of a design critique"""
+
     problem_name: str
     strategy_name: str
     critiques: List[Dict[str, Any]]  # List of individual critiques
@@ -50,15 +51,12 @@ class CritiqueResult:
             "total_tokens_in": self.total_tokens_in,
             "total_tokens_out": self.total_tokens_out,
             "total_cost_usd": self.total_cost_usd,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
 
 def single_critic_strategy(
-    problem: DesignProblem,
-    provider: str = "ollama",
-    model: Optional[str] = None,
-    **kwargs
+    problem: DesignProblem, provider: str = "ollama", model: Optional[str] = None, **kwargs
 ) -> CritiqueResult:
     """
     Single expert provides comprehensive critique.
@@ -91,7 +89,7 @@ def single_critic_strategy(
         "critique": response.text,
         "tokens_in": response.tokens_in,
         "tokens_out": response.tokens_out,
-        "cost_usd": response.cost_usd
+        "cost_usd": response.cost_usd,
     }
 
     return CritiqueResult(
@@ -105,7 +103,7 @@ def single_critic_strategy(
         total_tokens_in=response.tokens_in,
         total_tokens_out=response.tokens_out,
         total_cost_usd=response.cost_usd,
-        metadata={"problem": problem.to_dict()}
+        metadata={"problem": problem.to_dict()},
     )
 
 
@@ -115,7 +113,7 @@ def multi_perspective_critique(
     synthesize: bool = True,
     provider: str = "ollama",
     model: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ) -> CritiqueResult:
     """
     Multiple experts from different perspectives critique the design.
@@ -150,13 +148,15 @@ def multi_perspective_critique(
         prompt = problem.to_critique_prompt(perspective=perspective)
         response = llm_call(prompt, provider=provider, model=model, **kwargs)
 
-        critiques.append({
-            "perspective": perspective.value,
-            "critique": response.text,
-            "tokens_in": response.tokens_in,
-            "tokens_out": response.tokens_out,
-            "cost_usd": response.cost_usd
-        })
+        critiques.append(
+            {
+                "perspective": perspective.value,
+                "critique": response.text,
+                "tokens_in": response.tokens_in,
+                "tokens_out": response.tokens_out,
+                "cost_usd": response.cost_usd,
+            }
+        )
 
         total_tokens_in += response.tokens_in
         total_tokens_out += response.tokens_out
@@ -168,12 +168,7 @@ def multi_perspective_critique(
 
     if synthesize:
         synthesis_prompt = _build_synthesis_prompt(problem, critiques)
-        synthesis_response = llm_call(
-            synthesis_prompt,
-            provider=provider,
-            model=model,
-            **kwargs
-        )
+        synthesis_response = llm_call(synthesis_prompt, provider=provider, model=model, **kwargs)
 
         synthesis_text = synthesis_response.text
         recommendations = _extract_recommendations(synthesis_text)
@@ -200,17 +195,13 @@ def multi_perspective_critique(
         metadata={
             "problem": problem.to_dict(),
             "perspectives": [p.value for p in perspectives],
-            "synthesized": synthesize
-        }
+            "synthesized": synthesize,
+        },
     )
 
 
 def iterative_critique(
-    problem: DesignProblem,
-    iterations: int = 2,
-    provider: str = "ollama",
-    model: Optional[str] = None,
-    **kwargs
+    problem: DesignProblem, iterations: int = 2, provider: str = "ollama", model: Optional[str] = None, **kwargs
 ) -> CritiqueResult:
     """
     Iterative design critique with refinement.
@@ -259,22 +250,19 @@ Provide:
 2. What could be improved
 3. Specific recommendations for improvement
 """
-        critique_response = llm_call(
-            critique_prompt,
-            provider=provider,
-            model=model,
-            **kwargs
-        )
+        critique_response = llm_call(critique_prompt, provider=provider, model=model, **kwargs)
 
-        critiques.append({
-            "iteration": i + 1,
-            "type": "critique",
-            "design": current_design,
-            "feedback": critique_response.text,
-            "tokens_in": critique_response.tokens_in,
-            "tokens_out": critique_response.tokens_out,
-            "cost_usd": critique_response.cost_usd
-        })
+        critiques.append(
+            {
+                "iteration": i + 1,
+                "type": "critique",
+                "design": current_design,
+                "feedback": critique_response.text,
+                "tokens_in": critique_response.tokens_in,
+                "tokens_out": critique_response.tokens_out,
+                "cost_usd": critique_response.cost_usd,
+            }
+        )
 
         total_tokens_in += critique_response.tokens_in
         total_tokens_out += critique_response.tokens_out
@@ -292,23 +280,20 @@ CRITIQUE:
 
 Provide the complete revised design, incorporating the feedback.
 """
-            revision_response = llm_call(
-                revision_prompt,
-                provider=provider,
-                model=model,
-                **kwargs
-            )
+            revision_response = llm_call(revision_prompt, provider=provider, model=model, **kwargs)
 
             current_design = revision_response.text
 
-            critiques.append({
-                "iteration": i + 1,
-                "type": "revision",
-                "revised_design": current_design,
-                "tokens_in": revision_response.tokens_in,
-                "tokens_out": revision_response.tokens_out,
-                "cost_usd": revision_response.cost_usd
-            })
+            critiques.append(
+                {
+                    "iteration": i + 1,
+                    "type": "revision",
+                    "revised_design": current_design,
+                    "tokens_in": revision_response.tokens_in,
+                    "tokens_out": revision_response.tokens_out,
+                    "cost_usd": revision_response.cost_usd,
+                }
+            )
 
             total_tokens_in += revision_response.tokens_in
             total_tokens_out += revision_response.tokens_out
@@ -329,18 +314,12 @@ Provide the complete revised design, incorporating the feedback.
         total_tokens_in=total_tokens_in,
         total_tokens_out=total_tokens_out,
         total_cost_usd=total_cost,
-        metadata={
-            "problem": problem.to_dict(),
-            "iterations": iterations
-        }
+        metadata={"problem": problem.to_dict(), "iterations": iterations},
     )
 
 
 def adversarial_critique(
-    problem: DesignProblem,
-    provider: str = "ollama",
-    model: Optional[str] = None,
-    **kwargs
+    problem: DesignProblem, provider: str = "ollama", model: Optional[str] = None, **kwargs
 ) -> CritiqueResult:
     """
     Two-agent adversarial critique.
@@ -382,20 +361,17 @@ SUCCESS CRITERIA:
 
 Propose specific improvements to this design. Be bold and innovative.
 """
-    improvement_response = llm_call(
-        improvement_prompt,
-        provider=provider,
-        model=model,
-        **kwargs
-    )
+    improvement_response = llm_call(improvement_prompt, provider=provider, model=model, **kwargs)
 
-    critiques.append({
-        "agent": "proposer",
-        "content": improvement_response.text,
-        "tokens_in": improvement_response.tokens_in,
-        "tokens_out": improvement_response.tokens_out,
-        "cost_usd": improvement_response.cost_usd
-    })
+    critiques.append(
+        {
+            "agent": "proposer",
+            "content": improvement_response.text,
+            "tokens_in": improvement_response.tokens_in,
+            "tokens_out": improvement_response.tokens_out,
+            "cost_usd": improvement_response.cost_usd,
+        }
+    )
 
     total_tokens_in += improvement_response.tokens_in
     total_tokens_out += improvement_response.tokens_out
@@ -416,20 +392,17 @@ CONTEXT:
 Challenge these proposals. What could go wrong? What are the trade-offs?
 What edge cases or problems might arise? Be skeptical and thorough.
 """
-    challenge_response = llm_call(
-        challenge_prompt,
-        provider=provider,
-        model=model,
-        **kwargs
-    )
+    challenge_response = llm_call(challenge_prompt, provider=provider, model=model, **kwargs)
 
-    critiques.append({
-        "agent": "challenger",
-        "content": challenge_response.text,
-        "tokens_in": challenge_response.tokens_in,
-        "tokens_out": challenge_response.tokens_out,
-        "cost_usd": challenge_response.cost_usd
-    })
+    critiques.append(
+        {
+            "agent": "challenger",
+            "content": challenge_response.text,
+            "tokens_in": challenge_response.tokens_in,
+            "tokens_out": challenge_response.tokens_out,
+            "cost_usd": challenge_response.cost_usd,
+        }
+    )
 
     total_tokens_in += challenge_response.tokens_in
     total_tokens_out += challenge_response.tokens_out
@@ -446,20 +419,17 @@ CHALLENGES:
 
 Address the concerns raised. Refine your proposals based on valid critiques.
 """
-    response_response = llm_call(
-        response_prompt,
-        provider=provider,
-        model=model,
-        **kwargs
-    )
+    response_response = llm_call(response_prompt, provider=provider, model=model, **kwargs)
 
-    critiques.append({
-        "agent": "proposer_response",
-        "content": response_response.text,
-        "tokens_in": response_response.tokens_in,
-        "tokens_out": response_response.tokens_out,
-        "cost_usd": response_response.cost_usd
-    })
+    critiques.append(
+        {
+            "agent": "proposer_response",
+            "content": response_response.text,
+            "tokens_in": response_response.tokens_in,
+            "tokens_out": response_response.tokens_out,
+            "cost_usd": response_response.cost_usd,
+        }
+    )
 
     total_tokens_in += response_response.tokens_in
     total_tokens_out += response_response.tokens_out
@@ -480,12 +450,7 @@ RESPONSES:
 Provide a balanced synthesis that incorporates valid points from both sides.
 Give specific, actionable recommendations.
 """
-    synthesis_response = llm_call(
-        synthesis_prompt,
-        provider=provider,
-        model=model,
-        **kwargs
-    )
+    synthesis_response = llm_call(synthesis_prompt, provider=provider, model=model, **kwargs)
 
     total_tokens_in += synthesis_response.tokens_in
     total_tokens_out += synthesis_response.tokens_out
@@ -504,13 +469,14 @@ Give specific, actionable recommendations.
         total_tokens_in=total_tokens_in,
         total_tokens_out=total_tokens_out,
         total_cost_usd=total_cost,
-        metadata={"problem": problem.to_dict()}
+        metadata={"problem": problem.to_dict()},
     )
 
 
 # ============================================================================
 # Helper Functions
 # ============================================================================
+
 
 def _get_default_perspectives(domain) -> List[CritiquePerspective]:
     """Get default perspectives for a design domain"""
@@ -552,16 +518,13 @@ def _get_default_perspectives(domain) -> List[CritiquePerspective]:
     return common + domain_specific.get(domain, [])
 
 
-def _build_synthesis_prompt(
-    problem: DesignProblem,
-    critiques: List[Dict[str, Any]]
-) -> str:
+def _build_synthesis_prompt(problem: DesignProblem, critiques: List[Dict[str, Any]]) -> str:
     """Build prompt for synthesizing multiple critiques"""
     prompt_parts = [
         "Synthesize these expert critiques into unified, actionable feedback.\n",
         f"DESIGN PROBLEM: {problem.description}\n",
         f"\nCURRENT DESIGN:\n{problem.current_design}\n",
-        "\nEXPERT CRITIQUES:\n"
+        "\nEXPERT CRITIQUES:\n",
     ]
 
     for critique in critiques:
@@ -589,14 +552,14 @@ def _extract_recommendations(text: str) -> List[str]:
     recommendations = []
 
     # Look for numbered lists
-    numbered_pattern = r'^\s*(\d+)[\.\)]\s*(.+?)(?=^\s*\d+[\.\)]|\Z)'
+    numbered_pattern = r"^\s*(\d+)[\.\)]\s*(.+?)(?=^\s*\d+[\.\)]|\Z)"
     matches = re.findall(numbered_pattern, text, re.MULTILINE | re.DOTALL)
 
     if matches:
         recommendations.extend([match[1].strip() for match in matches])
 
     # Look for bullet points
-    bullet_pattern = r'^\s*[-\*]\s*(.+?)$'
+    bullet_pattern = r"^\s*[-\*]\s*(.+?)$"
     bullet_matches = re.findall(bullet_pattern, text, re.MULTILINE)
 
     if bullet_matches and not recommendations:
@@ -604,12 +567,8 @@ def _extract_recommendations(text: str) -> List[str]:
 
     # If no structured recommendations found, look for "recommend" keywords
     if not recommendations:
-        recommend_pattern = r'(?:recommend|suggest|propose)[^.!?]*[.!?]'
-        recommend_matches = re.findall(
-            recommend_pattern,
-            text,
-            re.IGNORECASE | re.MULTILINE
-        )
+        recommend_pattern = r"(?:recommend|suggest|propose)[^.!?]*[.!?]"
+        recommend_matches = re.findall(recommend_pattern, text, re.IGNORECASE | re.MULTILINE)
         recommendations.extend([match.strip() for match in recommend_matches[:5]])
 
     return recommendations[:10]  # Limit to 10 recommendations
@@ -627,11 +586,7 @@ STRATEGIES = {
 }
 
 
-def run_critique_strategy(
-    strategy_name: str,
-    problem: DesignProblem,
-    **kwargs
-) -> CritiqueResult:
+def run_critique_strategy(strategy_name: str, problem: DesignProblem, **kwargs) -> CritiqueResult:
     """
     Run a critique strategy by name.
 
@@ -647,10 +602,7 @@ def run_critique_strategy(
         ValueError: If strategy name is unknown
     """
     if strategy_name not in STRATEGIES:
-        raise ValueError(
-            f"Unknown strategy: {strategy_name}. "
-            f"Available: {list(STRATEGIES.keys())}"
-        )
+        raise ValueError(f"Unknown strategy: {strategy_name}. " f"Available: {list(STRATEGIES.keys())}")
 
     strategy_func = STRATEGIES[strategy_name]
     return strategy_func(problem, **kwargs)

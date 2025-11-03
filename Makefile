@@ -67,7 +67,7 @@ test-cov:
 # Lint code
 lint:
 	@echo "Running linters..."
-	flake8 code/ tests/ --max-line-length=120 --exclude=venv,__pycache__,.git
+	flake8 code/ tests/ --max-line-length=120 --exclude=venv,__pycache__,.git --extend-ignore=E203
 	@echo "✓ Linting complete"
 
 # Format code
