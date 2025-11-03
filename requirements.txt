@@ -44,3 +44,6 @@ requests==2.32.3
 
 # Optional: Pre-commit hooks
 pre-commit==4.0.1
+
+# Optional: Experiment tracking (W&B)
+wandb==0.18.7

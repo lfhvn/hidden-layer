@@ -1,6 +1,8 @@
 """
 Experiment tracking and logging system.
 Designed for notebook-based research with easy integration.
+
+Optional W&B integration for professional dashboards and visualization.
 """
 import json
 import time
@@ -9,6 +11,14 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
 import hashlib
+import os
+
+# Optional W&B import
+try:
+    import wandb
+    WANDB_AVAILABLE = True
+except ImportError:
+    WANDB_AVAILABLE = False
 
 
 @dataclass
@@ -85,47 +95,96 @@ class ExperimentTracker:
     """
     Tracks experiments with automatic logging to disk.
     Designed for notebook-based workflows.
+
+    Optional W&B integration for professional tracking and visualization.
     """
-    
-    def __init__(self, base_dir: str = "./experiments"):
+
+    def __init__(self, base_dir: str = "./experiments", use_wandb: bool = False):
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(exist_ok=True, parents=True)
-        
+
         self.current_experiment: Optional[str] = None
         self.current_run_dir: Optional[Path] = None
         self.results: List[ExperimentResult] = []
+
+        # W&B integration (optional)
+        self.use_wandb = use_wandb and WANDB_AVAILABLE
+        if use_wandb and not WANDB_AVAILABLE:
+            print("⚠️  W&B requested but not installed. Run: pip install wandb")
+            print("   Continuing with local tracking only.")
     
     def start_experiment(self, config: ExperimentConfig) -> Path:
         """
         Start a new experiment run.
         Creates a directory: experiments/{experiment_name}_{timestamp}_{hash}/
+
+        If W&B enabled, also initializes W&B run.
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         config_hash = config.hash()
-        
+
         run_name = f"{config.experiment_name}_{timestamp}_{config_hash}"
         self.current_run_dir = self.base_dir / run_name
         self.current_run_dir.mkdir(exist_ok=True, parents=True)
-        
+
         self.current_experiment = run_name
         self.results = []
-        
+
         # Save config
         with open(self.current_run_dir / "config.json", "w") as f:
             json.dump(config.to_dict(), f, indent=2)
-        
+
         print(f"📊 Started experiment: {run_name}")
         print(f"📁 Logging to: {self.current_run_dir}")
-        
+
+        # Initialize W&B if enabled
+        if self.use_wandb:
+            wandb.init(
+                project="hidden-layer",
+                name=config.experiment_name,
+                config={
+                    "strategy": config.strategy,
+                    "provider": config.provider,
+                    "model": config.model,
+                    "temperature": config.temperature,
+                    "max_tokens": config.max_tokens,
+                    "n_agents": config.n_agents,
+                    "task_type": config.task_type,
+                },
+                tags=[config.strategy, config.provider, config.task_type],
+            )
+            print(f"🚀 W&B tracking: {wandb.run.get_url()}")
+
         return self.current_run_dir
     
     def log_result(self, result: ExperimentResult):
         """Log a single result"""
         self.results.append(result)
-        
+
         # Append to results.jsonl (one JSON per line for easy streaming)
         with open(self.current_run_dir / "results.jsonl", "a") as f:
             f.write(json.dumps(result.to_dict()) + "\n")
+
+        # Log to W&B if enabled
+        if self.use_wandb:
+            log_dict = {
+                "latency_s": result.latency_s,
+                "success": result.success,
+            }
+
+            # Add optional metrics if available
+            if result.tokens_in is not None:
+                log_dict["tokens_in"] = result.tokens_in
+            if result.tokens_out is not None:
+                log_dict["tokens_out"] = result.tokens_out
+            if result.cost_usd is not None:
+                log_dict["cost_usd"] = result.cost_usd
+
+            # Log eval scores
+            for key, value in result.eval_scores.items():
+                log_dict[f"eval/{key}"] = value
+
+            wandb.log(log_dict)
     
     def finish_experiment(self):
         """
@@ -133,20 +192,45 @@ class ExperimentTracker:
         """
         if not self.results:
             print("⚠️  No results to summarize")
+            if self.use_wandb:
+                wandb.finish()
             return
-        
+
         summary = self._generate_summary()
-        
+
         # Save summary
         with open(self.current_run_dir / "summary.json", "w") as f:
             json.dump(summary, f, indent=2)
-        
+
         print(f"\n✅ Experiment complete: {self.current_experiment}")
         print(f"📊 Results: {summary['total_runs']} runs")
         print(f"⏱️  Avg latency: {summary['avg_latency_s']:.2f}s")
         if summary['total_cost_usd'] > 0:
             print(f"💰 Total cost: ${summary['total_cost_usd']:.4f}")
-        
+
+        # Log summary to W&B and finish run
+        if self.use_wandb:
+            # Log aggregate metrics
+            wandb.run.summary.update({
+                "total_runs": summary['total_runs'],
+                "successful_runs": summary['successful_runs'],
+                "success_rate": summary['success_rate'],
+                "avg_latency_s": summary['avg_latency_s'],
+                "total_cost_usd": summary['total_cost_usd'],
+                "avg_tokens_in": summary['avg_tokens_in'],
+                "avg_tokens_out": summary['avg_tokens_out'],
+                "total_tokens": summary['total_tokens'],
+            })
+
+            # Log eval score aggregates
+            for eval_name, stats in summary['eval_scores'].items():
+                wandb.run.summary[f"eval_summary/{eval_name}/mean"] = stats['mean']
+                wandb.run.summary[f"eval_summary/{eval_name}/min"] = stats['min']
+                wandb.run.summary[f"eval_summary/{eval_name}/max"] = stats['max']
+
+            wandb.finish()
+            print("📊 W&B run finished")
+
         return summary
     
     def _generate_summary(self) -> Dict[str, Any]:
@@ -207,11 +291,11 @@ class ExperimentTracker:
 # Singleton tracker
 _tracker = None
 
-def get_tracker() -> ExperimentTracker:
+def get_tracker(use_wandb: bool = False) -> ExperimentTracker:
     """Get or create singleton tracker"""
     global _tracker
     if _tracker is None:
-        _tracker = ExperimentTracker()
+        _tracker = ExperimentTracker(use_wandb=use_wandb)
     return _tracker
 
 
