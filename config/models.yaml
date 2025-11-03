@@ -69,6 +69,47 @@ claude-haiku:
     - fast
     - cheap
 
+# System Prompt Examples
+# System prompts can reference files in config/system_prompts/ by name
+
+claude-researcher:
+  provider: anthropic
+  model: claude-3-5-sonnet-20241022
+  temperature: 0.8
+  max_tokens: 4096
+  system_prompt: researcher  # References config/system_prompts/researcher.md
+  description: Claude Sonnet with AI researcher persona for frontier research
+  tags:
+    - api
+    - research
+    - creative
+
+gpt-oss-researcher:
+  provider: ollama
+  model: gpt-oss:20b
+  temperature: 0.8
+  max_tokens: 2048
+  thinking_budget: 2500
+  num_ctx: 4096
+  system_prompt: researcher  # References config/system_prompts/researcher.md
+  description: GPT-OSS 20B with AI researcher persona
+  tags:
+    - research
+    - local
+    - reasoning
+
+# Inline system prompt example
+gpt-oss-coding:
+  provider: ollama
+  model: gpt-oss:20b
+  temperature: 0.3
+  max_tokens: 2048
+  system_prompt: "You are an expert programmer. Write clean, efficient, well-documented code. Always explain your design choices and consider edge cases."
+  description: GPT-OSS optimized for coding tasks with inline system prompt
+  tags:
+    - coding
+    - precise
+
 # Add your own configurations below!
 # Example:
 #
@@ -78,6 +119,8 @@ claude-haiku:
 #   temperature: 0.8
 #   thinking_budget: 1500
 #   system_prompt: "You are a helpful assistant specialized in..."
+#   # Or reference a file:
+#   # system_prompt: my_custom_prompt  # loads config/system_prompts/my_custom_prompt.md
 #   description: My custom configuration for specific tasks
 #   tags:
 #     - custom
