@@ -52,6 +52,14 @@ from .benchmarks import (
     get_baseline_scores,
     BENCHMARKS
 )
+from .system_prompts import (
+    load_system_prompt,
+    load_system_prompt_metadata,
+    list_system_prompts,
+    get_system_prompt_info,
+    show_prompt,
+    SystemPromptMetadata
+)
 
 __version__ = "0.1.0"
 
@@ -110,4 +118,12 @@ __all__ = [
     "load_benchmark",
     "get_baseline_scores",
     "BENCHMARKS",
+
+    # System Prompts
+    "load_system_prompt",
+    "load_system_prompt_metadata",
+    "list_system_prompts",
+    "get_system_prompt_info",
+    "show_prompt",
+    "SystemPromptMetadata",
 ]

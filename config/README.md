@@ -46,12 +46,28 @@ my-config-name:
   top_p: 0.9                # Optional: Top-P (nucleus) sampling
   repeat_penalty: 1.1        # Optional: Repetition penalty
   seed: 42                  # Optional: Random seed for reproducibility
-  system_prompt: "Custom..." # Optional: System prompt for this config
+  system_prompt: researcher  # Optional: System prompt (name or inline text)
   description: "Description" # Optional: Human-readable description
   tags:                     # Optional: Tags for organization
     - reasoning
     - large
 ```
+
+### System Prompts
+
+System prompts define the persona, role, and behavior of the model. They can be:
+
+1. **Named prompts** (recommended): Reference a file in `config/system_prompts/`
+   ```yaml
+   system_prompt: researcher  # Loads config/system_prompts/researcher.md
+   ```
+
+2. **Inline prompts**: Embed the prompt directly in the config
+   ```yaml
+   system_prompt: "You are an expert in quantum physics..."
+   ```
+
+See `config/system_prompts/README.md` for available prompts and how to create new ones.
 
 ## Built-in Configurations
 
@@ -72,6 +88,11 @@ my-config-name:
 
 - **claude-sonnet**: High-quality Claude 3.5 Sonnet
 - **claude-haiku**: Fast, cost-effective Claude 3.5 Haiku
+
+### Research Personas
+
+- **claude-researcher**: Claude Sonnet with AI researcher persona for frontier research
+- **gpt-oss-researcher**: GPT-OSS 20B with AI researcher persona (local)
 
 ## Using in Python/Notebooks
 
@@ -98,6 +119,27 @@ response = llm_call(
 kwargs = config.to_kwargs()
 kwargs['temperature'] = 0.9
 result = run_strategy("single", "Question", **kwargs)
+
+# Using system prompts
+# Method 1: With a config that includes a system prompt
+config = get_model_config("claude-researcher")
+response = llm_call("Design a new architecture", **config.to_kwargs())
+
+# Method 2: Pass system prompt directly
+response = llm_call(
+    "Your question",
+    system_prompt="researcher",
+    provider="anthropic",
+    model="claude-3-5-sonnet-20241022"
+)
+
+# Method 3: Inline system prompt
+response = llm_call(
+    "Write code for...",
+    system_prompt="You are an expert programmer...",
+    provider="ollama",
+    model="gpt-oss:20b"
+)
 ```
 
 ## Creating Custom Configurations
