@@ -17,54 +17,50 @@ Quick Start:
     >>> print(f"Quality Score: {eval_result['quality']['overall_quality']:.2f}")
 """
 
-from .problems import (
-    DesignProblem,
-    DesignDomain,
-    CritiquePerspective,
-    ALL_PROBLEMS,
-    PROBLEMS_BY_DOMAIN,
-    PROBLEMS_BY_DIFFICULTY,
-    PROBLEMS_BY_NAME,
-    get_problem,
-    get_problems_by_domain,
-    get_problems_by_difficulty,
-    # Pre-defined problems
-    MOBILE_CHECKOUT,
-    DASHBOARD_LAYOUT,
-    REST_API_VERSIONING,
-    GRAPHQL_SCHEMA,
-    MICROSERVICES_SPLIT,
-    CACHING_STRATEGY,
-    PERMISSION_MODEL,
-    APPROVAL_WORKFLOW,
-)
-
-from .strategies import (
-    CritiqueResult,
-    single_critic_strategy,
-    multi_perspective_critique,
-    iterative_critique,
-    adversarial_critique,
-    run_critique_strategy,
-    STRATEGIES,
-)
-
-from .evals import (
-    evaluate_critique_coverage,
-    evaluate_recommendation_quality,
-    evaluate_critique_depth,
-    evaluate_critique,
-    compare_strategies,
-    batch_evaluate,
-)
-
 from .benchmarks import (
     BenchmarkDataset,
+    compare_to_experts,
+    list_available_benchmarks,
     load_uicrit,
     load_uicrit_for_comparison,
-    list_available_benchmarks,
     print_benchmark_info,
-    compare_to_experts,
+)
+from .evals import (
+    batch_evaluate,
+    compare_strategies,
+    evaluate_critique,
+    evaluate_critique_coverage,
+    evaluate_critique_depth,
+    evaluate_recommendation_quality,
+)
+from .problems import (  # Pre-defined problems
+    ALL_PROBLEMS,
+    APPROVAL_WORKFLOW,
+    CACHING_STRATEGY,
+    DASHBOARD_LAYOUT,
+    GRAPHQL_SCHEMA,
+    MICROSERVICES_SPLIT,
+    MOBILE_CHECKOUT,
+    PERMISSION_MODEL,
+    PROBLEMS_BY_DIFFICULTY,
+    PROBLEMS_BY_DOMAIN,
+    PROBLEMS_BY_NAME,
+    REST_API_VERSIONING,
+    CritiquePerspective,
+    DesignDomain,
+    DesignProblem,
+    get_problem,
+    get_problems_by_difficulty,
+    get_problems_by_domain,
+)
+from .strategies import (
+    STRATEGIES,
+    CritiqueResult,
+    adversarial_critique,
+    iterative_critique,
+    multi_perspective_critique,
+    run_critique_strategy,
+    single_critic_strategy,
 )
 
 __version__ = "0.1.0"
@@ -75,7 +71,6 @@ __all__ = [
     "DesignDomain",
     "CritiquePerspective",
     "CritiqueResult",
-
     # Problem access
     "ALL_PROBLEMS",
     "PROBLEMS_BY_DOMAIN",
@@ -84,7 +79,6 @@ __all__ = [
     "get_problem",
     "get_problems_by_domain",
     "get_problems_by_difficulty",
-
     # Pre-defined problems
     "MOBILE_CHECKOUT",
     "DASHBOARD_LAYOUT",
@@ -94,7 +88,6 @@ __all__ = [
     "CACHING_STRATEGY",
     "PERMISSION_MODEL",
     "APPROVAL_WORKFLOW",
-
     # Critique strategies
     "single_critic_strategy",
     "multi_perspective_critique",
@@ -102,7 +95,6 @@ __all__ = [
     "adversarial_critique",
     "run_critique_strategy",
     "STRATEGIES",
-
     # Evaluation
     "evaluate_critique_coverage",
     "evaluate_recommendation_quality",
@@ -110,7 +102,6 @@ __all__ = [
     "evaluate_critique",
     "compare_strategies",
     "batch_evaluate",
-
     # Benchmarks
     "BenchmarkDataset",
     "load_uicrit",

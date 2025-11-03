@@ -1,11 +1,11 @@
 """
 System Prompt Management - load and manage reusable system prompts
 """
-import os
-from pathlib import Path
-from typing import Optional, Dict, List
-import yaml
 
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import yaml
 
 # Path to system prompts directory
 SYSTEM_PROMPTS_DIR = Path(__file__).parent.parent.parent / "config" / "system_prompts"
@@ -64,7 +64,7 @@ def load_system_prompt(name: str) -> str:
             f"Available prompts: {', '.join(list_system_prompts())}"
         )
 
-    with open(prompt_path, 'r') as f:
+    with open(prompt_path, "r") as f:
         return f.read()
 
 
@@ -92,7 +92,7 @@ def load_system_prompt_metadata(name: str) -> Optional[SystemPromptMetadata]:
     if not metadata_path.exists():
         return None
 
-    with open(metadata_path, 'r') as f:
+    with open(metadata_path, "r") as f:
         data = yaml.safe_load(f)
 
     return SystemPromptMetadata(data)
@@ -139,12 +139,7 @@ def get_system_prompt_info(name: str) -> Dict:
     text = load_system_prompt(name)
     metadata = load_system_prompt_metadata(name)
 
-    return {
-        "name": name,
-        "text": text,
-        "metadata": metadata,
-        "has_metadata": metadata is not None
-    }
+    return {"name": name, "text": text, "metadata": metadata, "has_metadata": metadata is not None}
 
 
 def resolve_system_prompt(prompt: Optional[str]) -> Optional[str]:
@@ -166,7 +161,7 @@ def resolve_system_prompt(prompt: Optional[str]) -> Optional[str]:
         return None
 
     # If it's short and doesn't contain newlines, try loading as a named prompt
-    if len(prompt) < 100 and '\n' not in prompt:
+    if len(prompt) < 100 and "\n" not in prompt:
         try:
             return load_system_prompt(prompt)
         except FileNotFoundError:
@@ -191,11 +186,11 @@ def show_prompt(name: str):
     info = get_system_prompt_info(name)
 
     print(f"=== System Prompt: {name} ===\n")
-    print(info['text'])
+    print(info["text"])
 
-    if info['metadata']:
-        meta = info['metadata']
-        print(f"\n=== Metadata ===")
+    if info["metadata"]:
+        meta = info["metadata"]
+        print("\n=== Metadata ===")
         print(f"Description: {meta.description}")
         if meta.tags:
             print(f"Tags: {', '.join(meta.tags)}")
@@ -204,6 +199,6 @@ def show_prompt(name: str):
         if meta.temperature_range:
             print(f"Temperature range: {meta.temperature_range}")
         if meta.best_for:
-            print(f"\nBest for:")
+            print("\nBest for:")
             for use in meta.best_for:
                 print(f"  - {use}")

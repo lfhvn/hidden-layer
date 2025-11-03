@@ -11,21 +11,22 @@ Usage:
 """
 
 import csv
-import os
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass
-import sys
 import json
+import os
+import sys
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 # Add parent directory for imports
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from crit.problems import DesignProblem, DesignDomain
+from crit.problems import DesignDomain, DesignProblem
 
 
 @dataclass
 class BenchmarkDataset:
     """A benchmark dataset with metadata"""
+
     name: str
     source: str
     problems: List[DesignProblem]
@@ -35,9 +36,7 @@ class BenchmarkDataset:
 
 
 def load_uicrit(
-    data_path: Optional[str] = None,
-    min_quality_rating: Optional[float] = None,
-    include_llm_critiques: bool = True
+    data_path: Optional[str] = None, min_quality_rating: Optional[float] = None, include_llm_critiques: bool = True
 ) -> BenchmarkDataset:
     """
     Load UICrit dataset.
@@ -79,41 +78,38 @@ def load_uicrit(
     critiques = []
     ui_screens = {}  # Group by rico_id
 
-    with open(data_path, 'r', encoding='utf-8') as f:
+    with open(data_path, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
 
         for row in reader:
-            rico_id = row['rico_id']
+            rico_id = row["rico_id"]
 
             # Filter by quality if requested
             if min_quality_rating:
-                quality = float(row.get('design_quality_rating', 0))
+                quality = float(row.get("design_quality_rating", 0))
                 if quality < min_quality_rating:
                     continue
 
             # Parse comments
-            comments_source = _parse_list_field(row.get('comments_source', '[]'))
-            comments = _parse_list_field(row.get('comments', '[]'))
+            comments_source = _parse_list_field(row.get("comments_source", "[]"))
+            comments = _parse_list_field(row.get("comments", "[]"))
 
             # Filter LLM critiques if requested
             if not include_llm_critiques:
-                comments = [
-                    comment for comment, source in zip(comments, comments_source)
-                    if source == 'human'
-                ]
-                comments_source = [s for s in comments_source if s == 'human']
+                comments = [comment for comment, source in zip(comments, comments_source) if source == "human"]
+                comments_source = [s for s in comments_source if s == "human"]
 
             # Store critique data
             critique_data = {
-                'rico_id': rico_id,
-                'task': row.get('task', ''),
-                'aesthetics_rating': float(row.get('aesthetics_rating', 0)),
-                'learnability': float(row.get('learnability', 0)),
-                'efficiency': float(row.get('efficency', 0)),  # Note: typo in original
-                'usability_rating': float(row.get('usability_rating', 0)),
-                'design_quality_rating': float(row.get('design_quality_rating', 0)),
-                'comments': comments,
-                'comments_source': comments_source,
+                "rico_id": rico_id,
+                "task": row.get("task", ""),
+                "aesthetics_rating": float(row.get("aesthetics_rating", 0)),
+                "learnability": float(row.get("learnability", 0)),
+                "efficiency": float(row.get("efficency", 0)),  # Note: typo in original
+                "usability_rating": float(row.get("usability_rating", 0)),
+                "design_quality_rating": float(row.get("design_quality_rating", 0)),
+                "comments": comments,
+                "comments_source": comments_source,
             }
 
             critiques.append(critique_data)
@@ -121,28 +117,26 @@ def load_uicrit(
             # Group by UI screen
             if rico_id not in ui_screens:
                 ui_screens[rico_id] = {
-                    'task': row.get('task', ''),
-                    'critiques': [],
-                    'avg_quality': 0,
-                    'avg_aesthetics': 0,
-                    'avg_usability': 0,
+                    "task": row.get("task", ""),
+                    "critiques": [],
+                    "avg_quality": 0,
+                    "avg_aesthetics": 0,
+                    "avg_usability": 0,
                 }
 
-            ui_screens[rico_id]['critiques'].append(critique_data)
+            ui_screens[rico_id]["critiques"].append(critique_data)
 
     # Calculate averages per screen
     for rico_id, screen_data in ui_screens.items():
-        screen_critiques = screen_data['critiques']
+        screen_critiques = screen_data["critiques"]
         if screen_critiques:
-            screen_data['avg_quality'] = sum(
-                c['design_quality_rating'] for c in screen_critiques
-            ) / len(screen_critiques)
-            screen_data['avg_aesthetics'] = sum(
-                c['aesthetics_rating'] for c in screen_critiques
-            ) / len(screen_critiques)
-            screen_data['avg_usability'] = sum(
-                c['usability_rating'] for c in screen_critiques
-            ) / len(screen_critiques)
+            screen_data["avg_quality"] = sum(c["design_quality_rating"] for c in screen_critiques) / len(
+                screen_critiques
+            )
+            screen_data["avg_aesthetics"] = sum(c["aesthetics_rating"] for c in screen_critiques) / len(
+                screen_critiques
+            )
+            screen_data["avg_usability"] = sum(c["usability_rating"] for c in screen_critiques) / len(screen_critiques)
 
     # Convert to DesignProblem objects
     problems = []
@@ -162,14 +156,13 @@ def load_uicrit(
             "total_critiques": len(critiques),
             "min_quality_rating": min_quality_rating,
             "include_llm_critiques": include_llm_critiques,
-            "license": "CC BY 4.0"
-        }
+            "license": "CC BY 4.0",
+        },
     )
 
 
 def load_uicrit_for_comparison(
-    data_path: Optional[str] = None,
-    sample_size: Optional[int] = None
+    data_path: Optional[str] = None, sample_size: Optional[int] = None
 ) -> List[Dict[str, Any]]:
     """
     Load UICrit in format suitable for comparing with your critique strategies.
@@ -201,40 +194,39 @@ def load_uicrit_for_comparison(
         if sample_size and count >= sample_size:
             break
 
-        rico_id = problem.metadata['rico_id']
+        rico_id = problem.metadata["rico_id"]
 
         # Get all critiques for this UI
-        ui_critiques = [
-            c for c in benchmark.critiques
-            if c['rico_id'] == rico_id
-        ]
+        ui_critiques = [c for c in benchmark.critiques if c["rico_id"] == rico_id]
 
         # Separate human and LLM critiques
         expert_critiques = []
         llm_critiques = []
 
         for critique in ui_critiques:
-            for comment, source in zip(critique['comments'], critique['comments_source']):
-                if source == 'human':
+            for comment, source in zip(critique["comments"], critique["comments_source"]):
+                if source == "human":
                     expert_critiques.append(comment)
-                elif source == 'llm':
+                elif source == "llm":
                     llm_critiques.append(comment)
 
         # Get quality ratings
         quality_ratings = {
-            'design_quality': problem.metadata['avg_quality'],
-            'aesthetics': problem.metadata['avg_aesthetics'],
-            'usability': problem.metadata['avg_usability'],
+            "design_quality": problem.metadata["avg_quality"],
+            "aesthetics": problem.metadata["avg_aesthetics"],
+            "usability": problem.metadata["avg_usability"],
         }
 
-        comparison_items.append({
-            'rico_id': rico_id,
-            'problem': problem,
-            'expert_critiques': expert_critiques,
-            'llm_critiques': llm_critiques,
-            'quality_ratings': quality_ratings,
-            'task': problem.description,
-        })
+        comparison_items.append(
+            {
+                "rico_id": rico_id,
+                "problem": problem,
+                "expert_critiques": expert_critiques,
+                "llm_critiques": llm_critiques,
+                "quality_ratings": quality_ratings,
+                "task": problem.description,
+            }
+        )
 
         count += 1
 
@@ -245,20 +237,24 @@ def load_uicrit_for_comparison(
 # Conversion Helpers
 # ============================================================================
 
+
 def _uicrit_to_design_problem(rico_id: str, screen_data: Dict[str, Any]) -> DesignProblem:
     """Convert UICrit screen data to DesignProblem"""
 
-    task = screen_data['task']
-    avg_quality = screen_data['avg_quality']
-    critiques = screen_data['critiques']
+    task = screen_data["task"]
+    avg_quality = screen_data["avg_quality"]
+    critiques = screen_data["critiques"]
 
     # Aggregate all comments as "known issues"
     all_comments = []
     for critique in critiques:
-        all_comments.extend([
-            c for c, s in zip(critique['comments'], critique['comments_source'])
-            if s == 'human'  # Only use human critiques as known issues
-        ])
+        all_comments.extend(
+            [
+                c
+                for c, s in zip(critique["comments"], critique["comments_source"])
+                if s == "human"  # Only use human critiques as known issues
+            ]
+        )
 
     # Create a generic UI design problem
     return DesignProblem(
@@ -266,12 +262,12 @@ def _uicrit_to_design_problem(rico_id: str, screen_data: Dict[str, Any]) -> Desi
         domain=DesignDomain.UI_UX,
         description=f"Mobile UI for {task}",
         current_design=f"[UI Screenshot - RICO ID: {rico_id}]\n"
-                      f"Task: {task}\n"
-                      f"Note: This is a mobile UI from the RICO dataset. "
-                      f"You can view the screenshot at rico_id {rico_id}.",
+        f"Task: {task}\n"
+        f"Note: This is a mobile UI from the RICO dataset. "
+        f"You can view the screenshot at rico_id {rico_id}.",
         context=f"Mobile application UI for {task}.\n"
-               f"Current design quality rating: {avg_quality:.1f}/10\n"
-               f"Evaluated by {len(critiques)} reviewers.",
+        f"Current design quality rating: {avg_quality:.1f}/10\n"
+        f"Evaluated by {len(critiques)} reviewers.",
         success_criteria=[
             "High visual appeal (aesthetics)",
             "Easy to learn and use (learnability)",
@@ -281,15 +277,15 @@ def _uicrit_to_design_problem(rico_id: str, screen_data: Dict[str, Any]) -> Desi
         known_issues=all_comments[:5],  # Limit to top 5 issues
         difficulty="medium",
         metadata={
-            'source': 'UICrit',
-            'rico_id': rico_id,
-            'task': task,
-            'avg_quality': avg_quality,
-            'avg_aesthetics': screen_data['avg_aesthetics'],
-            'avg_usability': screen_data['avg_usability'],
-            'num_critiques': len(critiques),
-            'all_human_critiques': all_comments,
-        }
+            "source": "UICrit",
+            "rico_id": rico_id,
+            "task": task,
+            "avg_quality": avg_quality,
+            "avg_aesthetics": screen_data["avg_aesthetics"],
+            "avg_usability": screen_data["avg_usability"],
+            "num_critiques": len(critiques),
+            "all_human_critiques": all_comments,
+        },
     )
 
 
@@ -297,16 +293,17 @@ def _parse_list_field(field_str: str) -> List[Any]:
     """Parse string representation of list from CSV"""
     try:
         return json.loads(field_str.replace("'", '"'))
-    except:
+    except (json.JSONDecodeError, ValueError, TypeError):
         # Fallback: try to split by common delimiters
-        if field_str.startswith('[') and field_str.endswith(']'):
+        if field_str.startswith("[") and field_str.endswith("]"):
             field_str = field_str[1:-1]
-        return [item.strip().strip('"').strip("'") for item in field_str.split(',') if item.strip()]
+        return [item.strip().strip('"').strip("'") for item in field_str.split(",") if item.strip()]
 
 
 # ============================================================================
 # Utility Functions
 # ============================================================================
+
 
 def list_available_benchmarks() -> Dict[str, Dict[str, Any]]:
     """List all available benchmarks with information"""
@@ -319,7 +316,7 @@ def list_available_benchmarks() -> Dict[str, Dict[str, Any]]:
             "installation": "git clone https://github.com/google-research-datasets/uicrit.git",
             "usage": "load_uicrit()",
             "license": "CC BY 4.0",
-            "note": "Includes both human and LLM-generated critiques"
+            "note": "Includes both human and LLM-generated critiques",
         },
     }
 
@@ -341,9 +338,7 @@ def print_benchmark_info():
 
 
 def compare_to_experts(
-    your_critiques: List[str],
-    expert_critiques: List[str],
-    method: str = "overlap"
+    your_critiques: List[str], expert_critiques: List[str], method: str = "overlap"
 ) -> Dict[str, Any]:
     """
     Compare your critiques to expert critiques.

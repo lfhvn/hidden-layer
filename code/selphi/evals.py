@@ -5,15 +5,15 @@ This module provides specialized evaluation functions for assessing
 theory of mind and epistemology understanding in language models.
 """
 
-from typing import List, Dict, Any, Tuple, Optional
+import os
 import re
 import sys
-import os
+from typing import Any, Dict, List, Optional
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from harness import llm_call, LLMResponse
+from harness import llm_call
 from selphi.scenarios import ToMScenario
 
 
@@ -34,26 +34,26 @@ def parse_multi_answer_response(response: str, num_questions: int) -> List[str]:
         List of individual answers
     """
     response = response.strip()
-    answers = []
+    _answers = []  # noqa: F841
 
     # Strategy 1: Try numbered format (1. answer, 2. answer, etc.)
-    numbered_pattern = r'^\s*(\d+)[\.\)]\s*(.+?)(?=^\s*\d+[\.\)]|\Z)'
+    numbered_pattern = r"^\s*(\d+)[\.\)]\s*(.+?)(?=^\s*\d+[\.\)]|\Z)"
     matches = re.findall(numbered_pattern, response, re.MULTILINE | re.DOTALL)
 
     if matches and len(matches) == num_questions:
         return [match[1].strip() for match in matches]
 
     # Strategy 2: Try question-answer format (Q: ... A: ...)
-    qa_pattern = r'(?:Question|Q)\s*\d*[\.\):]?\s*[^\n]*\n\s*(?:Answer|A)[\.\):]?\s*(.+?)(?=(?:Question|Q)|\Z)'
+    qa_pattern = r"(?:Question|Q)\s*\d*[\.\):]?\s*[^\n]*\n\s*(?:Answer|A)[\.\):]?\s*(.+?)(?=(?:Question|Q)|\Z)"
     qa_matches = re.findall(qa_pattern, response, re.IGNORECASE | re.DOTALL)
 
     if qa_matches and len(qa_matches) == num_questions:
         return [match.strip() for match in qa_matches]
 
     # Strategy 3: Split by lines (filter out empty and question lines)
-    lines = [line.strip() for line in response.split('\n') if line.strip()]
+    lines = [line.strip() for line in response.split("\n") if line.strip()]
     # Filter out lines that are just questions (contain '?')
-    answer_lines = [line for line in lines if not line.endswith('?')]
+    answer_lines = [line for line in lines if not line.endswith("?")]
 
     if len(answer_lines) >= num_questions:
         return answer_lines[:num_questions]
@@ -81,20 +81,88 @@ def semantic_match_score(answer: str, correct: str) -> float:
     correct_lower = correct.lower()
 
     # Extract important words (ignore common words)
-    stop_words = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been',
-                  'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
-                  'would', 'could', 'should', 'may', 'might', 'must', 'can',
-                  'in', 'on', 'at', 'to', 'for', 'of', 'with', 'from', 'by',
-                  'about', 'as', 'into', 'through', 'during', 'before', 'after',
-                  'above', 'below', 'between', 'under', 'again', 'further',
-                  'then', 'once', 'here', 'there', 'when', 'where', 'why',
-                  'how', 'all', 'both', 'each', 'few', 'more', 'most', 'other',
-                  'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same',
-                  'so', 'than', 'too', 'very', 'that', 'this', 'these', 'those'}
+    stop_words = {
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "must",
+        "can",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "of",
+        "with",
+        "from",
+        "by",
+        "about",
+        "as",
+        "into",
+        "through",
+        "during",
+        "before",
+        "after",
+        "above",
+        "below",
+        "between",
+        "under",
+        "again",
+        "further",
+        "then",
+        "once",
+        "here",
+        "there",
+        "when",
+        "where",
+        "why",
+        "how",
+        "all",
+        "both",
+        "each",
+        "few",
+        "more",
+        "most",
+        "other",
+        "some",
+        "such",
+        "no",
+        "nor",
+        "not",
+        "only",
+        "own",
+        "same",
+        "so",
+        "than",
+        "too",
+        "very",
+        "that",
+        "this",
+        "these",
+        "those",
+    }
 
     # Get important words from correct answer
-    correct_words = [w for w in re.findall(r'\w+', correct_lower)
-                     if w not in stop_words and len(w) > 2]
+    correct_words = [w for w in re.findall(r"\w+", correct_lower) if w not in stop_words and len(w) > 2]
 
     if not correct_words:
         return 1.0 if answer_lower == correct_lower else 0.0
@@ -110,7 +178,7 @@ def llm_judge_tom(
     model_response: str,
     judge_provider: str = "ollama",
     judge_model: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     Use an LLM as a judge to evaluate theory of mind responses.
@@ -165,19 +233,14 @@ Overall Assessment: [overall evaluation of ToM understanding]
 """
 
     # Call judge model
-    judge_response = llm_call(
-        judge_prompt,
-        provider=judge_provider,
-        model=judge_model,
-        **kwargs
-    )
+    judge_response = llm_call(judge_prompt, provider=judge_provider, model=judge_model, **kwargs)
 
     # Parse judge response
     scores = []
     reasonings = []
 
-    score_pattern = r'Question \d+ Score:\s*(\d+(?:\.\d+)?)'
-    reasoning_pattern = r'Question \d+ Reasoning:\s*(.+?)(?=Question \d+|Overall Assessment|$)'
+    score_pattern = r"Question \d+ Score:\s*(\d+(?:\.\d+)?)"
+    reasoning_pattern = r"Question \d+ Reasoning:\s*(.+?)(?=Question \d+|Overall Assessment|$)"
 
     score_matches = re.findall(score_pattern, judge_response.text)
     reasoning_matches = re.findall(reasoning_pattern, judge_response.text, re.DOTALL)
@@ -186,7 +249,7 @@ Overall Assessment: [overall evaluation of ToM understanding]
     reasonings = [r.strip() for r in reasoning_matches]
 
     # Extract overall assessment
-    overall_match = re.search(r'Overall Assessment:\s*(.+)', judge_response.text, re.DOTALL)
+    overall_match = re.search(r"Overall Assessment:\s*(.+)", judge_response.text, re.DOTALL)
     overall_assessment = overall_match.group(1).strip() if overall_match else "No assessment provided"
 
     # Calculate average score
@@ -201,16 +264,11 @@ Overall Assessment: [overall evaluation of ToM understanding]
         "judge_response": judge_response.text,
         "judge_tokens_in": judge_response.tokens_in,
         "judge_tokens_out": judge_response.tokens_out,
-        "judge_cost_usd": judge_response.cost_usd
+        "judge_cost_usd": judge_response.cost_usd,
     }
 
 
-def evaluate_scenario(
-    scenario: ToMScenario,
-    model_response: str,
-    method: str = "semantic",
-    **kwargs
-) -> Dict[str, Any]:
+def evaluate_scenario(scenario: ToMScenario, model_response: str, method: str = "semantic", **kwargs) -> Dict[str, Any]:
     """
     Evaluate a model's response to a ToM scenario.
 
@@ -243,18 +301,14 @@ def evaluate_scenario(
             "average_score": avg_score,
             "normalized_score": avg_score,
             "method": "semantic_match",
-            "parsed_answers": answers
+            "parsed_answers": answers,
         }
 
     else:
         raise ValueError(f"Unknown evaluation method: {method}")
 
 
-def evaluate_batch(
-    results: List[Dict[str, Any]],
-    method: str = "semantic",
-    **kwargs
-) -> Dict[str, Any]:
+def evaluate_batch(results: List[Dict[str, Any]], method: str = "semantic", **kwargs) -> Dict[str, Any]:
     """
     Evaluate a batch of scenario results.
 
@@ -269,54 +323,46 @@ def evaluate_batch(
     evaluations = []
 
     for result in results:
-        scenario = result['scenario']
-        response = result['response']
+        scenario = result["scenario"]
+        response = result["response"]
 
         eval_result = evaluate_scenario(scenario, response, method=method, **kwargs)
-        eval_result['scenario_name'] = scenario.name
-        eval_result['scenario_type'] = scenario.tom_type.value
-        eval_result['difficulty'] = scenario.difficulty
+        eval_result["scenario_name"] = scenario.name
+        eval_result["scenario_type"] = scenario.tom_type.value
+        eval_result["difficulty"] = scenario.difficulty
 
         evaluations.append(eval_result)
 
     # Aggregate scores
-    all_scores = [e['average_score'] for e in evaluations]
+    all_scores = [e["average_score"] for e in evaluations]
 
     # Group by difficulty
     by_difficulty = {}
     for eval_result in evaluations:
-        diff = eval_result['difficulty']
+        diff = eval_result["difficulty"]
         if diff not in by_difficulty:
             by_difficulty[diff] = []
-        by_difficulty[diff].append(eval_result['average_score'])
+        by_difficulty[diff].append(eval_result["average_score"])
 
     # Group by ToM type
     by_type = {}
     for eval_result in evaluations:
-        tom_type = eval_result['scenario_type']
+        tom_type = eval_result["scenario_type"]
         if tom_type not in by_type:
             by_type[tom_type] = []
-        by_type[tom_type].append(eval_result['average_score'])
+        by_type[tom_type].append(eval_result["average_score"])
 
     return {
         "evaluations": evaluations,
         "overall_average": sum(all_scores) / len(all_scores) if all_scores else 0.0,
-        "by_difficulty": {
-            diff: sum(scores) / len(scores) if scores else 0.0
-            for diff, scores in by_difficulty.items()
-        },
-        "by_type": {
-            tom_type: sum(scores) / len(scores) if scores else 0.0
-            for tom_type, scores in by_type.items()
-        },
-        "total_scenarios": len(evaluations)
+        "by_difficulty": {diff: sum(scores) / len(scores) if scores else 0.0 for diff, scores in by_difficulty.items()},
+        "by_type": {tom_type: sum(scores) / len(scores) if scores else 0.0 for tom_type, scores in by_type.items()},
+        "total_scenarios": len(evaluations),
     }
 
 
 def compare_models(
-    model_results: Dict[str, List[Dict[str, Any]]],
-    method: str = "semantic",
-    **kwargs
+    model_results: Dict[str, List[Dict[str, Any]]], method: str = "semantic", **kwargs
 ) -> Dict[str, Any]:
     """
     Compare multiple models on the same scenarios.
@@ -338,13 +384,10 @@ def compare_models(
     # Create comparison summary
     comparison = {
         "models": list(model_results.keys()),
-        "overall_scores": {
-            name: eval_results["overall_average"]
-            for name, eval_results in model_evaluations.items()
-        },
+        "overall_scores": {name: eval_results["overall_average"] for name, eval_results in model_evaluations.items()},
         "by_difficulty": {},
         "by_type": {},
-        "detailed_evaluations": model_evaluations
+        "detailed_evaluations": model_evaluations,
     }
 
     # Aggregate by difficulty across models
@@ -354,8 +397,7 @@ def compare_models(
 
     for diff in all_difficulties:
         comparison["by_difficulty"][diff] = {
-            name: eval_results["by_difficulty"].get(diff, 0.0)
-            for name, eval_results in model_evaluations.items()
+            name: eval_results["by_difficulty"].get(diff, 0.0) for name, eval_results in model_evaluations.items()
         }
 
     # Aggregate by type across models
@@ -365,8 +407,7 @@ def compare_models(
 
     for tom_type in all_types:
         comparison["by_type"][tom_type] = {
-            name: eval_results["by_type"].get(tom_type, 0.0)
-            for name, eval_results in model_evaluations.items()
+            name: eval_results["by_type"].get(tom_type, 0.0) for name, eval_results in model_evaluations.items()
         }
 
     return comparison

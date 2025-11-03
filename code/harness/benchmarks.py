@@ -13,10 +13,10 @@ Usage:
     >>> baseline_scores = get_baseline_scores('uicrit')  # Get baseline performance
 """
 
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass
-import sys
 import os
+import sys
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 # Add parent directory for imports
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -25,6 +25,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 @dataclass
 class BenchmarkInfo:
     """Information about a benchmark"""
+
     name: str
     subsystem: str  # 'crit', 'selphi', 'harness'
     size: int
@@ -50,9 +51,8 @@ BENCHMARKS: Dict[str, BenchmarkInfo] = {
             "ui_screens": 1000,
             "includes_human_critiques": True,
             "includes_llm_critiques": True,
-        }
+        },
     ),
-
     # SELPHI Benchmarks
     "tombench": BenchmarkInfo(
         name="ToMBench",
@@ -65,9 +65,8 @@ BENCHMARKS: Dict[str, BenchmarkInfo] = {
             "citation": "Nemirovsky et al., 2023",
             "license": "MIT",
             "levels": ["first_order", "second_order", "third_order"],
-        }
+        },
     ),
-
     "opentom": BenchmarkInfo(
         name="OpenToM",
         subsystem="selphi",
@@ -78,9 +77,8 @@ BENCHMARKS: Dict[str, BenchmarkInfo] = {
         metadata={
             "citation": "Ma et al., 2023",
             "question_types": ["location", "multihop", "attitude"],
-        }
+        },
     ),
-
     "socialiqa": BenchmarkInfo(
         name="SocialIQA",
         subsystem="selphi",
@@ -91,15 +89,12 @@ BENCHMARKS: Dict[str, BenchmarkInfo] = {
         metadata={
             "citation": "Sap et al., EMNLP 2019",
             "license": "CC BY 4.0",
-        }
+        },
     ),
 }
 
 
-def load_benchmark(
-    benchmark_name: str,
-    **kwargs
-) -> Any:
+def load_benchmark(benchmark_name: str, **kwargs) -> Any:
     """
     Load a benchmark dataset from any subsystem.
 
@@ -121,11 +116,8 @@ def load_benchmark(
         >>> uicrit_filtered = load_benchmark('uicrit', min_quality_rating=7.0)
     """
     if benchmark_name not in BENCHMARKS:
-        available = ', '.join(BENCHMARKS.keys())
-        raise ValueError(
-            f"Unknown benchmark '{benchmark_name}'. "
-            f"Available benchmarks: {available}"
-        )
+        available = ", ".join(BENCHMARKS.keys())
+        raise ValueError(f"Unknown benchmark '{benchmark_name}'. " f"Available benchmarks: {available}")
 
     info = BENCHMARKS[benchmark_name]
     subsystem = info.subsystem
@@ -143,9 +135,9 @@ def load_benchmark(
 
     elif subsystem == "selphi":
         from selphi.benchmarks import (
-            load_tombench,
             load_opentom,
             load_socialiqa,
+            load_tombench,
         )
 
         if benchmark_name == "tombench":
@@ -165,10 +157,7 @@ def load_benchmark(
         raise ValueError(f"Unknown subsystem '{subsystem}'")
 
 
-def get_baseline_scores(
-    benchmark_name: str,
-    model: Optional[str] = None
-) -> Dict[str, Any]:
+def get_baseline_scores(benchmark_name: str, model: Optional[str] = None) -> Dict[str, Any]:
     """
     Get baseline performance scores for a benchmark.
 
@@ -185,11 +174,8 @@ def get_baseline_scores(
         >>> print(scores['gpt4_performance'])
     """
     if benchmark_name not in BENCHMARKS:
-        available = ', '.join(BENCHMARKS.keys())
-        raise ValueError(
-            f"Unknown benchmark '{benchmark_name}'. "
-            f"Available benchmarks: {available}"
-        )
+        available = ", ".join(BENCHMARKS.keys())
+        raise ValueError(f"Unknown benchmark '{benchmark_name}'. " f"Available benchmarks: {available}")
 
     info = BENCHMARKS[benchmark_name]
 
@@ -198,11 +184,10 @@ def get_baseline_scores(
     baseline_scores = {
         "uicrit": {
             "human_agreement": 0.72,  # Inter-rater agreement
-            "gpt4_coverage": 0.65,    # Coverage of human critiques
+            "gpt4_coverage": 0.65,  # Coverage of human critiques
             "description": "Scores represent agreement/coverage with expert critiques",
             "metric": "coverage_score",
         },
-
         "tombench": {
             "human_performance": 0.95,
             "gpt4_performance": 0.76,
@@ -212,7 +197,6 @@ def get_baseline_scores(
             "description": "Accuracy on Theory of Mind reasoning tasks",
             "metric": "accuracy",
         },
-
         "opentom": {
             "human_performance": 0.92,
             "gpt4_performance": 0.71,
@@ -221,7 +205,6 @@ def get_baseline_scores(
             "description": "Accuracy on multi-character ToM scenarios",
             "metric": "accuracy",
         },
-
         "socialiqa": {
             "human_performance": 0.88,
             "gpt4_performance": 0.83,
@@ -252,7 +235,7 @@ def get_baseline_scores(
                 "description": scores["description"],
             }
         else:
-            available_models = [k.replace('_performance', '') for k in scores.keys() if k.endswith('_performance')]
+            available_models = [k.replace("_performance", "") for k in scores.keys() if k.endswith("_performance")]
             return {
                 "error": f"No baseline for model '{model}'",
                 "available_models": available_models,
@@ -276,15 +259,17 @@ def list_benchmarks(subsystem: Optional[str] = None) -> List[Dict[str, Any]]:
 
     for name, info in BENCHMARKS.items():
         if subsystem is None or info.subsystem == subsystem:
-            benchmarks.append({
-                "name": name,
-                "full_name": info.name,
-                "subsystem": info.subsystem,
-                "size": info.size,
-                "description": info.description,
-                "source": info.source,
-                "metadata": info.metadata,
-            })
+            benchmarks.append(
+                {
+                    "name": name,
+                    "full_name": info.name,
+                    "subsystem": info.subsystem,
+                    "size": info.size,
+                    "description": info.description,
+                    "source": info.source,
+                    "metadata": info.metadata,
+                }
+            )
 
     return benchmarks
 
@@ -314,7 +299,7 @@ def print_benchmarks():
             print(f"  Source: {info.source}")
 
             if info.metadata:
-                print(f"  Additional info:")
+                print("  Additional info:")
                 for key, value in info.metadata.items():
                     print(f"    - {key}: {value}")
 
@@ -331,9 +316,6 @@ def print_benchmarks():
 def get_benchmark_info(benchmark_name: str) -> BenchmarkInfo:
     """Get information about a specific benchmark"""
     if benchmark_name not in BENCHMARKS:
-        available = ', '.join(BENCHMARKS.keys())
-        raise ValueError(
-            f"Unknown benchmark '{benchmark_name}'. "
-            f"Available benchmarks: {available}"
-        )
+        available = ", ".join(BENCHMARKS.keys())
+        raise ValueError(f"Unknown benchmark '{benchmark_name}'. " f"Available benchmarks: {available}")
     return BENCHMARKS[benchmark_name]
