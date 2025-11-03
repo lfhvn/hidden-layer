@@ -1,0 +1,82 @@
+openapi: 3.1.0
+info:
+  title: Steerability Dashboard API
+  version: 0.1.0
+  description: Live LLM steering with adherence metrics
+
+servers:
+  - url: http://localhost:8001
+
+paths:
+  /:
+    get:
+      summary: Root endpoint
+      responses:
+        '200':
+          description: Service information
+
+  /api/steering/generate:
+    post:
+      summary: Generate with steering
+      tags: [steering]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt, vector_name]
+              properties:
+                prompt:
+                  type: string
+                vector_name:
+                  type: string
+                strength:
+                  type: number
+                  default: 1.0
+      responses:
+        '200':
+          description: Generated outputs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  steered_output:
+                    type: string
+                  unsteered_output:
+                    type: string
+                  adherence_score:
+                    type: number
+                  constraints_satisfied:
+                    type: boolean
+
+  /api/steering/vectors:
+    get:
+      summary: List steering vectors
+      tags: [steering]
+      responses:
+        '200':
+          description: List of vectors
+
+  /api/experiments:
+    get:
+      summary: List experiments
+      tags: [experiments]
+      responses:
+        '200':
+          description: List of experiments
+
+  /api/metrics/adherence/{exp_id}:
+    get:
+      summary: Get adherence metrics
+      tags: [metrics]
+      parameters:
+        - name: exp_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Adherence metrics
