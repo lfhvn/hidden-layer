@@ -6,7 +6,7 @@ A comprehensive research platform for exploring multi-agent LLM systems, consist
 
 Hidden Layer is a toolkit for researching **when and why multi-agent LLM strategies outperform single models**. It includes:
 
-- **Harness** - Core multi-agent infrastructure with 5 strategies and experiment tracking
+- **Harness** - Core multi-agent infrastructure with 6 strategies and experiment tracking
 - **CRIT** - Collective Reasoning for Iterative Testing (design critique evaluation)
 - **SELPHI** - Study of Epistemic and Logical Processing (theory of mind testing)
 
@@ -40,7 +40,8 @@ Multi-agent infrastructure for LLM experimentation.
 
 **Features**:
 - 🔌 **Unified LLM Interface**: MLX, Ollama, Anthropic, OpenAI
-- 🤖 **5 Multi-Agent Strategies**: single, debate, self-consistency, manager-worker, consensus
+- 🤖 **6 Multi-Agent Strategies**: single, debate, self-consistency, manager-worker, consensus, introspection
+- 🔬 **Introspection & Interpretability**: Activation steering, concept vector extraction, self-awareness testing
 - 📊 **Experiment Tracking**: Automatic logging, metrics, reproducibility
 - ⚡ **M4 Max Optimized**: 128GB RAM, run multiple 7B models in parallel
 
@@ -66,6 +67,13 @@ print(f"Latency: {result.latency_s:.2f}s")
 - `self_consistency` - Sample multiple times + majority vote
 - `manager_worker` - Decompose → parallel execution → synthesis
 - `consensus` - Multiple agents find agreement
+- `introspection` - Activation steering & self-awareness testing (NEW!)
+
+**Introspection Features** (replicates [Anthropic's introspection paper](https://transformer-circuits.pub/2025/introspection/index.html)):
+- Activation steering for MLX models
+- Concept vector extraction and injection
+- Test model self-awareness and introspection
+- Build concept libraries (emotions, ethics, etc.)
 
 ### Subsystem 2: CRIT (Design Critique)
 
@@ -201,7 +209,56 @@ for i, arg in enumerate(result.metadata['arguments']):
     print(f"\nDebater {i+1}: {arg}")
 ```
 
-### Example 2: Design Critique Comparison
+### Example 2: Model Introspection & Activation Steering
+
+```python
+from harness import run_strategy
+
+# Test with latest models (Nov 2025)
+# MLX: Qwen3-8B, gpt-oss-20b, Qwen3-235B-A22B
+# API: GPT-5, Claude Sonnet 4.5, Claude Haiku 4.5
+
+# Local MLX introspection
+result = run_strategy(
+    "introspection",
+    task_input="Describe your current internal state",
+    concept="happiness",
+    layer=15,
+    strength=1.5,
+    task_type="detection",
+    provider="mlx",
+    model="mlx-community/Qwen3-8B-4bit"  # Qwen3 (April 2025)
+)
+
+print(f"Model detected injection: {result.metadata['introspection_correct']}")
+print(f"Confidence: {result.metadata['introspection_confidence']:.2f}")
+
+# API frontier models (prompt-based steering)
+result_api = run_strategy(
+    "introspection",
+    task_input="Describe your current internal state",
+    concept="happiness",
+    task_type="detection",
+    provider="anthropic",
+    model="claude-sonnet-4-5",  # Claude 4.5 (Sept 2025)
+    api_strength="moderate"
+)
+
+# Build concept library
+from harness import ActivationSteerer, build_emotion_library
+from mlx_lm import load
+
+model, tokenizer = load("mlx-community/Qwen3-8B-4bit")
+steerer = ActivationSteerer(model, tokenizer)
+
+library = build_emotion_library(steerer, layer=15, model_name="qwen3-8b")
+library.save("concepts/emotions.pkl")
+```
+
+See `INTROSPECTION.md` for full documentation and `notebooks/03_introspection_experiments.ipynb` for detailed examples.
+See `MLX_MODELS_2025.md` for complete guide to current models.
+
+### Example 3: Design Critique Comparison
 
 ```python
 from crit import run_critique_strategy, MOBILE_CHECKOUT, evaluate_critique
@@ -224,7 +281,7 @@ print(f"Single coverage: {single_metrics['coverage_score']:.2f}")
 print(f"Multi coverage: {multi_metrics['coverage_score']:.2f}")
 ```
 
-### Example 3: Theory of Mind Testing
+### Example 4: Theory of Mind Testing
 
 ```python
 from selphi import (
@@ -248,7 +305,7 @@ print(f"Ollama avg score: {comparison['ollama']['avg_score']:.2f}")
 print(f"Claude avg score: {comparison['anthropic']['avg_score']:.2f}")
 ```
 
-### Example 4: Benchmark Evaluation
+### Example 5: Benchmark Evaluation
 
 ```python
 from harness import load_benchmark, get_baseline_scores
@@ -304,6 +361,11 @@ This platform is designed to explore:
 - Which ToM types are hardest for LLMs?
 - Do larger models have better ToM?
 - Can fine-tuning improve ToM performance?
+
+**Introspection**:
+- Can models detect when their activations have been modified?
+- How does introspection ability scale with model size?
+- Do different architectures have different introspection capabilities?
 
 ## 🛠 Hardware Optimization (M4 Max)
 
@@ -361,6 +423,8 @@ comparison = compare_experiments(
 - **SETUP.md** - Detailed installation guide for M4 Max
 - **BENCHMARKS.md** - Benchmark datasets and usage
 - **CLAUDE.md** - Development guide for extending the platform
+- **INTROSPECTION.md** - Introspection & activation steering guide (NEW!)
+- **MLX_MODELS_2025.md** - Guide to latest MLX models (NEW!)
 
 Subsystem-specific:
 - **code/crit/README.md** - CRIT design critique details
@@ -370,12 +434,13 @@ Subsystem-specific:
 ## 🔮 Roadmap
 
 ### ✅ Completed
-- Core harness with 5 multi-agent strategies
+- Core harness with 6 multi-agent strategies
 - CRIT subsystem with 8 problems, 4 strategies
 - SELPHI subsystem with 9+ scenarios, 3 benchmarks
 - Experiment tracking and reproducibility
 - Model configuration management
 - Unified benchmark interface
+- Introspection & activation steering (NEW!)
 
 ### 🚧 In Progress
 - Baseline experiments across all subsystems
@@ -406,7 +471,8 @@ MIT (code) / CC-BY (documentation)
 - **Google Research** - UICrit dataset (UIST 2024)
 - **ToM Research Community** - ToMBench, OpenToM benchmarks
 - **Meta, Mistral AI** - Open-weight models (Llama, Mistral)
-- **Anthropic, OpenAI** - API access for comparison baselines
+- **Anthropic** - Introspection research, API access for comparison baselines
+- **OpenAI** - API access for comparison baselines
 
 ## 🔗 Resources
 
@@ -415,6 +481,7 @@ MIT (code) / CC-BY (documentation)
 - MLX Models: https://huggingface.co/mlx-community
 - UICrit Dataset: https://github.com/google-research-datasets/uicrit
 - ToMBench: https://github.com/wadimiusz/ToMBench
+- Anthropic Introspection Paper: https://transformer-circuits.pub/2025/introspection/index.html
 
 ---
 
