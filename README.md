@@ -53,7 +53,29 @@ Research platform for multi-agent coordination strategies.
 ### [SELPHI](projects/selphi/)
 Theory of Mind evaluation and benchmarking.
 
-**Status**: Active | **Stack**: Python, ToMBench/OpenToM/SocialIQA
+print(f"Answer: {result.output}")
+print(f"Latency: {result.latency_s:.2f}s")
+```
+.
+├── code/
+│   └── harness/              # Core simulation harness
+│       ├── llm_provider.py   # Unified LLM interface (MLX, Ollama, APIs)
+│       ├── strategies.py     # Multi-agent strategies
+│       └── experiment_tracker.py  # Experiment logging
+│
+├── notebooks/
+│   ├── 01_baseline_experiments.ipynb       # Single-model baselines
+│   ├── 02_debate_experiments.ipynb         # Debate & consensus strategies
+│   ├── 03_consensus_experiments.ipynb      # Consensus (no judge)
+│   ├── 04_benchmark_evaluation.ipynb       # Test on standard benchmarks
+│   ├── 05_interdisciplinary_team.ipynb     # Domain expert collaboration
+│   └── 06_design_critique.ipynb            # Iterative feedback & refinement
+│
+├── experiments/              # Auto-generated experiment logs
+│
+├── SETUP.md                  # Detailed setup instructions
+└── requirements.txt          # Python dependencies
+```
 
 **Features**: 9+ ToM scenarios, 7 ToM types, benchmark integration
 
@@ -71,7 +93,20 @@ Mobile app for experiencing latent spaces through vision, sound, and haptics.
 
 **Status**: Concept | **Stack**: React Native, Expo
 
-**Features**: Visual constellation navigation, audio mapping, haptic feedback
+### ✅ Multi-Agent Strategies
+- Single-model baseline
+- Debate (n-agent with judge)
+- Consensus (agents build agreement without judge)
+- Self-consistency (sample & aggregate)
+- Manager-worker (decompose, execute, synthesize)
+- **Design critique** (iterative feedback & refinement)
+- **Interdisciplinary team** (domain experts collaborate)
+
+### ✅ Benchmark Evaluation
+- 10 established benchmarks (GSM8K, MMLU, GPQA, HumanEval, and more)
+- Compare strategies against published SOTA baselines
+- Test custom strategies on standard datasets
+- Automatic accuracy, latency, and cost tracking
 
 ### [Introspection](projects/introspection/)
 Model introspection experiments (Anthropic-style).
@@ -293,7 +328,17 @@ See [RESEARCH.md](RESEARCH.md) for:
 - Ongoing experiments
 - Cross-project connections
 
----
+## Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
+- **[SETUP.md](SETUP.md)** - Detailed environment setup
+- **[IMPLEMENTATION.md](IMPLEMENTATION.md)** - Technical architecture
+- **[BENCHMARK_GUIDE.md](BENCHMARK_GUIDE.md)** - Using benchmark evaluation
+- **[CUSTOM_STRATEGIES_GUIDE.md](CUSTOM_STRATEGIES_GUIDE.md)** - Design critique & XFN team strategies
+- **[DEBATE_GUIDE.md](DEBATE_GUIDE.md)** - Debate and consensus strategies
+- **[CLAUDE.md](CLAUDE.md)** - Development guide for AI assistants
+
+## Contributing
 
 ## Contributing
 

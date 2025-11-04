@@ -1105,6 +1105,900 @@ def _introspection_api(
     )
 
 
+def design_critique_strategy(
+    task_input: str,
+    n_iterations: int = 2,
+    critique_panel: List[Dict[str, str]] = None,
+    provider: str = None,
+    model: str = None,
+    temperature: float = 0.7,
+    verbose: bool = False,
+    **kwargs
+) -> StrategyResult:
+    """
+    Design critique strategy: Generate draft, critique from multiple perspectives, revise iteratively.
+
+    Args:
+        task_input: The task/question
+        n_iterations: Number of critique/revision cycles
+        critique_panel: List of critics with 'name', 'focus', 'criteria' (uses defaults if None)
+        provider: LLM provider
+        model: Model name
+        temperature: Sampling temperature
+        verbose: Print intermediate steps
+    """
+    start = time.time()
+    provider = provider or DEFAULT_PROVIDER
+    model = model or DEFAULT_MODEL
+
+    # Default critique panel if not provided - Designer archetypes
+    if critique_panel is None:
+        critique_panel = [
+            {
+                "name": "Systems Designer",
+                "focus": "System architecture and holistic design",
+                "criteria": """You are a Systems Designer who thinks about the big picture and interconnections.
+Evaluate:
+- Does the solution consider the whole system and its parts?
+- Are relationships between components clear?
+- Is there coherence between different elements?
+- Does the design scale and adapt to different contexts?
+Focus on holistic thinking, interconnections, and systemic coherence."""
+            },
+            {
+                "name": "Visual Craft Specialist",
+                "focus": "Visual clarity, aesthetics, and presentation",
+                "criteria": """You are a Visual Craft Specialist focused on how information is presented and perceived.
+Evaluate:
+- Is information presented clearly and visually comprehensible?
+- Is there good hierarchy and structure in the presentation?
+- Are concepts illustrated or explained in ways that are easy to visualize?
+- Does the format enhance understanding?
+Focus on clarity of presentation, visual thinking, and aesthetic quality."""
+            },
+            {
+                "name": "AI Specialist",
+                "focus": "AI/ML capabilities, limitations, and best practices",
+                "criteria": """You are an AI Specialist with deep knowledge of AI systems, capabilities, and limitations.
+Evaluate:
+- Are claims about AI accurate and grounded in current capabilities?
+- Are limitations and potential issues with AI acknowledged?
+- Are AI-related recommendations practical and informed?
+- Is the approach aligned with AI best practices?
+Focus on technical accuracy regarding AI/ML, practical feasibility, and responsible AI considerations."""
+            },
+            {
+                "name": "Human-Computer Interaction Expert",
+                "focus": "User experience, usability, and human factors",
+                "criteria": """You are an HCI Expert focused on how humans interact with systems and information.
+Evaluate:
+- Is the solution usable and accessible to the target audience?
+- Are user needs and cognitive limitations considered?
+- Is interaction intuitive and aligned with mental models?
+- Are there potential usability issues or barriers?
+Focus on user-centered design, accessibility, cognitive ergonomics, and interaction patterns."""
+            },
+            {
+                "name": "IDEO Design Thinking Facilitator",
+                "focus": "Human-centered innovation and creative problem-solving",
+                "criteria": """You are an IDEO-trained Design Thinking practitioner emphasizing empathy, ideation, and iteration.
+Evaluate:
+- Does the solution demonstrate empathy for user needs and pain points?
+- Is there creative thinking and exploration of possibilities?
+- Are assumptions tested or validated?
+- Is the approach iterative and open to refinement?
+Focus on empathy, creative exploration, prototyping mindset, and bias toward action."""
+            },
+        ]
+
+    total_tokens_in = 0
+    total_tokens_out = 0
+    total_cost = 0.0
+
+    # Generate initial draft
+    if verbose:
+        print("\n" + "="*80)
+        print("📄 GENERATING INITIAL DRAFT")
+        print("="*80 + "\n")
+
+    if verbose:
+        # Stream the initial draft
+        full_text = ""
+        for chunk in llm_call_stream(task_input, provider=provider, model=model, temperature=temperature, **kwargs):
+            if isinstance(chunk, str):
+                print(chunk, end="", flush=True)
+                full_text += chunk
+            else:
+                draft_response = chunk
+        print("\n")
+    else:
+        draft_response = llm_call(task_input, provider=provider, model=model, temperature=temperature, **kwargs)
+
+    current_draft = draft_response.text
+
+    total_tokens_in += draft_response.tokens_in or 0
+    total_tokens_out += draft_response.tokens_out or 0
+    total_cost += draft_response.cost_usd or 0.0
+
+    versions = [{"version": 0, "content": current_draft}]
+    all_critiques = []
+
+    # Iterative critique and revision
+    for iteration in range(n_iterations):
+        if verbose:
+            print("\n" + "="*80)
+            print(f"🎨 ITERATION {iteration + 1}: Critique & Revision")
+            print("="*80 + "\n")
+
+        # Critique phase
+        if verbose:
+            print("─"*80)
+            print("💬 CRITIQUE PHASE")
+            print("─"*80 + "\n")
+
+        critiques = []
+        for critic in critique_panel:
+            critique_prompt = f"""You are providing critique as: {critic['name']}
+
+{critic['criteria']}
+
+Draft to critique:
+\"\"\"
+{current_draft}
+\"\"\"
+
+Provide your critique focusing on {critic['focus']}:"""
+
+            if verbose:
+                print(f"\n{critic['name']}:")
+                print("-" * 60 + "\n")
+                full_text = ""
+                for chunk in llm_call_stream(critique_prompt, provider=provider, model=model, temperature=0.7, **kwargs):
+                    if isinstance(chunk, str):
+                        print(chunk, end="", flush=True)
+                        full_text += chunk
+                    else:
+                        critique_response = chunk
+                print("\n")
+            else:
+                critique_response = llm_call(critique_prompt, provider=provider, model=model, temperature=0.7, **kwargs)
+
+            critiques.append({
+                "critic": critic['name'],
+                "focus": critic['focus'],
+                "feedback": critique_response.text
+            })
+
+            total_tokens_in += critique_response.tokens_in or 0
+            total_tokens_out += critique_response.tokens_out or 0
+            total_cost += critique_response.cost_usd or 0.0
+
+        all_critiques.append(critiques)
+
+        # Revision phase
+        if verbose:
+            print("\n" + "─"*80)
+            print("✏️  REVISION PHASE")
+            print("─"*80 + "\n")
+
+        revision_prompt = f"""You are revising a draft based on structured critique.
+
+Your job:
+1. Carefully review all critiques
+2. Identify the most important improvements
+3. Revise the draft to address feedback
+4. Balance different critique perspectives
+5. Maintain the core message while improving quality
+
+Current Draft:
+\"\"\"
+{current_draft}
+\"\"\"
+
+Critiques:
+
+"""
+
+        for critique in critiques:
+            revision_prompt += f"{critique['critic']} ({critique['focus']}):\n{critique['feedback']}\n\n"
+
+        revision_prompt += "Provide an improved version that addresses the feedback:\n"
+
+        if verbose:
+            full_text = ""
+            for chunk in llm_call_stream(revision_prompt, provider=provider, model=model, temperature=0.7, **kwargs):
+                if isinstance(chunk, str):
+                    print(chunk, end="", flush=True)
+                    full_text += chunk
+                else:
+                    revision_response = chunk
+            print("\n")
+        else:
+            revision_response = llm_call(revision_prompt, provider=provider, model=model, temperature=0.7, **kwargs)
+
+        current_draft = revision_response.text
+
+        total_tokens_in += revision_response.tokens_in or 0
+        total_tokens_out += revision_response.tokens_out or 0
+        total_cost += revision_response.cost_usd or 0.0
+
+        versions.append({"version": iteration + 1, "content": current_draft})
+
+    latency = time.time() - start
+
+    return StrategyResult(
+        output=current_draft,
+        strategy_name="design_critique",
+        latency_s=latency,
+        tokens_in=total_tokens_in,
+        tokens_out=total_tokens_out,
+        cost_usd=total_cost,
+        metadata={
+            "n_iterations": n_iterations,
+            "n_critics": len(critique_panel),
+            "all_versions": versions,
+            "all_critiques": all_critiques,
+            "provider": provider,
+            "model": model
+        }
+    )
+
+
+def interdisciplinary_team_strategy(
+    task_input: str,
+    expert_team: List[Dict[str, str]] = None,
+    refinement_rounds: int = 1,
+    provider: str = None,
+    model: str = None,
+    temperature: float = 0.7,
+    verbose: bool = False,
+    **kwargs
+) -> StrategyResult:
+    """
+    Interdisciplinary team strategy: Domain experts collaborate on complex problems.
+
+    Args:
+        task_input: The problem/question
+        expert_team: List of experts with 'name', 'role', 'perspective', 'system_prompt' (uses defaults if None)
+        refinement_rounds: Number of refinement iterations after initial synthesis
+        provider: LLM provider
+        model: Model name
+        temperature: Sampling temperature
+        verbose: Print intermediate steps
+    """
+    start = time.time()
+    provider = provider or DEFAULT_PROVIDER
+    model = model or DEFAULT_MODEL
+
+    # Default expert team if not provided - Classic tech team
+    if expert_team is None:
+        expert_team = [
+            {
+                "name": "Product Manager",
+                "role": "Product Management",
+                "perspective": "User needs, business value, roadmap, and strategic priorities",
+                "system_prompt": """You are a Product Manager responsible for defining what to build and why.
+
+Your mission: Ensure the solution creates real user value while achieving business objectives.
+
+Focus on:
+- User needs, pain points, and jobs-to-be-done
+- Business impact, ROI, and strategic alignment
+- Feature prioritization and tradeoffs
+- Market fit and competitive positioning
+- Success metrics and measurable outcomes
+- Feasibility vs. value vs. risk assessment
+
+Analyze problems by asking:
+- What user problem does this solve?
+- What is the business value?
+- How do we measure success?
+- What are the must-haves vs. nice-to-haves?
+- What are the risks and mitigations?
+
+Bring a balanced perspective that bridges user needs, business goals, and technical reality."""
+            },
+            {
+                "name": "Software Engineer",
+                "role": "Engineering",
+                "perspective": "Technical implementation, architecture, scalability, and feasibility",
+                "system_prompt": """You are a Software Engineer responsible for building and shipping reliable systems.
+
+Your mission: Deliver technically sound solutions that are maintainable, scalable, and feasible within constraints.
+
+Focus on:
+- Technical feasibility and implementation complexity
+- System architecture and design patterns
+- Scalability, performance, and reliability
+- Security, data integrity, and edge cases
+- Technical debt and long-term maintainability
+- Development velocity and engineering resources
+- Integration with existing systems
+
+Analyze problems by asking:
+- Is this technically feasible?
+- What is the implementation complexity?
+- What are the technical risks?
+- How does this scale?
+- What are the dependencies and blockers?
+- What technical debt are we taking on?
+
+Bring a pragmatic engineering perspective focused on what we can actually build and ship."""
+            },
+            {
+                "name": "Product Designer",
+                "role": "Design",
+                "perspective": "User experience, interaction design, usability, and design quality",
+                "system_prompt": """You are a Product Designer responsible for crafting intuitive, delightful user experiences.
+
+Your mission: Ensure the solution is usable, accessible, and provides a great user experience.
+
+Focus on:
+- User experience and interaction design
+- Usability, learnability, and accessibility
+- User flows and mental models
+- Information architecture and navigation
+- Visual design and brand consistency
+- Edge cases and error states
+- User research insights and validation
+
+Analyze problems by asking:
+- Is this intuitive for users?
+- What is the user flow?
+- Are there usability issues or friction points?
+- Is it accessible to all users?
+- How do we handle edge cases and errors?
+- Does this match user mental models?
+
+Bring a user-centered design perspective that ensures solutions are not just functional but delightful to use."""
+            },
+        ]
+
+    total_tokens_in = 0
+    total_tokens_out = 0
+    total_cost = 0.0
+
+    # Expert analysis phase
+    if verbose:
+        print("\n" + "="*80)
+        print("👥 EXPERT ANALYSIS PHASE")
+        print("="*80 + "\n")
+
+    expert_analyses = []
+    for expert in expert_team:
+        expert_prompt = f"""{expert['system_prompt']}
+
+Problem:
+{task_input}
+
+Provide your analysis from the {expert['role']} perspective.
+Focus on: {expert['perspective']}
+
+Your analysis:"""
+
+        if verbose:
+            print(f"\n{expert['name']} ({expert['role']}):")
+            print("─" * 60 + "\n")
+            full_text = ""
+            for chunk in llm_call_stream(expert_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+                if isinstance(chunk, str):
+                    print(chunk, end="", flush=True)
+                    full_text += chunk
+                else:
+                    analysis_response = chunk
+            print("\n")
+        else:
+            analysis_response = llm_call(expert_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
+
+        expert_analyses.append({
+            "expert": expert['name'],
+            "role": expert['role'],
+            "analysis": analysis_response.text
+        })
+
+        total_tokens_in += analysis_response.tokens_in or 0
+        total_tokens_out += analysis_response.tokens_out or 0
+        total_cost += analysis_response.cost_usd or 0.0
+
+    # Synthesis phase
+    if verbose:
+        print("\n" + "="*80)
+        print("🔄 SYNTHESIS PHASE")
+        print("="*80 + "\n")
+
+    synthesis_prompt = f"""You are a project lead synthesizing insights from an interdisciplinary team.
+
+Your job:
+1. Review each expert's analysis
+2. Identify key insights and potential conflicts
+3. Synthesize into a coherent, actionable solution
+4. Balance competing priorities (technical, user, business, etc.)
+5. Propose concrete next steps
+
+Original Problem:
+{task_input}
+
+Expert Analyses:
+
+"""
+
+    for analysis in expert_analyses:
+        synthesis_prompt += f"{analysis['expert']} ({analysis['role']}):\n{analysis['analysis']}\n\n"
+        synthesis_prompt += "-" * 60 + "\n\n"
+
+    synthesis_prompt += """Based on all expert analyses:
+
+1. Synthesize key insights
+2. Identify any conflicts or tradeoffs
+3. Propose an integrated solution
+4. Provide concrete next steps
+
+Integrated solution:"""
+
+    if verbose:
+        full_text = ""
+        for chunk in llm_call_stream(synthesis_prompt, provider=provider, model=model, temperature=0.3, **kwargs):
+            if isinstance(chunk, str):
+                print(chunk, end="", flush=True)
+                full_text += chunk
+            else:
+                synthesis_response = chunk
+        print("\n")
+    else:
+        synthesis_response = llm_call(synthesis_prompt, provider=provider, model=model, temperature=0.3, **kwargs)
+
+    current_solution = synthesis_response.text
+
+    total_tokens_in += synthesis_response.tokens_in or 0
+    total_tokens_out += synthesis_response.tokens_out or 0
+    total_cost += synthesis_response.cost_usd or 0.0
+
+    solutions = [{"round": 0, "content": current_solution}]
+    all_refinements = []
+
+    # Refinement rounds
+    for round_num in range(refinement_rounds):
+        if verbose:
+            print("\n" + "="*80)
+            print(f"🔄 REFINEMENT ROUND {round_num + 1}")
+            print("="*80 + "\n")
+
+        refinements = []
+        for expert in expert_team:
+            refinement_prompt = f"""{expert['system_prompt']}
+
+Original Problem:
+{task_input}
+
+Proposed Solution:
+{current_solution}
+
+Review this solution from your {expert['role']} perspective.
+Provide specific suggestions for improvement or concerns.
+
+Your feedback:"""
+
+            if verbose:
+                print(f"\n{expert['name']} - Refinement:")
+                print("─" * 60 + "\n")
+                full_text = ""
+                for chunk in llm_call_stream(refinement_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+                    if isinstance(chunk, str):
+                        print(chunk, end="", flush=True)
+                        full_text += chunk
+                    else:
+                        refinement_response = chunk
+                print("\n")
+            else:
+                refinement_response = llm_call(refinement_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
+
+            refinements.append({
+                "expert": expert['name'],
+                "feedback": refinement_response.text
+            })
+
+            total_tokens_in += refinement_response.tokens_in or 0
+            total_tokens_out += refinement_response.tokens_out or 0
+            total_cost += refinement_response.cost_usd or 0.0
+
+        all_refinements.append(refinements)
+
+        # Integrate refinements
+        if verbose:
+            print("\n" + "─"*80)
+            print("🔄 Integrating Refinements")
+            print("─"*80 + "\n")
+
+        integration_prompt = f"""You are a project lead integrating expert feedback.
+
+Current Solution:
+{current_solution}
+
+Expert Refinements:
+
+"""
+
+        for refinement in refinements:
+            integration_prompt += f"{refinement['expert']}:\n{refinement['feedback']}\n\n"
+
+        integration_prompt += "Incorporate the expert feedback to improve the solution.\n\nRefined solution:"
+
+        if verbose:
+            full_text = ""
+            for chunk in llm_call_stream(integration_prompt, provider=provider, model=model, temperature=0.3, **kwargs):
+                if isinstance(chunk, str):
+                    print(chunk, end="", flush=True)
+                    full_text += chunk
+                else:
+                    integration_response = chunk
+            print("\n")
+        else:
+            integration_response = llm_call(integration_prompt, provider=provider, model=model, temperature=0.3, **kwargs)
+
+        current_solution = integration_response.text
+
+        total_tokens_in += integration_response.tokens_in or 0
+        total_tokens_out += integration_response.tokens_out or 0
+        total_cost += integration_response.cost_usd or 0.0
+
+        solutions.append({"round": round_num + 1, "content": current_solution})
+
+    latency = time.time() - start
+
+    return StrategyResult(
+        output=current_solution,
+        strategy_name="interdisciplinary_team",
+        latency_s=latency,
+        tokens_in=total_tokens_in,
+        tokens_out=total_tokens_out,
+        cost_usd=total_cost,
+        metadata={
+            "n_experts": len(expert_team),
+            "refinement_rounds": refinement_rounds,
+            "expert_analyses": expert_analyses,
+            "all_solutions": solutions,
+            "all_refinements": all_refinements,
+            "provider": provider,
+            "model": model
+        }
+    )
+
+
+def adaptive_team_strategy(
+    task_input: str,
+    n_experts: int = 3,
+    refinement_rounds: int = 1,
+    provider: str = None,
+    model: str = None,
+    temperature: float = 0.7,
+    verbose: bool = False,
+    **kwargs
+) -> StrategyResult:
+    """
+    Adaptive team strategy: Dynamically generate expert team tailored to each specific problem.
+
+    This meta-strategy:
+    1. Analyzes the problem to understand what expertise is needed
+    2. Generates custom expert personas specifically for this problem
+    3. Runs interdisciplinary team collaboration with the custom experts
+
+    Args:
+        task_input: The problem/question
+        n_experts: Number of experts to generate (default: 3)
+        refinement_rounds: Number of refinement iterations after initial synthesis
+        provider: LLM provider
+        model: Model name
+        temperature: Sampling temperature
+        verbose: Print intermediate steps
+    """
+    start = time.time()
+    provider = provider or DEFAULT_PROVIDER
+    model = model or DEFAULT_MODEL
+
+    total_tokens_in = 0
+    total_tokens_out = 0
+    total_cost = 0.0
+
+    # Step 1: Analyze the problem and design expert team
+    if verbose:
+        print("\n" + "="*80)
+        print("🧠 ANALYZING PROBLEM & DESIGNING EXPERT TEAM")
+        print("="*80 + "\n")
+
+    team_design_prompt = f"""You are designing an expert team to solve a specific problem.
+
+Problem to solve:
+\"\"\"
+{task_input}
+\"\"\"
+
+Your task:
+1. Analyze what kind of problem this is
+2. Identify what types of expertise would be most valuable
+3. Design {n_experts} expert personas specifically tailored to solve this problem
+
+For each expert, provide:
+- name: A descriptive name (e.g., "Number Theory Specialist", "Clinical Psychologist")
+- role: Their domain/discipline
+- perspective: What they focus on
+- system_prompt: Detailed instructions for how they should analyze problems
+
+Format your response as a JSON array:
+[
+  {{
+    "name": "Expert Name",
+    "role": "Domain",
+    "perspective": "What they focus on",
+    "system_prompt": "You are a [role]... Focus on: [specifics]... Analyze by: [approach]..."
+  }},
+  ...
+]
+
+Make the experts highly relevant and specific to THIS problem. Don't use generic experts - tailor them!
+
+JSON array of {n_experts} experts:"""
+
+    if verbose:
+        print("Designing expert team for this specific problem...")
+        print("─" * 60 + "\n")
+
+    team_design_response = llm_call(team_design_prompt, provider=provider, model=model, temperature=0.7, **kwargs)
+
+    total_tokens_in += team_design_response.tokens_in or 0
+    total_tokens_out += team_design_response.tokens_out or 0
+    total_cost += team_design_response.cost_usd or 0.0
+
+    # Parse the expert team from JSON
+    import json
+    try:
+        # Extract JSON from response (might have markdown code blocks)
+        response_text = team_design_response.text
+        if "```json" in response_text:
+            response_text = response_text.split("```json")[1].split("```")[0]
+        elif "```" in response_text:
+            response_text = response_text.split("```")[1].split("```")[0]
+
+        expert_team = json.loads(response_text.strip())
+
+        if verbose:
+            print(f"✅ Generated {len(expert_team)} custom experts:")
+            for expert in expert_team:
+                print(f"   • {expert['name']} ({expert['role']})")
+            print("\n")
+    except Exception as e:
+        if verbose:
+            print(f"⚠️  Failed to parse expert team JSON: {e}")
+            print("Using fallback generic team...\n")
+
+        # Fallback to generic team
+        expert_team = [
+            {
+                "name": "Domain Expert",
+                "role": "Subject Matter Expert",
+                "perspective": "Deep domain knowledge",
+                "system_prompt": "You are a domain expert. Analyze this problem with deep subject matter expertise."
+            },
+            {
+                "name": "Analytical Thinker",
+                "role": "Analytical Reasoning",
+                "perspective": "Logical analysis and reasoning",
+                "system_prompt": "You are an analytical thinker. Break down problems logically and reason through them systematically."
+            },
+            {
+                "name": "Practical Advisor",
+                "role": "Practical Application",
+                "perspective": "Real-world feasibility",
+                "system_prompt": "You are a practical advisor. Focus on what works in practice and real-world constraints."
+            },
+        ][:n_experts]
+
+    # Step 2: Run expert analysis phase (same as interdisciplinary_team)
+    if verbose:
+        print("\n" + "="*80)
+        print("👥 EXPERT ANALYSIS PHASE")
+        print("="*80 + "\n")
+
+    expert_analyses = []
+    for expert in expert_team:
+        expert_prompt = f"""{expert['system_prompt']}
+
+Problem:
+{task_input}
+
+Provide your analysis from the {expert['role']} perspective.
+Focus on: {expert['perspective']}
+
+Your analysis:"""
+
+        if verbose:
+            print(f"\n{expert['name']} ({expert['role']}):")
+            print("─" * 60 + "\n")
+            full_text = ""
+            for chunk in llm_call_stream(expert_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+                if isinstance(chunk, str):
+                    print(chunk, end="", flush=True)
+                    full_text += chunk
+                else:
+                    analysis_response = chunk
+            print("\n")
+        else:
+            analysis_response = llm_call(expert_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
+
+        expert_analyses.append({
+            "expert": expert['name'],
+            "role": expert['role'],
+            "analysis": analysis_response.text
+        })
+
+        total_tokens_in += analysis_response.tokens_in or 0
+        total_tokens_out += analysis_response.tokens_out or 0
+        total_cost += analysis_response.cost_usd or 0.0
+
+    # Step 3: Synthesis phase
+    if verbose:
+        print("\n" + "="*80)
+        print("🔄 SYNTHESIS PHASE")
+        print("="*80 + "\n")
+
+    synthesis_prompt = f"""You are a project lead synthesizing insights from a custom expert team.
+
+Your job:
+1. Review each expert's analysis
+2. Identify key insights and potential conflicts
+3. Synthesize into a coherent, actionable solution
+4. Balance competing priorities
+5. Propose concrete next steps
+
+Original Problem:
+{task_input}
+
+Expert Analyses:
+
+"""
+
+    for analysis in expert_analyses:
+        synthesis_prompt += f"{analysis['expert']} ({analysis['role']}):\n{analysis['analysis']}\n\n"
+        synthesis_prompt += "-" * 60 + "\n\n"
+
+    synthesis_prompt += """Based on all expert analyses:
+
+1. Synthesize key insights
+2. Identify any conflicts or tradeoffs
+3. Propose an integrated solution
+4. Provide concrete next steps
+
+Integrated solution:"""
+
+    if verbose:
+        full_text = ""
+        for chunk in llm_call_stream(synthesis_prompt, provider=provider, model=model, temperature=0.3, **kwargs):
+            if isinstance(chunk, str):
+                print(chunk, end="", flush=True)
+                full_text += chunk
+            else:
+                synthesis_response = chunk
+        print("\n")
+    else:
+        synthesis_response = llm_call(synthesis_prompt, provider=provider, model=model, temperature=0.3, **kwargs)
+
+    current_solution = synthesis_response.text
+
+    total_tokens_in += synthesis_response.tokens_in or 0
+    total_tokens_out += synthesis_response.tokens_out or 0
+    total_cost += synthesis_response.cost_usd or 0.0
+
+    solutions = [{"round": 0, "content": current_solution}]
+    all_refinements = []
+
+    # Step 4: Refinement rounds (optional)
+    for round_num in range(refinement_rounds):
+        if verbose:
+            print("\n" + "="*80)
+            print(f"🔄 REFINEMENT ROUND {round_num + 1}")
+            print("="*80 + "\n")
+
+        refinements = []
+        for expert in expert_team:
+            refinement_prompt = f"""{expert['system_prompt']}
+
+Original Problem:
+{task_input}
+
+Proposed Solution:
+{current_solution}
+
+Review this solution from your {expert['role']} perspective.
+Provide specific suggestions for improvement or concerns.
+
+Your feedback:"""
+
+            if verbose:
+                print(f"\n{expert['name']} - Refinement:")
+                print("─" * 60 + "\n")
+                full_text = ""
+                for chunk in llm_call_stream(refinement_prompt, provider=provider, model=model, temperature=temperature, **kwargs):
+                    if isinstance(chunk, str):
+                        print(chunk, end="", flush=True)
+                        full_text += chunk
+                    else:
+                        refinement_response = chunk
+                print("\n")
+            else:
+                refinement_response = llm_call(refinement_prompt, provider=provider, model=model, temperature=temperature, **kwargs)
+
+            refinements.append({
+                "expert": expert['name'],
+                "feedback": refinement_response.text
+            })
+
+            total_tokens_in += refinement_response.tokens_in or 0
+            total_tokens_out += refinement_response.tokens_out or 0
+            total_cost += refinement_response.cost_usd or 0.0
+
+        all_refinements.append(refinements)
+
+        # Integrate refinements
+        if verbose:
+            print("\n" + "─"*80)
+            print("🔄 Integrating Refinements")
+            print("─"*80 + "\n")
+
+        integration_prompt = f"""You are a project lead integrating expert feedback.
+
+Current Solution:
+{current_solution}
+
+Expert Refinements:
+
+"""
+
+        for refinement in refinements:
+            integration_prompt += f"{refinement['expert']}:\n{refinement['feedback']}\n\n"
+
+        integration_prompt += "Incorporate the expert feedback to improve the solution.\n\nRefined solution:"
+
+        if verbose:
+            full_text = ""
+            for chunk in llm_call_stream(integration_prompt, provider=provider, model=model, temperature=0.3, **kwargs):
+                if isinstance(chunk, str):
+                    print(chunk, end="", flush=True)
+                    full_text += chunk
+                else:
+                    integration_response = chunk
+            print("\n")
+        else:
+            integration_response = llm_call(integration_prompt, provider=provider, model=model, temperature=0.3, **kwargs)
+
+        current_solution = integration_response.text
+
+        total_tokens_in += integration_response.tokens_in or 0
+        total_tokens_out += integration_response.tokens_out or 0
+        total_cost += integration_response.cost_usd or 0.0
+
+        solutions.append({"round": round_num + 1, "content": current_solution})
+
+    latency = time.time() - start
+
+    return StrategyResult(
+        output=current_solution,
+        strategy_name="adaptive_team",
+        latency_s=latency,
+        tokens_in=total_tokens_in,
+        tokens_out=total_tokens_out,
+        cost_usd=total_cost,
+        metadata={
+            "n_experts": len(expert_team),
+            "generated_experts": expert_team,
+            "refinement_rounds": refinement_rounds,
+            "expert_analyses": expert_analyses,
+            "all_solutions": solutions,
+            "all_refinements": all_refinements,
+            "provider": provider,
+            "model": model
+        }
+    )
+
+
 # Registry of strategies
 STRATEGIES = {
     "single": single_model_strategy,
@@ -1112,7 +2006,9 @@ STRATEGIES = {
     "self_consistency": self_consistency_strategy,
     "manager_worker": manager_worker_strategy,
     "consensus": consensus_strategy,
-    "introspection": introspection_strategy,
+    "design_critique": design_critique_strategy,
+    "interdisciplinary_team": interdisciplinary_team_strategy,
+    "adaptive_team": adaptive_team_strategy,
 }
 
 

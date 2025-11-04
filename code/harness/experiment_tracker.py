@@ -167,13 +167,16 @@ class ExperimentTracker:
             for key in self.results[0].eval_scores.keys():
                 scores = [r.eval_scores[key] for r in self.results if key in r.eval_scores]
                 if scores:
-                    eval_aggregates[key] = {
-                        "mean": sum(scores) / len(scores),
-                        "min": min(scores),
-                        "max": max(scores),
-                        "count": len(scores),
-                    }
-
+                    # Only aggregate numeric scores (skip strings like '_judge_reasoning')
+                    numeric_scores = [s for s in scores if isinstance(s, (int, float))]
+                    if numeric_scores:
+                        eval_aggregates[key] = {
+                            'mean': sum(numeric_scores) / len(numeric_scores),
+                            'min': min(numeric_scores),
+                            'max': max(numeric_scores),
+                            'count': len(numeric_scores)
+                        }
+        
         return {
             "experiment": self.current_experiment,
             "total_runs": total_runs,
