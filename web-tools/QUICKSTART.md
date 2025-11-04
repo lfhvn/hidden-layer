@@ -48,7 +48,7 @@ docker-compose up
 **Terminal 1 - Backend:**
 ```bash
 cd web-tools/multi-agent-arena/backend
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
