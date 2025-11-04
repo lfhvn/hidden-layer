@@ -28,6 +28,9 @@ from middleware import setup_all_middleware
 from code.strategies import run_strategy
 from harness import llm_call
 
+# Import streaming
+from .streaming import stream_debate
+
 logger = logging.getLogger(__name__)
 
 # Create app
@@ -260,42 +263,20 @@ async def debate_websocket(websocket: WebSocket):
             )
             return
 
-        # Send status
-        await manager.send_message(
-            AgentMessage(
-                type="status",
-                content=f"Starting {debate_request.strategy} with {debate_request.n_agents} agents..."
-            ),
-            websocket
-        )
+        # Stream debate execution with real-time updates
+        model = debate_request.model or "claude-3-haiku-20240307"
 
-        # TODO: Implement streaming version of strategies
-        # For now, run the full debate and send result
-        # In future: modify research code to yield intermediate results
-
-        model = "claude-3-haiku-20240307"
-
-        # Run strategy
-        result = run_strategy(
+        async for message in stream_debate(
+            question=debate_request.question,
             strategy=debate_request.strategy,
-            task_input=debate_request.question,
-            n_debaters=debate_request.n_agents,
-            provider="anthropic",
+            n_agents=debate_request.n_agents,
             model=model
-        )
-
-        # Send completion
-        await manager.send_message(
-            AgentMessage(
-                type="complete",
-                content=result.output,
-                metadata={
-                    "strategy": debate_request.strategy,
-                    "n_agents": debate_request.n_agents
-                }
-            ),
-            websocket
-        )
+        ):
+            # Convert dict to AgentMessage and send
+            await manager.send_message(
+                AgentMessage(**message),
+                websocket
+            )
 
     except WebSocketDisconnect:
         logger.info("Client disconnected")
