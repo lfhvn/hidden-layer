@@ -5,11 +5,15 @@
 
 ## Overview
 
-Hidden Layer is a comprehensive research platform for exploring multi-agent LLM systems, consisting of three major subsystems that work together:
+Hidden Layer is an independent research lab investigating multi-agent architectures, theory of mind, steerability, interpretability, alignment, and human computer and human AI interaction. Current research areas:
 
 1. **Harness** - Core multi-agent infrastructure and experiment tracking
 2. **CRIT** - Collective Reasoning for Iterative Testing (design critique)
 3. **SELPHI** - Study of Epistemic and Logical Processing (theory of mind)
+4. **Introspection** - assessing LLM ability to introspect
+5. **Reasoning and Rationale** exploring explainability
+6. **Latent lens and Laten topologies** investigating the geometry and internal representation of concepts in latent space
+7. **AI to AI communication** Non-linguistic communication between different LLMs
 
 All subsystems are designed for local-first experimentation on Apple Silicon (M4 Max with 128GB RAM) using MLX and Ollama, with seamless fallback to API providers (Anthropic, OpenAI) for comparison.
 

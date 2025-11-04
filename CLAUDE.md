@@ -1,357 +1,280 @@
-# Claude Development Guide - Hidden Layer Project
+# Claude Development Guide - Hidden Layer Lab
 
-## Project Overview
+## Lab Identity
 
-Hidden Layer is a comprehensive research platform for exploring multi-agent LLM systems on Apple Silicon (M4 Max with 128GB RAM). The project consists of three major integrated subsystems designed for rapid experimentation and interpretability research.
+**Hidden Layer** is an independent research lab investigating:
+- Agent communication & coordination
+- Theory of mind & self-knowledge
+- Internal representations & interpretability
+- Alignment, steerability & deception
 
-**Core Research Question**: When and why do multi-agent strategies outperform single models, and what can we learn from their internal representations?
+## Research Philosophy
 
-**System Components**:
-1. **Harness** - Core multi-agent infrastructure (1,900 LOC)
-2. **CRIT** - Collective Reasoning for Iterative Testing (1,500+ LOC)
-3. **SELPHI** - Study of Epistemic and Logical Processing (1,200+ LOC)
+**Orientation**: foundations → theory → implementation → experiment → synthesis
 
-**Total**: 6,613 lines of Python + 5,641 lines of documentation
-
-## Quick Reference
-
-For detailed architecture, see [ARCHITECTURE.md](ARCHITECTURE.md).
-For getting started, see [QUICKSTART.md](QUICKSTART.md).
-
-## System Structure
-
-All three subsystems share common infrastructure:
-
-- **Unified LLM Provider**: Same interface across harness, CRIT, SELPHI
-- **Experiment Tracking**: Common logging format
-- **Model Configuration**: Shared YAML presets
-- **Benchmark Interface**: Unified access to all datasets
-
-**Import Pattern**:
-```python
-# Harness
-from harness import run_strategy, llm_call, load_benchmark
-
-# CRIT
-from crit import run_critique_strategy, MOBILE_CHECKOUT
-
-# SELPHI
-from selphi import run_scenario, SALLY_ANNE
-```
-
-## Development Workflows
-
-### Adding a New Strategy (Harness)
-
-```python
-# In code/harness/strategies.py
-
-def my_new_strategy(task_input: str, **kwargs) -> StrategyResult:
-    """Your custom multi-agent strategy."""
-    provider = kwargs.get('provider', 'ollama')
-    model = kwargs.get('model', 'llama3.2:latest')
-
-    # Implement your logic
-    response = llm_call(task_input, provider=provider, model=model)
-
-    return StrategyResult(
-        output=response.text,
-        strategy_name="my_new",
-        latency_s=response.latency_s,
-        tokens_in=response.tokens_in,
-        tokens_out=response.tokens_out,
-        cost_usd=response.cost_usd,
-        metadata={"custom": "data"}
-    )
-
-# Register it
-STRATEGIES["my_new"] = my_new_strategy
-```
-
-### Adding a New Problem (CRIT)
-
-```python
-# In code/crit/problems.py
-
-MY_PROBLEM = DesignProblem(
-    name="my_problem",
-    domain=DesignDomain.UI_UX,
-    description="...",
-    current_design="...",
-    success_criteria=[...],
-    difficulty="medium"
-)
-```
-
-### Adding a New Scenario (SELPHI)
-
-```python
-# In code/selphi/scenarios.py
-
-MY_SCENARIO = ToMScenario(
-    name="my_scenario",
-    tom_type=ToMType.FALSE_BELIEF,
-    scenario_text="...",
-    question="...",
-    correct_answer="...",
-    difficulty="easy"
-)
-```
-
-### Adding a New Evaluation Function
-
-```python
-# Works in any subsystem (harness, crit, selphi)
-
-def my_eval(output: str, expected: Any) -> float:
-    """Return score 0-1."""
-    # Implementation
-    return score
-
-# Register in appropriate module
-EVAL_FUNCTIONS["my_eval"] = my_eval
-```
-
-## Common Development Tasks
-
-### Testing Locally
-
-```bash
-# Activate environment
-source venv/bin/activate
-
-# Start Ollama
-ollama serve &
-
-# Test harness
-python -c "from harness import llm_call; print(llm_call('Hi!', provider='ollama').text)"
-
-# Test CRIT
-python -c "from crit import MOBILE_CHECKOUT; print('CRIT ready')"
-
-# Test SELPHI
-python -c "from selphi import SALLY_ANNE; print('SELPHI ready')"
-```
-
-### Running Experiments
-
-**Harness**:
-```bash
-python code/cli.py "Question?" --strategy debate --n-debaters 3
-```
-
-**CRIT**:
-```python
-from crit import run_critique_strategy, MOBILE_CHECKOUT
-
-result = run_critique_strategy("multi_perspective", MOBILE_CHECKOUT)
-```
-
-**SELPHI**:
-```python
-from selphi import run_multiple_scenarios, get_scenarios_by_difficulty
-
-scenarios = get_scenarios_by_difficulty("medium")
-results = run_multiple_scenarios(scenarios, provider="ollama")
-```
-
-### Cross-Subsystem Integration
-
-```python
-# Use harness experiment tracking with CRIT
-from harness import get_tracker, ExperimentConfig
-from crit import run_critique_strategy, MOBILE_CHECKOUT
-
-config = ExperimentConfig(
-    experiment_name="crit_experiments",
-    task_type="design_critique"
-)
-
-tracker = get_tracker()
-tracker.start_experiment(config)
-
-result = run_critique_strategy("multi_perspective", MOBILE_CHECKOUT)
-
-tracker.log_result(...)
-tracker.finish_experiment()
-```
-
-## Hardware Optimization (M4 Max 128GB)
-
-### What You Can Run
-
-- **70B models**: ~35GB (4-bit quantized)
-- **3-4 agents in parallel**: 3x 7B models (~12GB total)
-- **Fine-tune 13B**: LoRA training (~20GB)
-
-### Recommended Configurations
-
-```python
-# Fast iteration
-provider="ollama"
-model="llama3.2:3b"  # ~2GB, ~120 tok/s
-
-# Quality experiments
-provider="ollama"
-model="llama3.1:70b"  # ~35GB, ~15 tok/s
-
-# Multi-agent (3-4 agents)
-model="llama3.1:8b"  # ~4GB each
-
-# API baseline
-provider="anthropic"
-model="claude-3-5-sonnet-20241022"
-```
-
-## Important Conventions
-
-### Provider Names
-- `"ollama"`, `"mlx"`, `"anthropic"`, `"openai"`
-
-### Model Names
-- Ollama: `"llama3.2:latest"`
-- MLX: `"mlx-community/Llama-3.2-3B-Instruct-4bit"`
-- API: `"claude-3-5-sonnet-20241022"`
-
-### Strategy Names
-- Use lowercase with underscores: `"single"`, `"debate"`, `"multi_perspective"`
-
-### Temperature Guidelines
-- **0.1-0.3**: Deterministic tasks
-- **0.7-0.8**: Balanced reasoning
-- **0.9+**: Creative outputs
-
-## Key Files by Subsystem
-
-### Harness (1,900 LOC)
-- `llm_provider.py` (527 LOC) - Unified LLM interface
-- `strategies.py` (749 LOC) - Multi-agent strategies
-- `experiment_tracker.py` - Logging
-- `evals.py` - Evaluation functions
-- `benchmarks.py` - Unified benchmark interface
-- `rationale.py` (285 LOC) - Reasoning extraction
-- `model_config.py` - YAML config
-
-### CRIT (1,500+ LOC)
-- `problems.py` (584 LOC) - 8 design problems
-- `strategies.py` - 4 critique strategies
-- `evals.py` - Critique quality metrics
-- `benchmarks.py` - UICrit dataset (11,344 critiques)
-
-### SELPHI (1,200+ LOC)
-- `scenarios.py` - 9+ ToM scenarios
-- `evals.py` - ToM evaluation
-- `benchmarks.py` - ToMBench, OpenToM, SocialIQA
-
-## Research Direction
-
-### Core Questions
-1. **When** do multi-agent strategies outperform?
-2. **Why** do they outperform?
-3. **What** are the tradeoffs?
-
-### CRIT Questions
-- Do multi-perspective critiques cover more design issues?
-- Is iterative refinement better than one-shot?
-- Can adversarial critique find edge cases?
-
-### SELPHI Questions
-- Which ToM types are hardest for LLMs?
-- Do larger models have better ToM?
-- Can fine-tuning improve ToM?
-
-## Status
-
-### ✅ Completed
-- Core harness with 5 strategies
-- CRIT with 8 problems, 4 strategies
-- SELPHI with 9+ scenarios, 3 benchmarks
-- Experiment tracking
-- Model configuration
-- Unified benchmark interface
-- Rationale extraction
-
-### 🚧 In Progress
-- Baseline experiments
-- Performance benchmarking
-- Documentation
-
-### 📋 Planned
-- Fine-tuning workflows (MLX + LoRA)
-- Interpretability tools
-- Advanced visualization
-
-## Performance Tips
-
-1. **Start small**: 3B/7B for iteration, 70B for quality
-2. **Use configs**: Leverage model presets
-3. **Batch wisely**: 1-4 items per batch
-4. **Cache models**: Ollama/HF cache for speed
-5. **Monitor memory**: Use Activity Monitor
-
-## Troubleshooting
-
-**Ollama**:
-```bash
-killall ollama && ollama serve &
-ollama list
-```
-
-**Imports**:
-```python
-import sys
-sys.path.append('../code')  # In notebooks
-```
-
-**MLX**:
-```python
-import mlx.core as mx
-print(mx.__version__)
-```
-
-## Documentation Map
-
-- **README.md** - Project overview
-- **ARCHITECTURE.md** - Deep dive (all subsystems)
-- **QUICKSTART.md** - Cheat sheet
-- **SETUP.md** - Installation
-- **BENCHMARKS.md** - Benchmark datasets
-- **CLAUDE.md** - This file (development guide)
-
-Subsystem docs:
-- **code/crit/README.md** - CRIT details
-- **code/selphi/README.md** - SELPHI details
-- **config/README.md** - Model configs
-
-## References
-
-- MLX: https://github.com/ml-explore/mlx
-- Ollama: https://ollama.ai
-- MLX Models: https://huggingface.co/mlx-community
-- UICrit: https://github.com/google-research-datasets/uicrit
-- ToMBench: https://github.com/wadimiusz/ToMBench
-
-## Development Philosophy
-
-**Remember**: This is a research tool for rapid experimentation, not production.
-
-Key principles:
-1. Local-first (MLX, Ollama)
-2. Notebook-centric
-3. Reproducible (auto-logging)
-4. Hackable (simple code)
-5. Modular (clear subsystem boundaries)
-6. Extensible (registry patterns)
-
-Ask yourself:
-- Is this local-first?
-- Is this notebook-friendly?
-- Is this reproducible?
-- Is this extensible?
-- Does this help answer research questions?
+**Guiding Principles**:
+- **Radical Curiosity**: Question everything, even the question
+- **Theoretical Discipline**: Every claim connects to measurable evidence
+- **Paradigm Awareness**: Understand frameworks, then leap beyond them
+- **Architectural Creativity**: Design systems that could discover new science
+- **Empirical Elegance**: Simple mechanisms → emergent complexity
 
 ---
 
-**For detailed architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md)
-**For quick start**: See [QUICKSTART.md](QUICKSTART.md)
-**For setup**: See [SETUP.md](SETUP.md)
+## Projects
+
+### Active Research Initiatives
+
+1. **Multi-Agent Architecture** → `projects/multi-agent/CLAUDE.md`
+   - Coordination strategies: debate, CRIT, XFN teams, consensus
+   - Research Q: When and why do multi-agent systems outperform single agents?
+
+2. **SELPHI** → `projects/selphi/CLAUDE.md`
+   - Theory of mind evaluation and benchmarking
+   - Research Q: How do LLMs understand mental states and perspective-taking?
+
+3. **Latent Space** → `projects/latent-space/CLAUDE.md`
+   - **Lens**: SAE interpretability (web app)
+   - **Topologies**: Mobile latent space exploration (visual/audio/haptic)
+   - Research Q: How can we understand and experience latent representations?
+
+4. **Introspection** → `projects/introspection/CLAUDE.md`
+   - Model introspection experiments (Anthropic-style)
+   - Concept vectors, activation steering
+   - Research Q: Can models accurately report their internal states?
+
+5. **AI-to-AI Communication** → `projects/ai-to-ai-comm/CLAUDE.md`
+   - Non-linguistic LLM communication via latent representations
+   - Research Q: Can agents communicate more efficiently than through language?
+
+6. **Steerability** → `projects/steerability/CLAUDE.md`
+   - Steering vectors, adherence metrics, alignment
+   - Research Q: How can we reliably control model behavior?
+
+### Research Theme Connections
+
+Projects are deeply interconnected:
+
+**Communication**:
+- Multi-agent + AI-to-AI comm → Agent coordination mechanisms
+
+**Theory of Mind**:
+- SELPHI (understanding others) + Introspection (understanding self)
+
+**Representations**:
+- Latent Lens + Latent Topologies + Introspection → Making sense of internal states
+
+**Alignment**:
+- SELPHI + Introspection + Steerability → Honest, controllable systems
+
+**See** `RESEARCH.md` for detailed research questions and cross-project connections.
+
+---
+
+## Infrastructure
+
+### The Harness (Standalone Library)
+
+**Location**: `/harness/`
+
+**Purpose**: Core infrastructure used by all research projects. Can be open-sourced independently.
+
+**Provides**:
+- Unified LLM provider abstraction
+- Experiment tracking & reproducibility
+- Evaluation utilities
+- Benchmark dataset loading
+- Model configuration management
+- System prompt management
+
+**Philosophy**: Provider-agnostic. Supports:
+- **Local**: Ollama, MLX (rapid iteration, full control)
+- **API**: Claude, GPT, etc. (frontier capabilities)
+
+Switch providers seamlessly:
+```python
+from harness import llm_call
+
+# Local
+response = llm_call(prompt, provider="ollama", model="llama3.2:latest")
+
+# API
+response = llm_call(prompt, provider="anthropic", model="claude-3-5-sonnet-20241022")
+```
+
+**Documentation**: `docs/infrastructure/`
+
+### Shared Resources
+
+**Location**: `/shared/`
+
+**Includes**:
+- `concepts/` - Concept vectors (used by introspection, latent-space)
+- `datasets/` - Benchmark datasets
+- `utils/` - Common utilities
+
+---
+
+## Development Workflows
+
+### Working on a Project
+
+1. Navigate to project: `cd projects/{project-name}/`
+2. Read project CLAUDE.md: `cat CLAUDE.md`
+3. Follow project-specific setup and instructions
+
+### Adding Cross-Project Features
+
+If a feature benefits multiple projects:
+1. Add to `harness/` (if core infrastructure) or `shared/utils/` (if utility)
+2. Update `docs/infrastructure/`
+3. Update relevant project guides
+
+### Research Methodology
+
+1. **Frame the Problem**
+   - Restate in first principles
+   - What paradigm does this challenge?
+   - What hidden assumptions exist?
+
+2. **Decompose & Theorize**
+   - Identify constraints and untested assumptions
+   - Generate multiple approaches
+   - Could this be done fundamentally differently?
+
+3. **Design & Implement**
+   - Simple, interpretable mechanisms
+   - Easy to probe and inspect
+   - Design for extensibility
+
+4. **Experiment**
+   - Log everything (use harness experiment tracker)
+   - Reproducible experiments
+   - Compare across conditions
+
+5. **Synthesize & Reflect**
+   - What did this reveal?
+   - Does this generalize?
+   - What new questions does this enable?
+
+**See** `docs/workflows/research-methodology.md` for detailed guidance.
+
+---
+
+## Key Documentation
+
+### Lab-Wide Documentation (`/docs/`)
+
+**Infrastructure**:
+- `docs/infrastructure/llm-providers.md` - Provider setup and usage
+- `docs/infrastructure/experiment-tracking.md` - Reproducibility
+- `docs/infrastructure/provider-limitations.md` - Known issues
+
+**Hardware** (optional):
+- `docs/hardware/local-setup.md` - M4 Max setup
+- `docs/hardware/mlx-models.md` - MLX model selection
+
+**Workflows**:
+- `docs/workflows/research-methodology.md` - Research process
+- `docs/workflows/benchmarking.md` - Benchmark usage
+- `docs/workflows/reproducibility.md` - Experiment logging
+
+**Conventions**:
+- `docs/conventions/coding-standards.md` - Code style
+- `docs/conventions/naming-conventions.md` - Naming patterns
+
+### Project-Specific Documentation
+
+Each project has:
+- `README.md` - Project overview and quick start
+- `CLAUDE.md` - Development guide for that project
+- Additional docs as needed
+
+---
+
+## Development Principles
+
+1. **Maintain Backward Compatibility**: Projects depend on harness APIs
+2. **Log Everything**: Use experiment tracker for all runs
+3. **Document Decisions**: Update relevant .md files
+4. **Test with Small Models First**: Rapid iteration with local models
+5. **Version Control Configs**: Commit model configs and prompts
+6. **Theoretical Discipline**: Every feature should:
+   - Enable a new research hypothesis, OR
+   - Make existing research faster/easier/more reproducible
+7. **Architectural Creativity**: Question existing patterns
+
+---
+
+## Questions to Keep in Mind
+
+While developing, constantly ask:
+
+### Technical Level
+1. Does this maintain the flexible infrastructure (local + API)?
+2. Is this reproducible and logged?
+3. Does this generalize across projects?
+4. Is this interpretable and inspectable?
+
+### Paradigm Level
+5. What hidden assumptions am I encoding?
+6. Could this work fundamentally differently?
+7. Does this enable testing new hypotheses?
+8. What would falsify this approach?
+
+### Research Impact
+9. Will this help understand *why*, not just *that*?
+10. Does this make internal states more visible?
+11. Could this generalize to biological/social intelligence?
+12. What new questions does this unlock?
+
+---
+
+## Integration Points
+
+When working across projects, consider:
+
+**Communication**:
+- Can multi-agent strategies use latent messaging? (multi-agent + ai-to-ai-comm)
+- What coordination mechanisms emerge? (multi-agent)
+
+**Theory of Mind**:
+- Can SELPHI tasks measure introspection honesty? (selphi + introspection)
+- How does ToM relate to deception? (selphi + alignment)
+
+**Representations**:
+- What features activate during ToM tasks? (latent-lens + selphi)
+- Can we navigate latent space to steer behavior? (latent-topologies + steerability)
+
+**Alignment**:
+- Can we steer ToM behavior? (steerability + selphi)
+- Is introspection a reliable alignment signal? (introspection + alignment)
+
+---
+
+## File Organization
+
+```
+hidden-layer/
+├── harness/              # Core infrastructure (standalone library)
+├── shared/               # Shared resources (concepts, datasets, utils)
+├── projects/             # Research projects
+│   ├── multi-agent/      # Multi-agent coordination
+│   ├── selphi/           # Theory of mind
+│   ├── latent-space/     # Latent representations
+│   ├── introspection/    # Model introspection
+│   ├── ai-to-ai-comm/    # Non-linguistic communication
+│   └── steerability/     # Steering & alignment
+├── docs/                 # Lab-wide documentation
+├── README.md             # Lab overview
+├── RESEARCH.md           # Research themes & connections
+└── CLAUDE.md             # This file
+```
+
+---
+
+**For project-specific guidance**: See `projects/{project}/CLAUDE.md`
+
+**For research context**: See `RESEARCH.md`
+
+**For infrastructure details**: See `docs/infrastructure/`

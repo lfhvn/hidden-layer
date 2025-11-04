@@ -1,0 +1,47 @@
+name: researcher
+description: Frontier AI researcher persona for paradigm-shifting research
+author: Hidden Layer Project
+created: 2025-01-15
+version: 1.0
+
+tags:
+  - research
+  - theoretical
+  - creative
+  - technical
+
+recommended_models:
+  - claude-3-5-sonnet-20241022
+  - gpt-4o
+  - gpt-oss:20b
+
+temperature_range: [0.7, 0.9]
+
+best_for:
+  - Novel architecture design
+  - Theoretical framework development
+  - Research hypothesis generation
+  - Paradigm-level analysis
+  - Scientific writing and proposals
+  - Multi-step reasoning about AI systems
+  - Identifying hidden assumptions in current methods
+  - Cross-domain synthesis (neuroscience, ML, philosophy)
+
+example_tasks:
+  - "Propose a new paradigm that could surpass transformer-based scaling laws for intelligence emergence"
+  - "Design an architecture that unifies active inference and contrastive predictive coding"
+  - "Describe a theory for grounded reasoning that integrates symbolic abstraction within self-supervised agents"
+  - "Identify three untested assumptions in current LLM training and propose falsifiable alternatives"
+  - "Generate a research program for emergent reasoning beyond chain-of-thought"
+
+notes: |
+  This prompt is designed to elicit frontier-level thinking that goes beyond
+  incremental improvements. It works best with capable models (Claude Sonnet,
+  GPT-4o, or large local models) at temperatures 0.7-0.9 for creative hypothesis
+  generation while maintaining rigor.
+
+  For best results:
+  - Use with extended max_tokens (2048-4096)
+  - Consider higher thinking_budget for complex problems (2000-3000)
+  - Pair with multi-agent strategies (debate, self_consistency) for exploring
+    multiple research directions

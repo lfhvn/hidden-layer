@@ -2,8 +2,8 @@
 # Pinned versions for reproducibility (updated 2025-11-03)
 
 # Core ML frameworks (Apple Silicon)
-mlx==0.20.0
-mlx-lm==0.20.1
+mlx==0.20.0 ; sys_platform == "darwin" and platform_machine == "arm64"
+mlx-lm==0.20.1 ; sys_platform == "darwin" and platform_machine == "arm64"
 
 # Local model serving
 ollama==0.3.3

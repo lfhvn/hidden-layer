@@ -1,4 +1,4 @@
-.PHONY: help setup test lint format clean run-ollama install-dev docs
+.PHONY: help setup test lint format clean run-ollama install-dev docs notebook
 
 # Default target
 help:
@@ -29,10 +29,13 @@ help:
 	@echo "Quick Start:"
 	@echo "  make setup && make run-ollama && make test"
 
+PYTHON ?= python3
+
 # Setup virtual environment
 setup:
 	@echo "Setting up virtual environment..."
-	python3 -m venv venv || python -m venv venv
+	$(PYTHON) -c "import sys; major, minor = sys.version_info[:2]; assert (3, 10) <= (major, minor) <= (3, 12), 'Python 3.10–3.12 required for MLX support (found %s.%s)' % (major, minor)"
+	$(PYTHON) -m venv venv
 	. venv/bin/activate && pip install --upgrade pip
 	. venv/bin/activate && pip install -r requirements.txt
 	@echo "✓ Setup complete! Activate with: source venv/bin/activate"
@@ -67,7 +70,7 @@ test-cov:
 # Lint code
 lint:
 	@echo "Running linters..."
-	flake8 code/ tests/ --max-line-length=120 --exclude=venv,__pycache__,.git
+	flake8 code/ tests/ --max-line-length=120 --exclude=venv,__pycache__,.git --extend-ignore=E203
 	@echo "✓ Linting complete"
 
 # Format code
@@ -100,6 +103,15 @@ run-ollama:
 		sleep 2; \
 		echo "✓ Ollama server started"; \
 	fi
+
+# Launch Jupyter Lab in notebooks/
+notebook:
+	@if [ ! -d "venv" ]; then \
+		echo "Virtual environment not found. Run 'make setup' first."; \
+		exit 1; \
+	fi
+	@echo "Launching Jupyter Lab (Ctrl+C to stop)..."
+	@. venv/bin/activate && jupyter lab --notebook-dir=notebooks
 
 # Clean up cache and generated files
 clean:
