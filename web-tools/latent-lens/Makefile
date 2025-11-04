@@ -1,5 +1,9 @@
 .PHONY: dev setup test clean
 
+# Auto-detect Python command (python3 or python)
+PYTHON := $(shell command -v python3 2> /dev/null || command -v python 2> /dev/null)
+PIP := $(shell command -v pip3 2> /dev/null || command -v pip 2> /dev/null)
+
 # Development
 dev:
 	@echo "🔬 Starting Latent Lens (local mode)..."
@@ -33,7 +37,7 @@ setup:
 	@cp frontend/.env.example frontend/.env.local || true
 	@echo ""
 	@echo "Setting up backend..."
-	@cd backend && python3 -m venv venv && . venv/bin/activate && pip install -r requirements.txt
+	@cd backend && $(PYTHON) -m venv venv && . venv/bin/activate && $(PIP) install -r requirements.txt
 	@echo ""
 	@echo "Setting up frontend..."
 	@cd frontend && npm install

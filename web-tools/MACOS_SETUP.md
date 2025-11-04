@@ -2,6 +2,27 @@
 
 Quick guide for running web tools on macOS.
 
+## TL;DR - Create Python Alias (Recommended)
+
+If you hate typing `python3`, create an alias:
+
+```bash
+# For zsh (default on modern macOS)
+echo "alias python='python3'" >> ~/.zshrc
+echo "alias pip='pip3'" >> ~/.zshrc
+source ~/.zshrc
+
+# For bash (older macOS)
+echo "alias python='python3'" >> ~/.bash_profile
+echo "alias pip='pip3'" >> ~/.bash_profile
+source ~/.bash_profile
+
+# Verify
+python --version  # Should show Python 3.x
+```
+
+**Good news**: The Makefiles now auto-detect `python` or `python3`, so they work either way!
+
 ## Prerequisites
 
 ### 1. Install Homebrew (if not already installed)
