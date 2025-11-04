@@ -10,7 +10,7 @@ Zero-to-notebook instructions for every supported workflow. Choose the path that
 - For local models: [Homebrew](https://brew.sh) + Ollama **or** Apple MLX.
 - Optional (API path): Anthropic/OpenAI API keys.
 - Recommended tooling:
-  - `uv` (`pip install uv`) for fast virtualenv management, or the built-in `python -m venv`.
+  - `uv` (`pip install uv`) for fast virtualenv management, or the built-in `python3 -m venv`.
   - `make` (ships with macOS; install via `xcode-select --install` if missing).
 
 ---
@@ -53,10 +53,10 @@ ollama pull mistral-small:latest    # 7B reasoning
 ```
 
 ### Local via MLX (for on-device Apple Silicon research)
-> Only available on Apple Silicon (arm64 macOS running ≥ macOS 13 and Python 3.10–3.12). If `pip install mlx` fails with “no matching distribution,” skip this step and stick with Ollama/API.
+> Only available on Apple Silicon (arm64 macOS running ≥ macOS 13 and Python 3.10–3.12). If `pip install mlx` fails with "no matching distribution," skip this step and stick with Ollama/API.
 ```bash
 pip install mlx mlx-lm              # inside your env
-python -m mlx_lm.download mlx-community/Llama-3.2-3B-Instruct-4bit
+python3 -m mlx_lm.download mlx-community/Llama-3.2-3B-Instruct-4bit
 # use other IDs from MLX_MODELS_2025.md as desired
 ```
 
@@ -76,7 +76,7 @@ Then export the keys for the current shell or rely on `python-dotenv` to load th
 
 Run the bundled check script from the repo root:
 ```bash
-python check_setup.py
+python3 check_setup.py
 ```
 What you should see:
 - Python ≥ 3.10
@@ -99,7 +99,7 @@ make notebook          # activates venv, launches Jupyter Lab in notebooks/
 ### Manual alternative
 ```bash
 source venv/bin/activate   # or your own env
-python -m jupyter lab notebooks/
+python3 -m jupyter lab notebooks/
 ```
 
 Open `00_quickstart.ipynb`. It:

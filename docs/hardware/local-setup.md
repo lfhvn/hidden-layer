@@ -26,7 +26,7 @@ pip install --upgrade pip
 pip install mlx mlx-lm
 
 # Test installation
-python -c "import mlx.core as mx; print(mx.__version__)"
+python3 -c "import mlx.core as mx; print(mx.__version__)"
 ```
 
 ### Install Ollama (Easy Model Management)
@@ -109,14 +109,14 @@ Test the harness:
 
 ```bash
 cd code/harness
-python -c "from llm_provider import llm_call; print(llm_call('test', provider='ollama'))"
+python3 -c "from llm_provider import llm_call; print(llm_call('test', provider='ollama'))"
 ```
 
 ## 6. Jupyter Notebook Setup
 
 ```bash
 # Install jupyter kernel
-python -m ipykernel install --user --name=research-lab --display-name "Research Lab"
+python3 -m ipykernel install --user --name=research-lab --display-name "Research Lab"
 
 # Start Jupyter
 cd notebooks
