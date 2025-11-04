@@ -11,6 +11,8 @@ from pathlib import Path
 # Add project root to path to import research code
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(project_root / "projects" / "multi-agent"))
+sys.path.insert(0, str(project_root / "web-tools" / "shared" / "backend"))
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -19,12 +21,11 @@ from typing import Optional, List
 import logging
 
 # Import shared utilities
-sys.path.insert(0, str(project_root / "web-tools" / "shared" / "backend"))
 from auth import RateLimiter, APIKeyValidator, create_rate_limited_endpoint
 from middleware import setup_all_middleware
 
 # Import research code
-from projects.multi_agent.code.strategies import run_strategy
+from code.strategies import run_strategy
 from harness import llm_call
 
 logger = logging.getLogger(__name__)
