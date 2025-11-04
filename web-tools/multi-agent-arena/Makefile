@@ -1,24 +1,51 @@
 .PHONY: dev setup test clean deploy
 
-# Development
+# Development (without Docker)
 dev:
-	@echo "Starting Multi-Agent Arena..."
+	@echo "🚀 Starting Multi-Agent Arena (local mode)..."
+	@echo ""
+	@echo "Run these commands in separate terminals:"
+	@echo ""
+	@echo "Terminal 1 (Backend):"
+	@echo "  cd backend && source venv/bin/activate && uvicorn app.main:app --reload --port 8000"
+	@echo ""
+	@echo "Terminal 2 (Frontend):"
+	@echo "  cd frontend && npm run dev"
+	@echo ""
+	@echo "Or use: make dev-backend (in terminal 1) and make dev-frontend (in terminal 2)"
+
+dev-docker:
+	@echo "Starting Multi-Agent Arena with Docker..."
 	@docker-compose up
 
 dev-frontend:
-	cd frontend && npm install && npm run dev
+	@echo "Starting frontend on http://localhost:3001..."
+	@cd frontend && npm run dev
 
 dev-backend:
-	cd backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8000
+	@echo "Starting backend on http://localhost:8000..."
+	@cd backend && source venv/bin/activate && uvicorn app.main:app --reload --port 8000
 
 # Setup
 setup:
-	@echo "Setting up Multi-Agent Arena..."
-	@cp backend/.env.example backend/.env
-	@cp frontend/.env.example frontend/.env.local
-	@cd backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+	@echo "🔧 Setting up Multi-Agent Arena..."
+	@echo ""
+	@echo "Creating environment files..."
+	@cp backend/.env.example backend/.env || true
+	@cp frontend/.env.example frontend/.env.local || true
+	@echo ""
+	@echo "Setting up backend..."
+	@cd backend && python3 -m venv venv && . venv/bin/activate && pip install -r requirements.txt
+	@echo ""
+	@echo "Setting up frontend..."
 	@cd frontend && npm install
-	@echo "✅ Setup complete! Edit backend/.env and frontend/.env.local, then run 'make dev'"
+	@echo ""
+	@echo "✅ Setup complete!"
+	@echo ""
+	@echo "📝 Next steps:"
+	@echo "  1. Edit backend/.env and add your ANTHROPIC_API_KEY"
+	@echo "  2. Run 'make dev' to see how to start the servers"
+	@echo "  3. Or run 'make dev-backend' and 'make dev-frontend' in separate terminals"
 
 # Testing
 test:
