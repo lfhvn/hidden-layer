@@ -1,0 +1,158 @@
+# ===========================
+# LATENT TOPOLOGIES .gitignore
+# ===========================
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Large data files (embeddings, models)
+*.npy
+*.npz
+*.bin
+*.pt
+*.pth
+*.onnx
+*.mlmodel
+*.tflite
+
+# SQLite databases (keep schema, not data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Model cache directories
+.cache/
+models/
+transformers_cache/
+sentence_transformers/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# React Native / Expo
+node_modules/
+.expo/
+.expo-shared/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# Metro
+.metro-health-check*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+.nyc_output
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+*~
+
+# Generated data (keep corpus source, not derivatives)
+data/embeddings.npy
+data/coords_*.npy
+data/*.db
+data/*.sqlite
+
+# Keep these examples
+!data/corpus.csv
+!data/README.md
+
+# Android
+*.apk
+*.aab
+*.dex
+*.ap_
+local.properties
+
+# iOS
+*.ipa
+*.dSYM.zip
+*.dSYM
+Pods/
+*.xcworkspace
+!default.xcworkspace
+xcuserdata/
+*.moved-aside
+
+# Xcode
+DerivedData/
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Research outputs (keep protocols, not results)
+research/outputs/
+research/data/
+research/user_studies/
+*.mp4
+*.mov
+*.avi
