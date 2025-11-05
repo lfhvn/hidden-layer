@@ -23,6 +23,7 @@ help:
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make run-ollama   - Start Ollama server in background"
+	@echo "  make notebook     - Launch Jupyter Lab for interactive experiments"
 	@echo "  make clean        - Remove cache and generated files"
 	@echo "  make docs         - Verify documentation files"
 	@echo ""
@@ -120,8 +121,13 @@ notebook:
 		echo "Virtual environment not found. Run 'make setup' first."; \
 		exit 1; \
 	fi
+	@if [ ! -d "notebooks" ]; then \
+		echo "Creating notebooks directory..."; \
+		mkdir -p notebooks; \
+	fi
 	@echo "Launching Jupyter Lab (Ctrl+C to stop)..."
-	@. venv/bin/activate && jupyter lab --notebook-dir=notebooks
+	@echo "Note: If Jupyter hangs, try Ctrl+C and run: jupyter lab --notebook-dir=notebooks --no-browser"
+	@. venv/bin/activate && jupyter lab --notebook-dir=notebooks --no-browser
 
 # Clean up cache and generated files
 clean:
