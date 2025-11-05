@@ -44,9 +44,9 @@ setup:
 		echo "Virtual environment already exists, skipping creation..."; \
 	fi
 	@echo "Upgrading pip..."
-	@venv/bin/pip install --quiet --upgrade pip > /dev/null || true
+	@PIP_DEFAULT_TIMEOUT=60 venv/bin/pip install --quiet --upgrade pip > /dev/null || true
 	@echo "Installing dependencies (this may take a few minutes)..."
-	@venv/bin/pip install --quiet -r requirements.txt > /dev/null || (echo "⚠️  Some optional dependencies (e.g., MLX) may not be available for your Python version." && echo "This is expected for Python 3.13+ or non-Apple Silicon systems.")
+	@PIP_DEFAULT_TIMEOUT=120 venv/bin/pip install --quiet -r requirements.txt > /dev/null || (echo "⚠️  Some optional dependencies (e.g., MLX) may not be available for your Python version." && echo "This is expected for Python 3.13+ or non-Apple Silicon systems.")
 	@echo "✓ Setup complete! Activate with: source venv/bin/activate"
 	@echo "Run 'python3 check_setup.py' to verify your installation."
 
