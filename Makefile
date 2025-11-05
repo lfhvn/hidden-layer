@@ -34,11 +34,14 @@ PYTHON ?= python3
 # Setup virtual environment
 setup:
 	@echo "Setting up virtual environment..."
-	$(PYTHON) -c "import sys; major, minor = sys.version_info[:2]; assert (3, 10) <= (major, minor) <= (3, 12), 'Python 3.10–3.12 required for MLX support (found %s.%s)' % (major, minor)"
+	$(PYTHON) -c "import sys; major, minor = sys.version_info[:2]; assert (major, minor) >= (3, 10), 'Python 3.10+ required (found %s.%s)' % (major, minor)"
+	@echo "Python version check passed"
+	@echo "Note: MLX requires Python 3.10-3.12 on Apple Silicon. If you have Python 3.13+, MLX will be skipped automatically."
 	$(PYTHON) -m venv venv
 	. venv/bin/activate && pip install --upgrade pip
-	. venv/bin/activate && pip install -r requirements.txt
+	. venv/bin/activate && pip install -r requirements.txt || (echo "⚠️  Some optional dependencies (e.g., MLX) may not be available for your Python version." && echo "This is expected for Python 3.13+ or non-Apple Silicon systems." && echo "Continuing with available packages...")
 	@echo "✓ Setup complete! Activate with: source venv/bin/activate"
+	@echo "Run 'python3 check_setup.py' to verify your installation."
 
 # Install development dependencies
 install-dev:

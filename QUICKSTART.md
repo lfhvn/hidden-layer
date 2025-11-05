@@ -34,10 +34,11 @@ uv pip install -r requirements.txt
 
 > Need conda or poetry? Install the deps from `requirements.txt` and skip to the next section.
 
-**Tip:** Hidden Layer targets Python 3.10–3.12 (matching current MLX wheels). If `python3 --version` reports something outside that range (e.g., 3.9 or 3.13), install 3.11 and run:
+**Tip:** Hidden Layer works with Python 3.10+. MLX requires Python 3.10–3.12 on Apple Silicon. If you have Python 3.13+ and want MLX support, use Python 3.11 instead:
 ```bash
 PYTHON=python3.11 make setup
 ```
+Otherwise, MLX will be automatically skipped and you can use Ollama or API providers instead.
 
 ---
 
