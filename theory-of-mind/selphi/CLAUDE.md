@@ -43,9 +43,9 @@
 ### Adding a ToM Scenario
 
 ```python
-# In code/scenarios.py
+# In theory-of-mind/selphi/code/scenarios.py
 
-from code.scenarios import ToMScenario, ToMType
+from theory_of_mind.selphi import ToMScenario, ToMType
 
 MY_SCENARIO = ToMScenario(
     name="my_scenario",
@@ -62,8 +62,7 @@ MY_SCENARIO = ToMScenario(
 
 ```python
 from harness import llm_call, get_tracker
-from code.scenarios import SALLY_ANNE
-from code.evals import evaluate_scenario
+from theory_of_mind.selphi import SALLY_ANNE, evaluate_scenario
 
 # Run scenario
 response = llm_call(
@@ -81,7 +80,7 @@ print(f"Score: {result['average_score']:.2f}")
 
 ```python
 from harness import load_benchmark
-from code import run_multiple_scenarios
+from theory_of_mind.selphi import run_multiple_scenarios
 
 # Load ToMBench
 tombench = load_benchmark('tombench', split='test')
@@ -145,11 +144,11 @@ results = run_multiple_scenarios(
 
 ```bash
 # Run tests
-cd projects/selphi
+cd theory-of-mind/selphi
 pytest tests/ -v
 
 # Quick test
-python -c "from code.scenarios import SALLY_ANNE; print(SALLY_ANNE.get_prompt())"
+python -c "from theory_of_mind.selphi import SALLY_ANNE; print(SALLY_ANNE.get_prompt())"
 ```
 
 ---

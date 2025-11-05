@@ -148,5 +148,5 @@ nearest = find_nearest_in_vocab(coords, top_k=5)
 
 - Research themes: `/RESEARCH.md`
 - Shared concepts: `/shared/concepts/README.md`
-- Multi-agent coordination: `/projects/multi-agent/`
-- Latent space projects: `/projects/latent-space/`
+- Multi-agent coordination: `/communication/multi-agent/`
+- Latent space projects: `/representations/latent-space/`

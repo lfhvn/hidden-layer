@@ -20,7 +20,7 @@ We've reproduced the C2C paper which enables direct semantic communication betwe
 ### Quick Start
 
 ```python
-from code import RosettaModel, create_c2c_projector, generate_kv_cache_index
+from communication.ai_to_ai_comm import RosettaModel, create_c2c_projector, generate_kv_cache_index
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Load models

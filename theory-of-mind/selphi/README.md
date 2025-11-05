@@ -6,8 +6,7 @@ Study of Epistemic and Logical Processing in Human-AI Interaction
 
 ```python
 from harness import llm_call
-from code.scenarios import SALLY_ANNE
-from code.evals import evaluate_scenario
+from theory_of_mind.selphi import SALLY_ANNE, evaluate_scenario
 
 # Run Sally-Anne test
 response = llm_call(

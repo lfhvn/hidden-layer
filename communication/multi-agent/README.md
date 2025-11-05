@@ -5,8 +5,8 @@ Research platform for multi-agent coordination and collective intelligence.
 ## Quick Start
 
 ```python
-from harness import get_tracker, ExperimentConfig
-from code.strategies import run_strategy
+from communication.multi_agent import run_strategy
+from harness import ExperimentConfig, get_tracker
 
 # Run 3-agent debate
 result = run_strategy(

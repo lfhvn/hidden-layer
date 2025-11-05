@@ -152,7 +152,8 @@ cat README.md
 ### Example: Multi-Agent Debate
 
 ```python
-from harness import run_strategy, get_tracker
+from communication.multi_agent import run_strategy
+from harness import get_tracker
 
 # Run 3-agent debate
 result = run_strategy(
@@ -325,4 +326,4 @@ This is an independent research lab. Interested in collaborating? Open an issue 
 **Ready to dive in?**
 - New to the lab? Start with [RESEARCH.md](RESEARCH.md)
 - Want to develop? See [CLAUDE.md](CLAUDE.md)
-- Pick a project: [projects/](projects/)
+- Pick a project: explore [communication/](communication/), [theory-of-mind/](theory-of-mind/), [representations/](representations/), or [alignment/](alignment/)

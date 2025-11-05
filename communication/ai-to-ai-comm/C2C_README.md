@@ -101,7 +101,7 @@ pip install wandb datasets accelerate
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from code import RosettaModel, create_c2c_projector, generate_kv_cache_index
+from communication.ai_to_ai_comm import RosettaModel, create_c2c_projector, generate_kv_cache_index
 
 # Load models
 base_model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2-0.5B-Instruct")
@@ -157,7 +157,7 @@ print(tokenizer.decode(output[0]))
 ### Running the Example
 
 ```bash
-cd projects/ai-to-ai-comm/code
+cd communication/ai-to-ai-comm/code
 python example_c2c.py
 ```
 
@@ -170,7 +170,7 @@ This will:
 ## Project Structure
 
 ```
-projects/ai-to-ai-comm/
+communication/ai-to-ai-comm/
 ├── code/
 │   ├── __init__.py              # Package exports
 │   ├── c2c_projector.py         # C2CProjector implementation
