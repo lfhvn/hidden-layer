@@ -50,6 +50,7 @@ experiments/
 .cache/
 *.gguf
 *.bin
+model_cache/
 
 # MLX/HuggingFace caches
 .mlx_cache/

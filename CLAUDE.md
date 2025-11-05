@@ -21,35 +21,51 @@
 
 ---
 
-## Projects
+## Research Areas & Projects
 
-### Active Research Initiatives
+Research is organized by thematic areas, with projects grouped by their primary focus:
 
-1. **Multi-Agent Architecture** → `projects/multi-agent/CLAUDE.md`
-   - Coordination strategies: debate, CRIT, XFN teams, consensus
-   - Research Q: When and why do multi-agent systems outperform single agents?
+### 1. Communication (`communication/`)
+How do multiple AI agents communicate and coordinate?
 
-2. **SELPHI** → `projects/selphi/CLAUDE.md`
-   - Theory of mind evaluation and benchmarking
-   - Research Q: How do LLMs understand mental states and perspective-taking?
+**Projects**:
+- **Multi-Agent** → `communication/multi-agent/CLAUDE.md`
+  - Coordination strategies: debate, CRIT, XFN teams, consensus
+  - Research Q: When and why do multi-agent systems outperform single agents?
 
-3. **Latent Space** → `projects/latent-space/CLAUDE.md`
-   - **Lens**: SAE interpretability (web app)
-   - **Topologies**: Mobile latent space exploration (visual/audio/haptic)
-   - Research Q: How can we understand and experience latent representations?
+- **AI-to-AI Communication** → `communication/ai-to-ai-comm/CLAUDE.md`
+  - Non-linguistic LLM communication via latent representations
+  - Research Q: Can agents communicate more efficiently than through language?
 
-4. **Introspection** → `projects/introspection/CLAUDE.md`
-   - Model introspection experiments (Anthropic-style)
-   - Concept vectors, activation steering
-   - Research Q: Can models accurately report their internal states?
+### 2. Theory of Mind (`theory-of-mind/`)
+How do AI systems understand mental states (self and others)?
 
-5. **AI-to-AI Communication** → `projects/ai-to-ai-comm/CLAUDE.md`
-   - Non-linguistic LLM communication via latent representations
-   - Research Q: Can agents communicate more efficiently than through language?
+**Projects**:
+- **SELPHI** → `theory-of-mind/selphi/CLAUDE.md`
+  - Theory of mind evaluation and benchmarking
+  - Research Q: How do LLMs understand mental states and perspective-taking?
 
-6. **Steerability** → `projects/steerability/CLAUDE.md`
-   - Steering vectors, adherence metrics, alignment
-   - Research Q: How can we reliably control model behavior?
+- **Introspection** → `theory-of-mind/introspection/CLAUDE.md`
+  - Model introspection experiments (Anthropic-style)
+  - Concept vectors, activation steering
+  - Research Q: Can models accurately report their internal states?
+
+### 3. Representations (`representations/`)
+What are internal representations and how can we make them interpretable?
+
+**Projects**:
+- **Latent Space** → `representations/latent-space/CLAUDE.md`
+  - **Lens**: SAE interpretability (web app)
+  - **Topologies**: Mobile latent space exploration (visual/audio/haptic)
+  - Research Q: How can we understand and experience latent representations?
+
+### 4. Alignment (`alignment/`)
+How can we reliably steer AI systems and detect deception?
+
+**Projects**:
+- **Steerability** → `alignment/steerability/CLAUDE.md`
+  - Steering vectors, adherence metrics, alignment
+  - Research Q: How can we reliably control model behavior?
 
 ### Research Theme Connections
 
@@ -256,24 +272,64 @@ When working across projects, consider:
 
 ```
 hidden-layer/
-├── harness/              # Core infrastructure (standalone library)
-├── shared/               # Shared resources (concepts, datasets, utils)
-├── projects/             # Research projects
-│   ├── multi-agent/      # Multi-agent coordination
-│   ├── selphi/           # Theory of mind
-│   ├── latent-space/     # Latent representations
-│   ├── introspection/    # Model introspection
-│   ├── ai-to-ai-comm/    # Non-linguistic communication
-│   └── steerability/     # Steering & alignment
-├── docs/                 # Lab-wide documentation
-├── README.md             # Lab overview
-├── RESEARCH.md           # Research themes & connections
-└── CLAUDE.md             # This file
+├── harness/                    # Core infrastructure (standalone library)
+├── shared/                     # Shared resources (concepts, datasets, utils)
+├── web-tools/                  # Deployment versions of web applications
+│
+├── communication/              # Research Area: Agent Communication
+│   ├── multi-agent/           # Multi-agent coordination
+│   └── ai-to-ai-comm/         # Non-linguistic communication
+│
+├── theory-of-mind/             # Research Area: Theory of Mind & Self-Knowledge
+│   ├── selphi/                # Theory of mind evaluation
+│   └── introspection/         # Model introspection
+│
+├── representations/            # Research Area: Internal Representations
+│   └── latent-space/
+│       ├── lens/              # SAE interpretability
+│       └── topologies/        # Mobile latent exploration
+│
+├── alignment/                  # Research Area: Alignment & Steerability
+│   └── steerability/          # Steering vectors & metrics
+│
+├── docs/                       # Lab-wide documentation
+├── tests/                      # Lab-wide tests
+├── config/                     # Lab-wide configuration
+│
+├── README.md                   # Lab overview
+├── RESEARCH.md                 # Research themes & connections
+├── CLAUDE.md                   # This file (development guide)
+├── QUICKSTART.md               # Quick start guide
+└── SETUP.md                    # Setup instructions
 ```
+
+### Key Organizational Principles
+
+1. **Research Areas at Top Level**: Projects grouped by thematic focus
+2. **Infrastructure at Root**: `harness/`, `shared/`, `web-tools/` for easy imports
+3. **Scalable Structure**: Easy to add new areas or projects within areas
+4. **No Breaking Changes**: Import paths unchanged (`from harness import ...`)
+
+### Working with Research Areas
+
+**Navigate to an area**:
+```bash
+cd communication/     # or theory-of-mind/, representations/, alignment/
+```
+
+**Each area contains**:
+- `README.md` - Area overview, research questions, cross-connections
+- Project subdirectories with their own CLAUDE.md and README.md
+
+**For new research directions**: Create a new top-level directory (e.g., `emergent-behavior/`)
+
+**For new projects within an area**: Add subdirectory (e.g., `communication/swarm-intelligence/`)
 
 ---
 
-**For project-specific guidance**: See `projects/{project}/CLAUDE.md`
+**For project-specific guidance**: See `{area}/{project}/CLAUDE.md`
+
+**For research area overview**: See `{area}/README.md`
 
 **For research context**: See `RESEARCH.md`
 
