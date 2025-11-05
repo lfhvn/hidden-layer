@@ -118,7 +118,7 @@ response = llm_call(prompt, provider="ollama", model="llama3.2:latest")
 response = llm_call(prompt, provider="anthropic", model="claude-3-5-sonnet-20241022")
 ```
 
-**Documentation**: `docs/infrastructure/`
+**Documentation**: See `harness/README.md` and `docs/infrastructure/provider-limitations.md`
 
 ### Shared Resources
 
@@ -135,7 +135,7 @@ response = llm_call(prompt, provider="anthropic", model="claude-3-5-sonnet-20241
 
 ### Working on a Project
 
-1. Navigate to project: `cd projects/{project-name}/`
+1. Navigate to project: `cd {area}/{project-name}/` (e.g., `cd communication/multi-agent/`)
 2. Read project CLAUDE.md: `cat CLAUDE.md`
 3. Follow project-specific setup and instructions
 
@@ -173,7 +173,7 @@ If a feature benefits multiple projects:
    - Does this generalize?
    - What new questions does this enable?
 
-**See** `docs/workflows/research-methodology.md` for detailed guidance.
+See the Research Methodology section above for detailed guidance.
 
 ---
 
@@ -182,22 +182,19 @@ If a feature benefits multiple projects:
 ### Lab-Wide Documentation (`/docs/`)
 
 **Infrastructure**:
-- `docs/infrastructure/llm-providers.md` - Provider setup and usage
-- `docs/infrastructure/experiment-tracking.md` - Reproducibility
-- `docs/infrastructure/provider-limitations.md` - Known issues
+- `harness/README.md` - Harness usage and API reference
+- `docs/infrastructure/provider-limitations.md` - Provider capabilities and constraints
 
-**Hardware** (optional):
+**Hardware** (optional - for local models):
 - `docs/hardware/local-setup.md` - M4 Max setup
 - `docs/hardware/mlx-models.md` - MLX model selection
 
 **Workflows**:
-- `docs/workflows/research-methodology.md` - Research process
 - `docs/workflows/benchmarking.md` - Benchmark usage
-- `docs/workflows/reproducibility.md` - Experiment logging
 
-**Conventions**:
-- `docs/conventions/coding-standards.md` - Code style
-- `docs/conventions/naming-conventions.md` - Naming patterns
+**Architecture & Planning**:
+- `docs/ARCHITECTURE.md` - System architecture
+- `docs/BENCHMARKS.md` - Benchmark information
 
 ### Project-Specific Documentation
 

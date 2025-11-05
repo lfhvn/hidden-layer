@@ -11,11 +11,11 @@ Hidden Layer is an independent research lab investigating fundamental questions 
 **Core Question**: How do multiple AI agents communicate and coordinate to solve problems more effectively than single agents?
 
 **Projects**:
-- **Multi-Agent Architecture** (`projects/multi-agent/`)
+- **Multi-Agent Architecture** (`communication/multi-agent/`)
   - Debate, CRIT, XFN team strategies
   - When and why do multi-agent systems outperform single agents?
 
-- **AI-to-AI Communication** (`projects/ai-to-ai-comm/`)
+- **AI-to-AI Communication** (`communication/ai-to-ai-comm/`)
   - Non-linguistic communication via latent representations
   - Can LLMs communicate more efficiently through internal states?
 
@@ -31,11 +31,11 @@ Hidden Layer is an independent research lab investigating fundamental questions 
 **Core Question**: How do AI systems understand mental states - both their own (introspection) and others' (theory of mind)?
 
 **Projects**:
-- **SELPHI** (`projects/selphi/`)
+- **SELPHI** (`theory-of-mind/selphi/`)
   - Theory of mind evaluation (ToMBench, OpenToM, SocialIQA)
   - False belief, perspective-taking, epistemic reasoning
 
-- **Introspection** (`projects/introspection/`)
+- **Introspection** (`theory-of-mind/introspection/`)
   - Reproducing Anthropic's introspection findings
   - Can models accurately report their internal states?
 
@@ -56,11 +56,11 @@ Hidden Layer is an independent research lab investigating fundamental questions 
 **Core Question**: What are the internal representations models use, and how can we make them interpretable to humans?
 
 **Projects**:
-- **Latent Space** (`projects/latent-space/`)
+- **Latent Space** (`representations/latent-space/`)
   - **Lens**: SAE interpretability (web app)
   - **Topologies**: Mobile latent space exploration (visual/audio/haptic)
 
-- **Introspection** (`projects/introspection/`)
+- **Introspection** (`theory-of-mind/introspection/`)
   - Concept vectors and activation steering
   - What features activate during introspection tasks?
 
@@ -82,14 +82,14 @@ Hidden Layer is an independent research lab investigating fundamental questions 
 **Core Question**: How can we reliably steer AI systems toward desired behaviors and detect when they're being deceptive?
 
 **Projects**:
-- **Steerability** (`projects/steerability/`)
+- **Steerability** (`alignment/steerability/`)
   - Steering vectors and adherence metrics
   - Real-time control and monitoring
 
-- **SELPHI** (`projects/selphi/`)
+- **SELPHI** (`theory-of-mind/selphi/`)
   - Deception detection via ToM
 
-- **Introspection** (`projects/introspection/`)
+- **Introspection** (`theory-of-mind/introspection/`)
   - Honest reporting vs. learned responses
 
 **Open Questions**:
