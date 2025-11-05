@@ -14,50 +14,50 @@ Hidden Layer investigates fundamental questions about AI systems:
 Understanding how multiple AI agents can work together effectively.
 
 **Projects**:
-- **[Multi-Agent Architecture](projects/multi-agent/)** - Debate, CRIT, XFN teams, coordination strategies
-- **[AI-to-AI Communication](projects/ai-to-ai-comm/)** - Non-linguistic communication via latent representations
+- **[Multi-Agent Architecture](communication/multi-agent/)** - Debate, CRIT, XFN teams, coordination strategies
+- **[AI-to-AI Communication](communication/ai-to-ai-comm/)** - Non-linguistic communication via latent representations
 
 ### 2. Theory of Mind & Self-Knowledge
 Exploring how AI systems understand mental states (their own and others').
 
 **Projects**:
-- **[SELPHI](projects/selphi/)** - Theory of mind evaluation and benchmarking
-- **[Introspection](projects/introspection/)** - Model introspection experiments
+- **[SELPHI](theory-of-mind/selphi/)** - Theory of mind evaluation and benchmarking
+- **[Introspection](theory-of-mind/introspection/)** - Model introspection experiments
 
 ### 3. Internal Representations & Interpretability
 Making sense of high-dimensional latent spaces and learned features.
 
 **Projects**:
-- **[Latent Space](projects/latent-space/)** - SAE interpretability (Lens) + Mobile exploration (Topologies)
-- **[Introspection](projects/introspection/)** - Concept vectors and activation steering
+- **[Latent Space](representations/latent-space/)** - SAE interpretability (Lens) + Mobile exploration (Topologies)
+- **[Introspection](theory-of-mind/introspection/)** - Concept vectors and activation steering
 
 ### 4. Alignment, Steerability & Deception
 Building controllable, honest, aligned AI systems.
 
 **Projects**:
-- **[Steerability](projects/steerability/)** - Steering vectors and adherence metrics
-- **[SELPHI](projects/selphi/)** - Deception detection
-- **[Introspection](projects/introspection/)** - Honest self-reporting
+- **[Steerability](alignment/steerability/)** - Steering vectors and adherence metrics
+- **[SELPHI](theory-of-mind/selphi/)** - Deception detection
+- **[Introspection](theory-of-mind/introspection/)** - Honest self-reporting
 
 ---
 
 ## Projects
 
-### [Multi-Agent Architecture](projects/multi-agent/)
+### [Multi-Agent Architecture](communication/multi-agent/)
 Research platform for multi-agent coordination strategies.
 
 **Status**: Active | **Stack**: Python, Ollama/Claude/GPT
 
 **Features**: Debate, CRIT, self-consistency, manager-worker, consensus strategies
 
-### [SELPHI](projects/selphi/)
+### [SELPHI](theory-of-mind/selphi/)
 Theory of Mind evaluation and benchmarking.
 
 **Status**: Active | **Stack**: Python, ToMBench/OpenToM/SocialIQA
 
 **Features**: 9+ ToM scenarios, 7 ToM types, benchmark integration
 
-### [Latent Space](projects/latent-space/)
+### [Latent Space](representations/latent-space/)
 
 #### Lens (SAE Interpretability)
 Interactive web app for training Sparse Autoencoders and discovering features.
@@ -73,21 +73,21 @@ Mobile app for experiencing latent spaces through vision, sound, and haptics.
 
 **Features**: Visual constellation navigation, audio mapping, haptic feedback
 
-### [Introspection](projects/introspection/)
+### [Introspection](theory-of-mind/introspection/)
 Model introspection experiments (Anthropic-style).
 
 **Status**: Active | **Stack**: Python, MLX
 
 **Features**: Activation steering, concept vectors, introspection tasks, API introspection
 
-### [AI-to-AI Communication](projects/ai-to-ai-comm/)
+### [AI-to-AI Communication](communication/ai-to-ai-comm/)
 Non-linguistic communication between LLMs via latent representations.
 
 **Status**: Early | **Stack**: Python
 
 **Focus**: Efficient agent communication through internal states
 
-### [Steerability](projects/steerability/)
+### [Steerability](alignment/steerability/)
 Real-time steering with adherence metrics.
 
 **Status**: Active | **Stack**: FastAPI, Next.js
@@ -143,7 +143,7 @@ cd hidden-layer
 ./setup.sh
 
 # Pick a project
-cd projects/multi-agent    # Or selphi, introspection, latent-space, etc.
+cd communication/multi-agent    # Or theory-of-mind/selphi, representations/latent-space, etc.
 
 # See project README for specific instructions
 cat README.md
@@ -169,7 +169,7 @@ print(result.output)
 ### Example: Theory of Mind Evaluation
 
 ```python
-from projects.selphi.code import run_scenario, SALLY_ANNE
+from theory_of_mind.selphi.code import run_scenario, SALLY_ANNE
 from harness import llm_call
 
 # Run classic false belief test
@@ -185,7 +185,7 @@ print(response.text)
 ### Example: Introspection
 
 ```python
-from projects.introspection.code import ConceptLibrary, ActivationSteerer
+from theory_of_mind.introspection.code import ConceptLibrary, ActivationSteerer
 from mlx_lm import load
 
 # Load concept library
@@ -222,7 +222,6 @@ Each project has:
 - **Infrastructure**: [docs/infrastructure/](docs/infrastructure/)
 - **Hardware**: [docs/hardware/](docs/hardware/) (optional - local models)
 - **Workflows**: [docs/workflows/](docs/workflows/)
-- **Conventions**: [docs/conventions/](docs/conventions/)
 
 ---
 
@@ -243,29 +242,31 @@ See [RESEARCH.md](RESEARCH.md) for detailed connections.
 
 ```
 hidden-layer/
-├── harness/              # Core infrastructure (standalone library)
-│   ├── llm_provider.py
-│   ├── experiment_tracker.py
-│   ├── evals.py
-│   └── ...
-├── shared/               # Shared resources
-│   ├── concepts/         # Concept vectors
-│   ├── datasets/         # Benchmarks
-│   └── utils/            # Common code
-├── projects/             # Research projects
-│   ├── multi-agent/      # Multi-agent coordination
-│   ├── selphi/           # Theory of mind
-│   ├── latent-space/     # Latent representations
-│   │   ├── lens/         # SAE web app
-│   │   └── topologies/   # Mobile app
-│   ├── introspection/    # Model introspection
-│   ├── ai-to-ai-comm/    # Non-linguistic communication
-│   └── steerability/     # Steering & alignment
-└── docs/                 # Lab-wide documentation
+├── harness/                    # Core infrastructure (standalone library)
+├── shared/                     # Shared resources (concepts, datasets, utils)
+├── web-tools/                  # Deployment versions of web applications
+│
+├── communication/              # Research Area: Agent Communication
+│   ├── multi-agent/           # Multi-agent coordination
+│   └── ai-to-ai-comm/         # Non-linguistic communication
+│
+├── theory-of-mind/             # Research Area: Theory of Mind & Self-Knowledge
+│   ├── selphi/                # Theory of mind evaluation
+│   └── introspection/         # Model introspection
+│
+├── representations/            # Research Area: Internal Representations
+│   └── latent-space/
+│       ├── lens/              # SAE interpretability
+│       └── topologies/        # Mobile latent exploration
+│
+├── alignment/                  # Research Area: Alignment & Steerability
+│   └── steerability/          # Steering vectors & metrics
+│
+└── docs/                       # Lab-wide documentation
     ├── infrastructure/
     ├── hardware/
     ├── workflows/
-    └── conventions/
+    └── archive/
 ```
 
 ---
