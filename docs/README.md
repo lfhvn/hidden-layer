@@ -9,8 +9,7 @@ docs/
 ├── infrastructure/     # Core systems (LLM providers, tracking, etc.)
 ├── hardware/          # Hardware setup (local models - optional)
 ├── workflows/         # Research processes
-├── conventions/       # Coding standards
-└── research/          # Research methodology
+└── archive/           # Historical documentation
 ```
 
 ## Quick Navigation
@@ -19,9 +18,7 @@ docs/
 
 Core systems used across all projects:
 
-- **[LLM Providers](infrastructure/llm-providers.md)** - Setup and usage (Ollama, MLX, Claude, GPT)
-- **[Experiment Tracking](infrastructure/experiment-tracking.md)** - Reproducibility
-- **[Provider Limitations](infrastructure/provider-limitations.md)** - Known issues
+- **[Provider Limitations](infrastructure/provider-limitations.md)** - Provider capabilities and constraints
 
 ### Hardware (Optional - Local Models)
 
@@ -32,19 +29,13 @@ Core systems used across all projects:
 
 Research processes and best practices:
 
-- **[Research Methodology](workflows/research-methodology.md)** - Frame → Theory → Implement → Experiment → Synthesize
 - **[Benchmarking](workflows/benchmarking.md)** - Using standard benchmarks
-- **[Reproducibility](workflows/reproducibility.md)** - Experiment logging
-
-### Conventions
-
-- **[Coding Standards](conventions/coding-standards.md)** - Python style guide
-- **[Naming Conventions](conventions/naming-conventions.md)** - Files, variables, etc.
 
 ### Research
 
 - **Research Questions** - See [/RESEARCH.md](../RESEARCH.md)
 - **Cross-Project Connections** - See [/RESEARCH.md](../RESEARCH.md)
+- **Research Methodology** - See [/CLAUDE.md](../CLAUDE.md) Research Methodology section
 
 ---
 
@@ -52,21 +43,28 @@ Research processes and best practices:
 
 Each project has its own documentation:
 
-- [Multi-Agent](../projects/multi-agent/CLAUDE.md)
-- [SELPHI](../projects/selphi/CLAUDE.md)
-- [Latent Space](../projects/latent-space/CLAUDE.md)
-- [Introspection](../projects/introspection/CLAUDE.md)
-- [AI-to-AI Communication](../projects/ai-to-ai-comm/CLAUDE.md)
-- [Steerability](../projects/steerability/CLAUDE.md)
+**Communication**:
+- [Multi-Agent](../communication/multi-agent/CLAUDE.md)
+- [AI-to-AI Communication](../communication/ai-to-ai-comm/CLAUDE.md)
+
+**Theory of Mind**:
+- [SELPHI](../theory-of-mind/selphi/CLAUDE.md)
+- [Introspection](../theory-of-mind/introspection/CLAUDE.md)
+
+**Representations**:
+- [Latent Space](../representations/latent-space/CLAUDE.md)
+
+**Alignment**:
+- [Steerability](../alignment/steerability/CLAUDE.md)
 
 ---
 
 ## For New Developers
 
-1. Start with [Research Methodology](workflows/research-methodology.md)
-2. Set up infrastructure: [LLM Providers](infrastructure/llm-providers.md)
+1. Start with [RESEARCH.md](../RESEARCH.md) for research overview
+2. Read [CLAUDE.md](../CLAUDE.md) for development guide and methodology
 3. Optional: Configure hardware: [Local Setup](hardware/local-setup.md)
-4. Pick a project: [/projects/](../projects/)
+4. Pick a research area: communication, theory-of-mind, representations, or alignment
 5. Read project CLAUDE.md for specific guidance
 
 ---

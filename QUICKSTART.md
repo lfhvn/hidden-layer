@@ -119,9 +119,9 @@ Open `00_quickstart.ipynb`. It:
 - **SELPHI (Theory of Mind)** – `notebooks/selphi/01_scenarios.ipynb`
   - Batch scenario evaluation, model comparisons, scoring.
 - **Latent Lens** (SAE + interpretability GUI)
-  - Backend uses the shared tracker; see `latent-lens/SETUP.md` after core setup.
+  - Backend uses the shared tracker; see `representations/latent-space/lens/SETUP.md` after core setup.
 - **Steerability Dashboard**
-  - Activation steering experiments; integrate via shared API after following `steerability-dashboard/README.md`.
+  - Activation steering experiments; see `alignment/steerability/README.md` for details.
 
 Each subsystem reuses the same configuration files in `config/` and the harness utilities you just installed.
 

@@ -21,29 +21,81 @@ def check_python_version():
         return False
 
 
-def check_package(package_name, import_name=None):
+def check_package(package_name, import_name=None, timeout=5):
     """Check if a Python package is installed"""
     import_name = import_name or package_name
+    import multiprocessing
+    import queue
+
+    def _import_package(q, pkg_name):
+        """Helper function to import package in separate process"""
+        try:
+            import sys
+            sys.stdout.flush()
+            __import__(pkg_name)
+            q.put(("success", None))
+        except ImportError:
+            q.put(("import_error", None))
+        except Exception as e:
+            q.put(("error", str(e)))
+
     try:
-        __import__(import_name)
-        print(f"  ✓ {package_name}")
-        return True
-    except ImportError:
-        print(f"  ✗ {package_name} (run: pip install {package_name})")
+        # Create a queue for communication
+        q = multiprocessing.Queue()
+
+        # Start import in separate process with timeout
+        process = multiprocessing.Process(target=_import_package, args=(q, import_name))
+        process.start()
+        process.join(timeout=timeout)
+
+        if process.is_alive():
+            # Import is taking too long, kill it
+            process.terminate()
+            process.join()
+            print(f"  ⚠️  {package_name} (import timeout after {timeout}s)")
+            return False
+
+        # Check result
+        try:
+            result, error = q.get_nowait()
+            if result == "success":
+                print(f"  ✓ {package_name}")
+                return True
+            elif result == "import_error":
+                print(f"  ✗ {package_name} (run: pip install {package_name})")
+                return False
+            else:
+                print(f"  ✗ {package_name} (error: {error})")
+                return False
+        except queue.Empty:
+            print(f"  ✗ {package_name} (no response from import)")
+            return False
+
+    except Exception as e:
+        print(f"  ✗ {package_name} (check error: {e})")
         return False
 
 
 def check_python_packages():
     """Check all required Python packages"""
     print("\nChecking Python packages...")
+    import sys
+    import platform
+    
+    # MLX is platform-specific (Apple Silicon only)
+    is_apple_silicon = sys.platform == "darwin" and platform.machine() == "arm64"
 
     required = [
-        ("mlx", "mlx.core"),
-        ("mlx-lm", "mlx_lm"),
         ("pandas", "pandas"),
         ("numpy", "numpy"),
         ("matplotlib", "matplotlib"),
         ("jupyter", "jupyter"),
+    ]
+    
+    # MLX packages are platform-specific
+    mlx_packages = [
+        ("mlx", "mlx.core"),
+        ("mlx-lm", "mlx_lm"),
     ]
 
     optional = [
@@ -59,6 +111,13 @@ def check_python_packages():
         if not check_package(pkg, imp):
             all_good = False
 
+    print("  Optional (MLX - Apple Silicon only):")
+    if is_apple_silicon:
+        for pkg, imp in mlx_packages:
+            check_package(pkg, imp)  # Don't fail on MLX, but check it
+    else:
+        print("    ℹ️  Skipped (not Apple Silicon)")
+
     print("  Optional (for API providers):")
     for pkg, imp in optional:
         check_package(pkg, imp)  # Don't fail on optional
@@ -69,29 +128,70 @@ def check_python_packages():
 def check_ollama():
     """Check if Ollama is running"""
     print("\nChecking Ollama...")
+    import multiprocessing
+    import queue
+
+    def _check_ollama_service(q):
+        """Helper to check Ollama in separate process"""
+        try:
+            import ollama
+            models = ollama.list()
+            q.put(("success", models))
+        except Exception as e:
+            q.put(("error", str(e)))
+
     try:
-        import ollama
-        # Try to list models
-        models = ollama.list()
-        print(f"  ✓ Ollama is running")
-        print(f"  Models available: {len(models.get('models', []))}")
+        # Check if ollama package is installed first
+        try:
+            import ollama
+        except ImportError:
+            print("  ✗ Ollama package not installed (run: pip install ollama)")
+            return False
 
-        if models.get('models'):
-            print("    Available models:")
-            for model in models['models'][:5]:  # Show first 5
-                print(f"      - {model['name']}")
-            if len(models['models']) > 5:
-                print(f"      ... and {len(models['models']) - 5} more")
-        else:
-            print("    ⚠️  No models pulled yet. Run: ollama pull llama3.2:latest")
+        # Create queue and process with timeout
+        q = multiprocessing.Queue()
+        process = multiprocessing.Process(target=_check_ollama_service, args=(q,))
+        process.start()
+        process.join(timeout=5)  # 5 second timeout
 
-        return True
-    except ImportError:
-        print("  ✗ Ollama package not installed (run: pip install ollama)")
-        return False
+        if process.is_alive():
+            # Ollama check is hanging, kill it
+            process.terminate()
+            process.join()
+            print(f"  ✗ Ollama not running or unreachable (timeout)")
+            print("    Start Ollama with: ollama serve")
+            return False
+
+        # Get result
+        try:
+            result, data = q.get_nowait()
+            if result == "success":
+                models = data
+                print(f"  ✓ Ollama is running")
+                print(f"  Models available: {len(models.get('models', []))}")
+
+                if models.get('models'):
+                    print("    Available models:")
+                    for model in models['models'][:5]:  # Show first 5
+                        print(f"      - {model['name']}")
+                    if len(models['models']) > 5:
+                        print(f"      ... and {len(models['models']) - 5} more")
+                else:
+                    print("    ⚠️  No models pulled yet. Run: ollama pull llama3.2:latest")
+
+                return True
+            else:
+                # Error from subprocess
+                print(f"  ✗ Ollama error: {data}")
+                print("    Start Ollama with: ollama serve")
+                return False
+        except queue.Empty:
+            print(f"  ✗ Ollama check failed (no response)")
+            print("    Start Ollama with: ollama serve")
+            return False
+
     except Exception as e:
-        print(f"  ✗ Ollama not running or unreachable")
-        print(f"    Error: {e}")
+        print(f"  ✗ Ollama check failed: {e}")
         print("    Start Ollama with: ollama serve")
         return False
 

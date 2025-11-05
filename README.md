@@ -170,7 +170,7 @@ print(result.output)
 ### Example: Theory of Mind Evaluation
 
 ```python
-from theory_of_mind.selphi import run_scenario, SALLY_ANNE
+from theory_of_mind.selphi.code import run_scenario, SALLY_ANNE
 from harness import llm_call
 
 # Run classic false belief test
@@ -186,7 +186,7 @@ print(response.text)
 ### Example: Introspection
 
 ```python
-from theory_of_mind.introspection import ConceptLibrary, ActivationSteerer
+from theory_of_mind.introspection.code import ConceptLibrary, ActivationSteerer
 from mlx_lm import load
 
 # Load concept library
@@ -223,7 +223,6 @@ Each project has:
 - **Infrastructure**: [docs/infrastructure/](docs/infrastructure/)
 - **Hardware**: [docs/hardware/](docs/hardware/) (optional - local models)
 - **Workflows**: [docs/workflows/](docs/workflows/)
-- **Conventions**: [docs/conventions/](docs/conventions/)
 
 ---
 
@@ -244,36 +243,31 @@ See [RESEARCH.md](RESEARCH.md) for detailed connections.
 
 ```
 hidden-layer/
-├── harness/              # Core infrastructure (standalone library)
-│   ├── llm_provider.py
-│   ├── experiment_tracker.py
-│   ├── evals.py
-│   └── ...
-├── shared/               # Shared resources
-│   ├── concepts/         # Concept vectors
-│   ├── datasets/         # Benchmarks
-│   └── utils/            # Common code
-├── communication/        # Agent communication research area
-│   ├── multi-agent/      # Multi-agent coordination
-│   │   └── code/         # Strategies, rationale, CRIT
-│   └── ai-to-ai-comm/    # Non-linguistic communication
-│       └── code/         # Cache-to-cache implementation
-├── theory-of-mind/       # Theory of mind & introspection
-│   ├── selphi/           # ToM benchmarking
-│   │   └── code/         # Scenarios, evals, benchmarks
-│   └── introspection/    # Model self-knowledge
-│       └── code/         # Activation steering, concept vectors
-├── representations/      # Latent space exploration
-│   └── latent-space/     # SAE + experiential tools
-│       ├── lens/         # SAE web app
-│       └── topologies/   # Mobile latent space exploration
-├── alignment/            # Alignment & steerability
-│   └── steerability/     # Real-time steering experiments
-└── docs/                 # Lab-wide documentation
+├── harness/                    # Core infrastructure (standalone library)
+├── shared/                     # Shared resources (concepts, datasets, utils)
+├── web-tools/                  # Deployment versions of web applications
+│
+├── communication/              # Research Area: Agent Communication
+│   ├── multi-agent/           # Multi-agent coordination
+│   └── ai-to-ai-comm/         # Non-linguistic communication
+│
+├── theory-of-mind/             # Research Area: Theory of Mind & Self-Knowledge
+│   ├── selphi/                # Theory of mind evaluation
+│   └── introspection/         # Model introspection
+│
+├── representations/            # Research Area: Internal Representations
+│   └── latent-space/
+│       ├── lens/              # SAE interpretability
+│       └── topologies/        # Mobile latent exploration
+│
+├── alignment/                  # Research Area: Alignment & Steerability
+│   └── steerability/          # Steering vectors & metrics
+│
+└── docs/                       # Lab-wide documentation
     ├── infrastructure/
     ├── hardware/
     ├── workflows/
-    └── conventions/
+    └── archive/
 ```
 
 ---

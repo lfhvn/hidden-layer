@@ -23,16 +23,23 @@ PY_MAJOR=$($PYTHON_BIN -c 'import sys; print(sys.version_info.major)')
 PY_MINOR=$($PYTHON_BIN -c 'import sys; print(sys.version_info.minor)')
 PY_VERSION="${PY_MAJOR}.${PY_MINOR}"
 
-if [ "$PY_MAJOR" -lt 3 ] || [ "$PY_MAJOR" -gt 3 ]; then
-    echo "✗ Python $PY_VERSION detected. Hidden Layer requires Python 3.10–3.12."
+if [ "$PY_MAJOR" -lt 3 ]; then
+    echo "✗ Python $PY_VERSION detected. Hidden Layer requires Python 3.10+."
     exit 1
 fi
 
-if [ "$PY_MINOR" -lt 10 ] || [ "$PY_MINOR" -gt 12 ]; then
-    echo "✗ Python $PY_VERSION detected. Hidden Layer currently supports Python 3.10–3.12 to match MLX wheels."
+if [ "$PY_MINOR" -lt 10 ]; then
+    echo "✗ Python $PY_VERSION detected. Hidden Layer requires Python 3.10+."
     echo "  Install a supported Python (e.g., 'brew install python@3.11') and re-run with:"
     echo "    PYTHON=python3.11 ./setup.sh"
     exit 1
+fi
+
+if [ "$PY_MINOR" -gt 12 ]; then
+    echo "⚠️  Python $PY_VERSION detected. MLX requires Python 3.10–3.12 on Apple Silicon."
+    echo "  MLX will be skipped automatically. You can still use Ollama or API providers."
+    echo "  If you need MLX support, use Python 3.11 instead:"
+    echo "    PYTHON=python3.11 ./setup.sh"
 fi
 
 echo "📦 Creating virtual environment with $PYTHON_BIN..."
