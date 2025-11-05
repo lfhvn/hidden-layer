@@ -1,4 +1,4 @@
-.PHONY: help setup test lint format clean run-ollama install-dev docs notebook
+.PHONY: help setup test lint format clean run-ollama install-dev docs notebook build-jupyter
 
 # Default target
 help:
@@ -24,6 +24,7 @@ help:
 	@echo "Utilities:"
 	@echo "  make run-ollama   - Start Ollama server in background"
 	@echo "  make notebook     - Launch Jupyter Lab for interactive experiments"
+	@echo "  make build-jupyter - Pre-build Jupyter Lab (run once to speed up startup)"
 	@echo "  make clean        - Remove cache and generated files"
 	@echo "  make docs         - Verify documentation files"
 	@echo ""
@@ -50,6 +51,8 @@ setup:
 	@PIP_DEFAULT_TIMEOUT=120 venv/bin/pip install --quiet -r requirements.txt > /dev/null || (echo "⚠️  Some optional dependencies (e.g., MLX) may not be available for your Python version." && echo "This is expected for Python 3.13+ or non-Apple Silicon systems.")
 	@echo "✓ Setup complete! Activate with: source venv/bin/activate"
 	@echo "Run 'python3 check_setup.py' to verify your installation."
+	@echo ""
+	@echo "Optional: Run 'make build-jupyter' to pre-build Jupyter Lab (speeds up first startup)"
 
 # Install development dependencies
 install-dev:
@@ -115,19 +118,35 @@ run-ollama:
 		echo "✓ Ollama server started"; \
 	fi
 
-# Launch Jupyter Lab in notebooks/
+# Launch Jupyter Lab
 notebook:
 	@if [ ! -d "venv" ]; then \
 		echo "Virtual environment not found. Run 'make setup' first."; \
 		exit 1; \
 	fi
-	@if [ ! -d "notebooks" ]; then \
-		echo "Creating notebooks directory..."; \
-		mkdir -p notebooks; \
-	fi
 	@echo "Launching Jupyter Lab (Ctrl+C to stop)..."
-	@echo "Note: If Jupyter hangs, try Ctrl+C and run: jupyter lab --notebook-dir=notebooks --no-browser"
-	@. venv/bin/activate && jupyter lab --notebook-dir=notebooks --no-browser
+	@echo ""
+	@echo "Notebooks are organized by project:"
+	@echo "  - communication/multi-agent/notebooks/"
+	@echo "  - theory-of-mind/selphi/notebooks/"
+	@echo "  - (and other project-specific directories)"
+	@echo ""
+	@. venv/bin/activate && jupyter lab \
+		--no-browser \
+		--ServerApp.open_browser=False \
+		--LabApp.check_for_updates=False \
+		--LabApp.news_url=None
+
+# Pre-build Jupyter Lab extensions (speeds up first startup)
+build-jupyter:
+	@if [ ! -d "venv" ]; then \
+		echo "Virtual environment not found. Run 'make setup' first."; \
+		exit 1; \
+	fi
+	@echo "Building Jupyter Lab (this may take 1-2 minutes)..."
+	@. venv/bin/activate && jupyter lab build --dev-build=False --minimize=True || echo "Note: Build warnings are normal"
+	@echo "✓ Jupyter Lab built successfully"
+	@echo "Next startup should be much faster!"
 
 # Clean up cache and generated files
 clean:
