@@ -9,6 +9,30 @@ import os
 from pathlib import Path
 
 
+# Helper functions for multiprocessing (must be at module level for pickling)
+def _import_package(q, pkg_name):
+    """Helper function to import package in separate process"""
+    try:
+        import sys
+        sys.stdout.flush()
+        __import__(pkg_name)
+        q.put(("success", None))
+    except ImportError:
+        q.put(("import_error", None))
+    except Exception as e:
+        q.put(("error", str(e)))
+
+
+def _check_ollama_service(q):
+    """Helper to check Ollama in separate process"""
+    try:
+        import ollama
+        models = ollama.list()
+        q.put(("success", models))
+    except Exception as e:
+        q.put(("error", str(e)))
+
+
 def check_python_version():
     """Check Python version is 3.10+"""
     print("Checking Python version...", end=" ")
@@ -26,18 +50,6 @@ def check_package(package_name, import_name=None, timeout=5):
     import_name = import_name or package_name
     import multiprocessing
     import queue
-
-    def _import_package(q, pkg_name):
-        """Helper function to import package in separate process"""
-        try:
-            import sys
-            sys.stdout.flush()
-            __import__(pkg_name)
-            q.put(("success", None))
-        except ImportError:
-            q.put(("import_error", None))
-        except Exception as e:
-            q.put(("error", str(e)))
 
     try:
         # Create a queue for communication
@@ -130,15 +142,6 @@ def check_ollama():
     print("\nChecking Ollama...")
     import multiprocessing
     import queue
-
-    def _check_ollama_service(q):
-        """Helper to check Ollama in separate process"""
-        try:
-            import ollama
-            models = ollama.list()
-            q.put(("success", models))
-        except Exception as e:
-            q.put(("error", str(e)))
 
     try:
         # Check if ollama package is installed first
@@ -253,19 +256,15 @@ def check_harness():
     """Check if harness package is importable"""
     print("\nChecking harness package...")
 
-    # Add code directory to path
-    code_path = Path(__file__).parent / "code"
-    sys.path.insert(0, str(code_path))
-
     try:
         from harness import (
             llm_call,
-            run_strategy,
             get_tracker,
-            STRATEGIES
+            LLMProvider,
+            ExperimentTracker
         )
         print(f"  ✓ Harness package loaded")
-        print(f"  Available strategies: {', '.join(STRATEGIES.keys())}")
+        print(f"  Core components available: llm_call, get_tracker, LLMProvider, ExperimentTracker")
         return True
     except ImportError as e:
         print(f"  ✗ Cannot import harness: {e}")
@@ -277,8 +276,8 @@ def check_directories():
     print("\nChecking directories...")
 
     dirs = [
-        ("code/harness", True),
-        ("notebooks", True),
+        ("harness", True),
+        ("communication", True),
         ("experiments", False),  # Created automatically
     ]
 
@@ -301,9 +300,6 @@ def test_basic_functionality():
     print("\n" + "="*60)
     print("Running basic functionality test...")
     print("="*60)
-
-    code_path = Path(__file__).parent / "code"
-    sys.path.insert(0, str(code_path))
 
     try:
         from harness import llm_call
