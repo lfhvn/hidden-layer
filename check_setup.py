@@ -21,29 +21,45 @@ def check_python_version():
         return False
 
 
-def check_package(package_name, import_name=None):
+def check_package(package_name, import_name=None, timeout=5):
     """Check if a Python package is installed"""
     import_name = import_name or package_name
     try:
+        # Force flush output before import
+        import sys
+        sys.stdout.flush()
         __import__(import_name)
+        sys.stdout.flush()
         print(f"  ✓ {package_name}")
         return True
     except ImportError:
         print(f"  ✗ {package_name} (run: pip install {package_name})")
+        return False
+    except Exception as e:
+        print(f"  ✗ {package_name} (error: {e})")
         return False
 
 
 def check_python_packages():
     """Check all required Python packages"""
     print("\nChecking Python packages...")
+    import sys
+    import platform
+    
+    # MLX is platform-specific (Apple Silicon only)
+    is_apple_silicon = sys.platform == "darwin" and platform.machine() == "arm64"
 
     required = [
-        ("mlx", "mlx.core"),
-        ("mlx-lm", "mlx_lm"),
         ("pandas", "pandas"),
         ("numpy", "numpy"),
         ("matplotlib", "matplotlib"),
         ("jupyter", "jupyter"),
+    ]
+    
+    # MLX packages are platform-specific
+    mlx_packages = [
+        ("mlx", "mlx.core"),
+        ("mlx-lm", "mlx_lm"),
     ]
 
     optional = [
@@ -58,6 +74,13 @@ def check_python_packages():
     for pkg, imp in required:
         if not check_package(pkg, imp):
             all_good = False
+
+    print("  Optional (MLX - Apple Silicon only):")
+    if is_apple_silicon:
+        for pkg, imp in mlx_packages:
+            check_package(pkg, imp)  # Don't fail on MLX, but check it
+    else:
+        print("    ℹ️  Skipped (not Apple Silicon)")
 
     print("  Optional (for API providers):")
     for pkg, imp in optional:
