@@ -1,5 +1,6 @@
 """Configuration management using Pydantic settings."""
 
+import os
 from functools import lru_cache
 from typing import List
 
@@ -17,7 +18,7 @@ class Settings(BaseSettings):
 
     # Model Configuration
     default_model_name: str = "gpt2"
-    hf_cache_dir: str = "./model_cache"
+    hf_cache_dir: str = os.path.expanduser("~/.cache/huggingface/hub")  # Centralized cache
     device: str = "cpu"
 
     # Server
