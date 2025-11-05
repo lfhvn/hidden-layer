@@ -257,7 +257,7 @@ When working across projects, consider:
 
 **Representations**:
 - What features activate during ToM tasks? (latent-lens + selphi)
-- Can we navigate latent space to steer behavior? (latent-topologies + steerability)
+- Can we navigate latent space to steer behavior? (representations/latent-space/topologies + steerability)
 
 **Alignment**:
 - Can we steer ToM behavior? (steerability + selphi)
