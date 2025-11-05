@@ -37,14 +37,23 @@ def check_python_packages():
     """Check all required Python packages"""
     print("\nChecking Python packages...")
 
+    # MLX is only for Apple Silicon
+    import platform
+    is_apple_silicon = sys.platform == "darwin" and platform.machine() == "arm64"
+
     required = [
-        ("mlx", "mlx.core"),
-        ("mlx-lm", "mlx_lm"),
         ("pandas", "pandas"),
         ("numpy", "numpy"),
         ("matplotlib", "matplotlib"),
         ("jupyter", "jupyter"),
     ]
+
+    # Add MLX packages only on Apple Silicon
+    if is_apple_silicon:
+        required.extend([
+            ("mlx", "mlx.core"),
+            ("mlx-lm", "mlx_lm"),
+        ])
 
     optional = [
         ("anthropic", "anthropic"),
@@ -97,7 +106,14 @@ def check_ollama():
 
 
 def check_mlx():
-    """Check if MLX is working"""
+    """Check if MLX is working (Apple Silicon only)"""
+    import platform
+    is_apple_silicon = sys.platform == "darwin" and platform.machine() == "arm64"
+
+    if not is_apple_silicon:
+        print("\nSkipping MLX check (Apple Silicon only, you're on Linux/x86)")
+        return True  # Not a failure on non-Apple Silicon
+
     print("\nChecking MLX (Apple Silicon)...")
     try:
         import mlx.core as mx
