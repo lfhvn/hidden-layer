@@ -1,7 +1,7 @@
 # Hidden Layer - System Architecture
 
 **Version**: 0.1.0
-**Last Updated**: 2025-11-03
+**Last Updated**: 2025-11-05
 
 ## Overview
 
@@ -23,15 +23,18 @@ All subsystems are designed for local-first experimentation on Apple Silicon (M4
 
 ```
 hidden-layer/
-├── code/
-│   ├── harness/          # Core multi-agent infrastructure (1,900 LOC)
-│   ├── crit/             # Design critique subsystem (1,500+ LOC)
-│   └── selphi/           # Theory of Mind subsystem (1,200+ LOC)
-│
-├── notebooks/            # Jupyter notebooks for experimentation
-├── experiments/          # Auto-generated experiment logs
-├── config/              # Model configurations and presets
-└── latent-topologies/   # Mobile app for interpretability (separate stack)
+├── harness/             # Core infrastructure library
+├── shared/              # Shared resources (concepts, datasets, utils)
+├── communication/       # Agent communication research
+├── theory-of-mind/      # Theory of mind & self-knowledge research
+├── representations/     # Latent space & interpretability research
+│   └── latent-space/
+│       ├── lens/        # SAE interpretability web app
+│       └── topologies/  # Mobile latent space exploration
+├── alignment/           # Alignment & steerability research
+├── notebooks/           # Jupyter notebooks for experimentation
+├── experiments/         # Auto-generated experiment logs
+└── config/             # Model configurations and presets
 ```
 
 **Total**: 6,613 lines of Python code + 5,641 lines of documentation
@@ -690,7 +693,7 @@ EVAL_FUNCTIONS["my_eval"] = my_eval
 
 ### Planned Enhancements
 
-1. **Interpretability Tools** (latent-topologies integration)
+1. **Interpretability Tools** (representations/latent-space/topologies integration)
    - Hidden layer visualization
    - Attention pattern analysis
    - Confidence calibration
