@@ -191,6 +191,33 @@ Notebooks are designed to:
 - **Organization**: Clean, logical structure aligned with CLAUDE.md
 - **Documentation**: Up-to-date references throughout
 
+## Python Import Shim Pattern
+
+You may notice directories like:
+- `theory-of-mind/` (hyphen) - Real code, notebooks, docs
+- `theory_of_mind/` (underscore) - Python import shim (tiny)
+
+**Why?** Python can't import hyphens, so we use import shims:
+
+```python
+# This doesn't work (Python syntax error):
+from theory-of-mind.selphi import X  ❌
+
+# Import shim makes this work:
+from theory_of_mind.selphi import X  ✅
+# Internally loads from theory-of-mind/selphi/code/
+```
+
+**Same pattern exists for:**
+- `communication/ai-to-ai-comm/` → `communication/ai_to_ai_comm/`
+- `communication/multi-agent/` → `communication/multi_agent/`
+
+**Size comparison** (theory-of-mind example):
+- Hyphenated: 259 KB (real project)
+- Underscore: 17 KB (just import shim)
+
+This is documented in Section 6 of QUICKSTART.md.
+
 ## Verification Commands
 
 ```bash
@@ -205,6 +232,9 @@ find /home/user/hidden-layer -path "*/selphi/notebooks/*" -type d
 
 # Count notebooks by project
 find /home/user/hidden-layer -name "*.ipynb" | grep -o '[^/]*notebooks' | sort | uniq -c
+
+# Verify import shims exist
+ls -ld theory_of_mind/ communication/multi_agent/ communication/ai_to_ai_comm/
 ```
 
 ## Next Steps
