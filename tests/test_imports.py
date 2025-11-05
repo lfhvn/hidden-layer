@@ -1,15 +1,16 @@
-"""
-Test that all modules can be imported successfully.
+"""Smoke tests for importing key Hidden Layer packages.
 
-This is a critical smoke test to ensure there are no import errors
-across all three subsystems (harness, CRIT, SELPHI).
+These tests verify that the reorganized research areas (communication,
+theory_of_mind, etc.) can be imported successfully after the migration
+away from the legacy ``projects/`` layout.
 """
 
-import os
+from pathlib import Path
 import sys
 
-# Add code directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "code"))
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import pytest
 
@@ -21,7 +22,7 @@ class TestHarnessImports:
         """Test basic harness import."""
         import harness
 
-        assert harness.__version__ == "0.1.0"
+        assert harness.__version__ == "0.2.0"
 
     def test_import_llm_provider(self):
         """Test LLM provider imports."""
@@ -33,7 +34,7 @@ class TestHarnessImports:
 
     def test_import_strategies(self):
         """Test strategy imports."""
-        from harness import (
+        from communication.multi_agent import (
             STRATEGIES,
             StrategyResult,
             consensus_strategy,
@@ -79,7 +80,7 @@ class TestHarnessImports:
 
     def test_import_rationale(self):
         """Test rationale extraction imports."""
-        from harness import (
+        from communication.multi_agent import (
             RationaleResponse,
             ask_with_reasoning,
             extract_rationale_from_result,
@@ -105,21 +106,21 @@ class TestCRITImports:
 
     def test_import_crit(self):
         """Test basic CRIT import."""
-        import crit
+        from communication.multi_agent import crit
 
         assert hasattr(crit, "__version__")
 
     def test_import_problems(self):
         """Test problem imports."""
-        from crit import (
-            API_VERSIONING,
+        from communication.multi_agent.crit import (
             APPROVAL_WORKFLOW,
             CACHING_STRATEGY,
             DASHBOARD_LAYOUT,
             GRAPHQL_SCHEMA,
-            MICROSERVICES,
+            MICROSERVICES_SPLIT,
             MOBILE_CHECKOUT,
-            PERMISSION_SYSTEM,
+            PERMISSION_MODEL,
+            REST_API_VERSIONING,
             DesignDomain,
             DesignProblem,
         )
@@ -129,27 +130,38 @@ class TestCRITImports:
 
     def test_import_critique_strategies(self):
         """Test critique strategy imports."""
-        from crit import (
+        from communication.multi_agent.crit import (
             CritiqueResult,
             adversarial_critique,
             iterative_critique,
             multi_perspective_critique,
             run_critique_strategy,
-            single_critic,
+            single_critic_strategy,
         )
 
         assert callable(run_critique_strategy)
-        assert callable(single_critic)
+        assert callable(single_critic_strategy)
 
     def test_import_evals(self):
         """Test CRIT evaluation imports."""
-        from crit import critique_coverage, critique_depth, evaluate_critique
+        from communication.multi_agent.crit import (
+            evaluate_critique,
+            evaluate_critique_coverage,
+            evaluate_critique_depth,
+        )
 
         assert callable(evaluate_critique)
+        assert callable(evaluate_critique_coverage)
+        assert callable(evaluate_critique_depth)
 
     def test_import_benchmarks(self):
         """Test CRIT benchmark imports."""
-        from crit.benchmarks import BenchmarkDataset, list_available_benchmarks, load_uicrit, print_benchmark_info
+        from communication.multi_agent.crit.benchmarks import (
+            BenchmarkDataset,
+            list_available_benchmarks,
+            load_uicrit,
+            print_benchmark_info,
+        )
 
         assert callable(load_uicrit)
 
@@ -159,62 +171,46 @@ class TestSELPHIImports:
 
     def test_import_selphi(self):
         """Test basic SELPHI import."""
-        import selphi
+        from theory_of_mind import selphi
 
         assert hasattr(selphi, "__version__")
 
     def test_import_scenarios(self):
         """Test scenario imports."""
-        from selphi import (
-            BIRTHDAY_PUPPY,
-            CHOCOLATE_BAR,
-            COFFEE_SHOP,
-            ICE_CREAM_VAN,
-            LIBRARY_BOOK,
-            MUSEUM_TRIP,
-            PAINTED_ROOM,
-            RESTAURANT_BILL,
-            SALLY_ANNE,
-            ToMScenario,
-            ToMType,
-        )
+        from theory_of_mind.selphi import CHOCOLATE_BAR, SALLY_ANNE, SURPRISE_PARTY, ToMScenario, ToMType
 
         assert isinstance(SALLY_ANNE, ToMScenario)
-        assert SALLY_ANNE.tom_type == ToMType.FALSE_BELIEF
+        assert isinstance(CHOCOLATE_BAR, ToMScenario)
+        assert SURPRISE_PARTY.tom_type == ToMType.KNOWLEDGE_ATTRIBUTION
 
     def test_import_scenario_functions(self):
         """Test scenario function imports."""
-        from selphi import (
-            ScenarioResult,
+        from theory_of_mind.selphi import (
             get_scenarios_by_difficulty,
             get_scenarios_by_type,
             run_multiple_scenarios,
             run_scenario,
+            ToMTaskResult,
         )
 
         assert callable(run_scenario)
         assert callable(run_multiple_scenarios)
+        assert ToMTaskResult.__module__.endswith("tasks")
 
     def test_import_evals(self):
         """Test SELPHI evaluation imports."""
-        from selphi import compare_models, evaluate_batch, evaluate_scenario
+        from theory_of_mind.selphi import compare_models, evaluate_batch, evaluate_scenario
 
         assert callable(evaluate_scenario)
 
     def test_import_benchmarks(self):
         """Test SELPHI benchmark imports."""
-        from selphi.benchmarks import (
-            BenchmarkDataset,
-            list_available_benchmarks,
-            load_opentom,
-            load_socialiqa,
-            load_tombench,
-            print_benchmark_info,
-        )
+        from theory_of_mind.selphi.benchmarks import list_available_benchmarks, load_opentom, load_socialiqa, load_tombench
 
         assert callable(load_tombench)
         assert callable(load_opentom)
         assert callable(load_socialiqa)
+        assert callable(list_available_benchmarks)
 
 
 class TestCrossSubsystemIntegration:
@@ -222,9 +218,9 @@ class TestCrossSubsystemIntegration:
 
     def test_all_subsystems_importable(self):
         """Test that all three subsystems can be imported together."""
-        import crit
+        from communication.multi_agent import crit
         import harness
-        import selphi
+        from theory_of_mind import selphi
 
         # All should have versions
         assert hasattr(harness, "__version__")

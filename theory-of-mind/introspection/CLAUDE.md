@@ -48,8 +48,7 @@ Model introspection experiments inspired by Anthropic's recent findings on wheth
 
 ```python
 from mlx_lm import load
-from code.concept_vectors import ConceptLibrary, build_emotion_library
-from code.activation_steering import ActivationSteerer
+from theory_of_mind.introspection import ActivationSteerer, ConceptLibrary, build_emotion_library
 
 # Load model
 model, tokenizer = load("mlx-community/Llama-3.2-3B-Instruct-4bit")
@@ -70,7 +69,7 @@ library.export_json("/home/user/hidden-layer/shared/concepts/emotions_layer15.js
 ### Running Introspection Tasks
 
 ```python
-from code.introspection_tasks import IntrospectionTaskGenerator, IntrospectionEvaluator
+from theory_of_mind.introspection import IntrospectionEvaluator, IntrospectionTaskGenerator
 from harness import get_tracker
 
 # Generate tasks
@@ -88,7 +87,7 @@ print(f"Calibration: {results['calibration']:.2f}")
 ### API-Based Introspection
 
 ```python
-from code.introspection_api import APIIntrospectionTester, PromptSteerer
+from theory_of_mind.introspection import APIIntrospectionTester, PromptSteerer
 
 # Test frontier model
 tester = APIIntrospectionTester(provider="anthropic")
@@ -166,11 +165,11 @@ See `/shared/concepts/README.md` for:
 
 ```bash
 # Run tests
-cd projects/introspection
+cd theory-of-mind/introspection
 pytest tests/ -v
 
 # Quick test (requires MLX)
-python -c "from code.concept_vectors import ConceptLibrary; print('Introspection ready')"
+python -c "from theory_of_mind.introspection import ConceptLibrary; print('Introspection ready')"
 ```
 
 ---

@@ -136,11 +136,11 @@ python code/cli.py "Design task" --config claude-researcher
 
 ```bash
 # Run tests
-cd projects/multi-agent
+cd communication/multi-agent
 pytest tests/
 
 # Test specific strategy
-python -c "from code.strategies import run_strategy; print(run_strategy('single', 'test'))"
+python -c "from communication.multi_agent import run_strategy; print(run_strategy('single', 'test'))"
 ```
 
 ---

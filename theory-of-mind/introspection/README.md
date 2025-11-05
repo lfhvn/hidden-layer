@@ -5,8 +5,7 @@ Model introspection experiments inspired by Anthropic's findings.
 ## Quick Start
 
 ```python
-from code.concept_vectors import ConceptLibrary
-from code.activation_steering import ActivationSteerer
+from theory_of_mind.introspection import ActivationSteerer, ConceptLibrary
 from mlx_lm import load
 
 # Load concept library
