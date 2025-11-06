@@ -22,16 +22,16 @@ Research platform for multi-agent coordination and collective intelligence.
 
 ### Core Components
 
-**Strategies** (`code/strategies.py`):
+**Strategies** (`multi_agent/strategies.py`):
 - Strategy registry and implementation
 - Each strategy is a hypothesis about coordination
 - Easy to add new strategies
 
-**Rationale** (`code/rationale.py`):
+**Rationale** (`multi_agent/rationale.py`):
 - Extract reasoning from agent outputs
 - Understand *why* strategies work
 
-**CRIT** (`code/crit/`):
+**CRIT** (`multi_agent/crit/`):
 - Design critique evaluation
 - 8 design problems across domains
 - 9 expert perspectives
@@ -44,7 +44,7 @@ Research platform for multi-agent coordination and collective intelligence.
 ### Adding a New Strategy
 
 ```python
-# In code/strategies.py
+# In multi_agent/strategies.py
 
 def my_new_strategy(task_input: str, **kwargs) -> StrategyResult:
     """
@@ -79,7 +79,7 @@ STRATEGIES["my_new"] = my_new_strategy
 
 ```python
 from harness import get_tracker, ExperimentConfig
-from code.strategies import run_strategy
+from multi_agent.strategies import run_strategy
 
 # Configure experiment
 config = ExperimentConfig(
@@ -109,23 +109,23 @@ tracker.finish_experiment()
 
 ```bash
 # Run debate with 3 agents
-python code/cli.py "Complex question?" --strategy debate --n-debaters 3
+python multi_agent/cli.py "Complex question?" --strategy debate --n-debaters 3
 
 # Use model config
-python code/cli.py "Question?" --config gpt-oss-20b-reasoning
+python multi_agent/cli.py "Question?" --config gpt-oss-20b-reasoning
 
 # Use system prompt
-python code/cli.py "Design task" --config claude-researcher
+python multi_agent/cli.py "Design task" --config claude-researcher
 ```
 
 ---
 
 ## Key Files
 
-- `code/strategies.py` - Strategy implementations
-- `code/rationale.py` - Reasoning extraction
-- `code/cli.py` - Command-line interface
-- `code/crit/` - CRIT design critique
+- `multi_agent/strategies.py` - Strategy implementations
+- `multi_agent/rationale.py` - Reasoning extraction
+- `multi_agent/cli.py` - Command-line interface
+- `multi_agent/crit/` - CRIT design critique
 - `config/models.yaml` - Model configurations
 - `config/system_prompts/` - Reusable prompts
 - `notebooks/` - Experiment notebooks

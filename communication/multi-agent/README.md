@@ -33,7 +33,7 @@ print(result.output)
 
 ```
 multi-agent/
-├── code/
+├── multi_agent/
 │   ├── strategies.py      # Strategy implementations
 │   ├── rationale.py       # Reasoning extraction
 │   ├── cli.py             # Command-line interface

@@ -8,8 +8,8 @@ across all three subsystems (harness, CRIT, SELPHI).
 import os
 import sys
 
-# Add code directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "code"))
+# Add multi_agent directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "multi_agent"))
 
 import pytest
 
