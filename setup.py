@@ -11,7 +11,7 @@ setup(
     version="0.2.0",
     description="Hidden Layer Research Lab - AI Research Infrastructure",
     author="Hidden Layer Lab",
-    packages=find_packages(include=["harness", "harness.*", "shared", "shared.*"]),
+    packages=find_packages(include=["harness", "harness.*", "shared", "shared.*", "mlx_lab", "mlx_lab.*"]),
     python_requires=">=3.10",
     install_requires=[
         "anthropic>=0.18.0",
@@ -34,6 +34,11 @@ setup(
             "black>=23.0.0",
             "isort>=5.12.0",
             "flake8>=6.0.0",
+        ],
+    },
+    entry_points={
+        "console_scripts": [
+            "mlx-lab=mlx_lab.cli:main",
         ],
     },
     classifiers=[
