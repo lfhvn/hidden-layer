@@ -145,11 +145,23 @@ class LLMProvider:
         """Call MLX local model"""
         try:
             from mlx_lm import generate, load
+            from pathlib import Path
+            import os
 
             # Lazy load model
             if self.mlx_model is None or kwargs.get("reload_model"):
-                print(f"Loading MLX model: {model}")
+                # Check if model is cached
+                cache_dir = Path.home() / ".cache" / "huggingface" / "hub"
+                model_cache = cache_dir / f"models--{model.replace('/', '--')}"
+
+                if model_cache.exists():
+                    print(f"📦 Loading cached model: {model}")
+                else:
+                    print(f"⬇️  Downloading model: {model}")
+                    print("   (This may take a few minutes - progress bars will appear below)")
+
                 self.mlx_model, self.mlx_tokenizer = load(model)
+                print(f"✓ Model loaded successfully")
 
             # Combine system prompt with user prompt
             full_prompt = prompt
@@ -161,7 +173,7 @@ class LLMProvider:
                 self.mlx_model,
                 self.mlx_tokenizer,
                 prompt=full_prompt,
-                temp=temperature,
+                temperature=temperature,  # Fixed: was 'temp', should be 'temperature'
                 max_tokens=max_tokens,
                 verbose=False,
             )
