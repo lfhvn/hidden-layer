@@ -1,9 +1,9 @@
 # Hidden Layer Requirements
 # Pinned versions for reproducibility (updated 2025-11-03)
 
-# Core ML frameworks (Apple Silicon)
-mlx==0.20.0 ; sys_platform == "darwin" and platform_machine == "arm64"
-mlx-lm==0.20.1 ; sys_platform == "darwin" and platform_machine == "arm64"
+# Core ML frameworks (Apple Silicon, Python 3.10-3.12 only)
+mlx==0.29.3 ; sys_platform == "darwin" and platform_machine == "arm64" and python_version < "3.13"
+mlx-lm==0.28.3 ; sys_platform == "darwin" and platform_machine == "arm64" and python_version < "3.13"
 
 # Local model serving
 ollama==0.3.3

@@ -31,7 +31,7 @@ help:
 	@echo "Quick Start:"
 	@echo "  make setup && make run-ollama && make test"
 
-PYTHON ?= python3
+PYTHON ?= python3.11
 
 # Setup virtual environment
 setup:

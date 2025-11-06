@@ -169,11 +169,12 @@ class LLMProvider:
                 full_prompt = f"{system_prompt}\n\n{prompt}"
 
             # Generate
+            # Note: mlx-lm 0.28.3+ doesn't accept temperature parameter directly
+            # Temperature control requires using sampler parameter (not implemented yet)
             output = generate(
                 self.mlx_model,
                 self.mlx_tokenizer,
                 prompt=full_prompt,
-                temperature=temperature,  # Fixed: was 'temp', should be 'temperature'
                 max_tokens=max_tokens,
                 verbose=False,
             )

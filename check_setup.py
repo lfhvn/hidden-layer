@@ -45,7 +45,7 @@ def check_python_version():
         return False
 
 
-def check_package(package_name, import_name=None, timeout=5):
+def check_package(package_name, import_name=None, timeout=10):
     """Check if a Python package is installed"""
     import_name = import_name or package_name
     import multiprocessing
@@ -64,7 +64,7 @@ def check_package(package_name, import_name=None, timeout=5):
             # Import is taking too long, kill it
             process.terminate()
             process.join()
-            print(f"  ⚠️  {package_name} (import timeout after {timeout}s)")
+            print(f"  ⚠️  {package_name} (import timeout after {int(timeout)}s)")
             return False
 
         # Check result
