@@ -186,8 +186,8 @@ def generate_base_corpus(size: int, balance_domains: bool = True) -> List[Dict]:
         # Evenly distribute across domains
         entries_per_domain = size // len(SEED_CONCEPTS)
         for domain, concepts in SEED_CONCEPTS.items():
-            # Sample with replacement if needed
-            selected = random.choices(concepts, k=min(entries_per_domain, len(concepts)))
+            # Sample with replacement to reach target size
+            selected = random.choices(concepts, k=entries_per_domain)
             for term, definition in selected:
                 entries.append({
                     "id": id_counter,
