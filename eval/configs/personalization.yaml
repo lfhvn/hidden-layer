@@ -1,0 +1,23 @@
+# Evaluation configuration for personalization and preference adherence
+# Combines preference classification, generation, and long-term tracking benchmarks.
+task: personalization
+datasets:
+  - name: lamp
+    splits: [cls, gen]
+  - name: prefeval
+    splits: [adhoc, long_context]
+  - name: personamem
+    splits: [sessions]
+  - name: locomo
+    splits: [qa, summaries]
+metrics:
+  - task_metrics
+  - preference_adherence
+  - preference_drift
+  - forgetting_curve
+judges:
+  rubric_model: gpt-4o-mini
+  rubric_prompt: default
+report:
+  show_ci: true
+  bootstrap_samples: 1000

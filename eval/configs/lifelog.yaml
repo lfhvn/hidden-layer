@@ -1,0 +1,28 @@
+# Evaluation configuration for lifelog retrieval tasks
+# See documentation in repository root for dataset download instructions.
+task: lifelog
+datasets:
+  - name: lsc24
+    splits: [kis, adhoc, qa]
+  - name: ntcir18_lsat
+    splits: [dev, test]
+  - name: ntcir18_lqat
+    splits: [dev]
+  - name: imageclef20
+    splits: [test]
+retrievers:
+  - name: vector_only
+  - name: graphrag_global   # entity graph + community summaries
+  - name: raptor_hierarchy  # week→month→quarter rollups
+metrics:
+  - precision@10
+  - ndcg@10
+  - mrr
+  - temporal_correctness@{window_days: 1}
+  - entity_grounding
+ablate:
+  - graphrag_off
+  - raptor_off
+report:
+  show_ci: true
+  bootstrap_samples: 2000

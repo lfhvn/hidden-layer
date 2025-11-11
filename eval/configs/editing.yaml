@@ -1,0 +1,21 @@
+# Evaluation configuration for surgical model editing.
+task: editing
+datasets:
+  - name: counterfact
+    splits: [dev, test]
+  - name: zsre
+    splits: [dev, test]
+editor:
+  name: memit
+  params:
+    layer_range: [10, 20]
+    lr: 1.0
+metrics:
+  - edit_success
+  - locality
+  - portability
+  - sequential_stability
+sequential_budget: [1, 10, 100, 500, 1000]
+report:
+  show_ci: true
+  bootstrap_samples: 1000
