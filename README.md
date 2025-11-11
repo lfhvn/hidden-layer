@@ -39,6 +39,12 @@ Building controllable, honest, aligned AI systems.
 - **[SELPHI](theory-of-mind/selphi/)** - Deception detection
 - **[Introspection](theory-of-mind/introspection/)** - Honest self-reporting
 
+### 5. Memory & Personalization
+Understanding long-horizon memory, lifelog retrieval, and preference-aware adaptation.
+
+**Projects**:
+- **[Lifelog Personalization Gatekeeper](memory/lifelog-personalization/)** - Evaluation harness for lifelog retrieval, TTL/TTT adapters, and personalization gates
+
 ---
 
 ## Projects
@@ -86,6 +92,13 @@ Non-linguistic communication between LLMs via latent representations.
 **Status**: Early | **Stack**: Python
 
 **Focus**: Efficient agent communication through internal states
+
+### [Lifelog Personalization Gatekeeper](memory/lifelog-personalization/)
+Evaluation gatekeeper for lifelog retrieval, long-context memory, personalization, TTL/TTT adapters, and model editing promotion gates.
+
+**Status**: Active | **Stack**: Python, Pandas, Jupyter
+
+**Features**: Dataset loaders, configurable runners, promotion gate policies, notebook workflows
 
 ### [Steerability](alignment/steerability/)
 Real-time steering with adherence metrics.

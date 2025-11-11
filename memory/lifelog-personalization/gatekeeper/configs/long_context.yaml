@@ -1,0 +1,16 @@
+# Evaluation configuration for long-context retention
+# Combines stress tests for context windows exceeding 10k tokens.
+task: long_context
+datasets:
+  - name: longbench
+    splits: [qa, summarization, code]
+  - name: infinibench
+    splits: [qa]
+metrics:
+  - task_metrics
+  - effective_context_utilization
+  - forgetting_curve
+  - latency_profile
+report:
+  show_ci: true
+  bootstrap_samples: 500
