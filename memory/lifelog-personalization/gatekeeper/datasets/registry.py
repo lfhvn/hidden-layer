@@ -48,9 +48,9 @@ def get_dataset_loader(dataset: str, cache_base: Optional[Path] = None, data_roo
 
     loader_cls = DATASET_LOADERS[dataset]
 
-    base_cache = cache_base or Path(os.environ.get("EVAL_CACHE_DIR", "eval/.cache"))
+    base_cache = cache_base or Path(os.environ.get("GATEKEEPER_CACHE_DIR", "memory/lifelog-personalization/.cache"))
     cache_dir = base_cache / dataset
     cache_dir.mkdir(parents=True, exist_ok=True)
 
-    base_data_root = data_root or Path(os.environ.get("EVAL_DATA_ROOT", "eval/datasets"))
+    base_data_root = data_root or Path(os.environ.get("GATEKEEPER_DATA_ROOT", "memory/lifelog-personalization/datasets"))
     return loader_cls(dataset_name=dataset, cache_dir=cache_dir, data_root=base_data_root)
