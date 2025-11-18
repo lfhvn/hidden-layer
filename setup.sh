@@ -1,76 +1,131 @@
 #!/bin/bash
-# Quick setup script for M4 Max Research Lab
+# Unified Setup Script for Hidden Layer
+# Handles: Python check, venv creation, dependencies, Ollama setup, model pulling
 
 set -e
 
-echo "🚀 Setting up Research Lab environment..."
+# Colors for pretty output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# Check if we're on macOS
-if [[ "$OSTYPE" != "darwin"* ]]; then
-    echo "⚠️  This setup is optimized for macOS (M4 Max)"
-fi
+echo -e "${BLUE}🚀 Hidden Layer Setup${NC}"
+echo "================================="
 
-# Determine python executable
+# --- 1. Python Version Check ---
+echo -e "\n${BLUE}[1/5] Checking Python environment...${NC}"
+
 PYTHON_BIN=${PYTHON:-python3}
 
 if ! command -v "$PYTHON_BIN" > /dev/null 2>&1; then
-    echo "✗ Python executable '$PYTHON_BIN' not found. Install Python 3.10+ (e.g., 'brew install python@3.11')."
+    echo -e "${RED}✗ Python executable '$PYTHON_BIN' not found.${NC}"
+    echo "Please install Python 3.10+ (e.g., 'brew install python@3.11') or set PYTHON variable."
     exit 1
 fi
 
-# Verify version
+PY_VERSION=$($PYTHON_BIN -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
 PY_MAJOR=$($PYTHON_BIN -c 'import sys; print(sys.version_info.major)')
 PY_MINOR=$($PYTHON_BIN -c 'import sys; print(sys.version_info.minor)')
-PY_VERSION="${PY_MAJOR}.${PY_MINOR}"
 
-if [ "$PY_MAJOR" -lt 3 ]; then
-    echo "✗ Python $PY_VERSION detected. Hidden Layer requires Python 3.10+."
+echo "Found Python $PY_VERSION at $(which $PYTHON_BIN)"
+
+if [ "$PY_MAJOR" -lt 3 ] || [ "$PY_MINOR" -lt 10 ]; then
+    echo -e "${RED}✗ Python 3.10+ is required.${NC}"
     exit 1
 fi
 
-if [ "$PY_MINOR" -lt 10 ]; then
-    echo "✗ Python $PY_VERSION detected. Hidden Layer requires Python 3.10+."
-    echo "  Install a supported Python (e.g., 'brew install python@3.11') and re-run with:"
-    echo "    PYTHON=python3.11 ./setup.sh"
-    exit 1
+# --- 2. Virtual Environment ---
+echo -e "\n${BLUE}[2/5] Setting up virtual environment...${NC}"
+
+if [ ! -d "venv" ]; then
+    echo "Creating venv..."
+    "$PYTHON_BIN" -m venv venv
+else
+    echo "venv already exists."
 fi
 
-if [ "$PY_MINOR" -gt 12 ]; then
-    echo "⚠️  Python $PY_VERSION detected. MLX requires Python 3.10–3.12 on Apple Silicon."
-    echo "  MLX will be skipped automatically. You can still use Ollama or API providers."
-    echo "  If you need MLX support, use Python 3.11 instead:"
-    echo "    PYTHON=python3.11 ./setup.sh"
-fi
-
-echo "📦 Creating virtual environment with $PYTHON_BIN..."
-$PYTHON_BIN -m venv venv
+# Activate venv for the script
 source venv/bin/activate
 
 # Upgrade pip
-echo "⬆️  Upgrading pip..."
-pip install --upgrade pip
+echo "Upgrading pip..."
+pip install --quiet --upgrade pip
 
-# Install requirements
-echo "📚 Installing Python packages..."
-pip install -r requirements.txt
+# --- 3. Dependencies ---
+echo -e "\n${BLUE}[3/5] Installing dependencies...${NC}"
+echo "This may take a minute."
 
-echo ""
-echo "✅ Python environment ready!"
-echo ""
-
-# Check for Ollama
-if command -v ollama &> /dev/null; then
-    echo "✅ Ollama is installed"
-else
-    echo "⚠️  Ollama not found. Install it with:"
-    echo "    brew install ollama"
+# Check for Apple Silicon for MLX warning
+if [[ "$(uname -m)" == "arm64" && "$OSTYPE" == "darwin"* ]]; then
+    if [ "$PY_MINOR" -gt 12 ]; then
+         echo -e "${YELLOW}⚠️  Python $PY_VERSION detected on Apple Silicon.${NC}"
+         echo "   MLX requires Python 3.10-3.12. MLX installation will be skipped."
+    fi
 fi
 
+pip install -r requirements.txt
+
+echo -e "${GREEN}✓ Dependencies installed.${NC}"
+
+# --- 4. Ollama Setup ---
+echo -e "\n${BLUE}[4/5] Checking Ollama...${NC}"
+
+if ! command -v ollama &> /dev/null; then
+    echo -e "${YELLOW}Ollama not found.${NC}"
+    read -p "Install Ollama via Homebrew? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if command -v brew &> /dev/null; then
+            brew install ollama
+        else
+            echo -e "${RED}Homebrew not found. Please install Ollama manually: https://ollama.ai${NC}"
+        fi
+    else
+        echo "Skipping Ollama installation. Some features may not work."
+    fi
+else
+    echo -e "${GREEN}✓ Ollama is installed.${NC}"
+fi
+
+# Start Ollama if not running
+if command -v ollama &> /dev/null; then
+    if ! pgrep -x "ollama" > /dev/null; then
+        echo "Starting Ollama server in background..."
+        ollama serve > /dev/null 2>&1 &
+        sleep 2
+    else
+        echo "Ollama server is already running."
+    fi
+fi
+
+# --- 5. Model Setup ---
+echo -e "\n${BLUE}[5/5] Checking Models...${NC}"
+
+DEFAULT_MODEL="llama3.2:latest"
+
+if command -v ollama &> /dev/null; then
+    if ollama list | grep -q "llama3.2"; then
+        echo -e "${GREEN}✓ Model $DEFAULT_MODEL found.${NC}"
+    else
+        echo -e "${YELLOW}Model $DEFAULT_MODEL not found.${NC}"
+        read -p "Pull $DEFAULT_MODEL now? (Recommended) (y/N) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "Pulling model (this requires internet)..."
+            ollama pull "$DEFAULT_MODEL"
+        fi
+    fi
+fi
+
+echo -e "\n${GREEN}=================================${NC}"
+echo -e "${GREEN}✅ Setup Complete!${NC}"
+echo -e "${GREEN}=================================${NC}"
 echo ""
-echo "🎯 Next steps:"
-echo "1. Start Ollama: ollama serve &"
-echo "2. Pull a model: ollama pull llama3.2:latest"
-echo "3. Test the CLI: cd code && python cli.py 'Hello!' --strategy single"
-echo "4. Start Jupyter: cd notebooks && jupyter notebook"
+echo "To start the environment:"
+echo "  source venv/bin/activate"
 echo ""
-echo "📖 Read QUICKSTART.md for more examples"
+echo "To run the quickstart notebook:"
+echo "  make notebook"
+echo ""

@@ -35,24 +35,10 @@ PYTHON ?= python3.11
 
 # Setup virtual environment
 setup:
-	@echo "Setting up virtual environment..."
-	$(PYTHON) -c "import sys; major, minor = sys.version_info[:2]; assert (major, minor) >= (3, 10), 'Python 3.10+ required (found %s.%s)' % (major, minor)"
-	@echo "Python version check passed"
-	@echo "Note: MLX requires Python 3.10-3.12 on Apple Silicon. If you have Python 3.13+, MLX will be skipped automatically."
-	@if [ ! -d "venv" ]; then \
-		echo "Creating virtual environment..."; \
-		$(PYTHON) -m venv venv; \
-	else \
-		echo "Virtual environment already exists, skipping creation..."; \
-	fi
-	@echo "Upgrading pip..."
-	@PIP_DEFAULT_TIMEOUT=60 venv/bin/pip install --quiet --upgrade pip > /dev/null || true
-	@echo "Installing dependencies (this may take a few minutes)..."
-	@PIP_DEFAULT_TIMEOUT=120 venv/bin/pip install --quiet -r requirements.txt > /dev/null || (echo "⚠️  Some optional dependencies (e.g., MLX) may not be available for your Python version." && echo "This is expected for Python 3.13+ or non-Apple Silicon systems.")
-	@echo "✓ Setup complete! Activate with: source venv/bin/activate"
-	@echo "Run 'python3 check_setup.py' to verify your installation."
-	@echo ""
-	@echo "Optional: Run 'make build-jupyter' to pre-build Jupyter Lab (speeds up first startup)"
+	@./setup.sh
+
+# Start the development environment (setup + notebook)
+start: setup notebook
 
 # Install development dependencies
 install-dev:
