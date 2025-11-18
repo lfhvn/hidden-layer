@@ -28,8 +28,15 @@ def _load_package(name: str, directory: Path) -> ModuleType:
     return module
 
 
+# The historical repository layout keeps the "real" multi-agent package in the
+# `communication/multi-agent/multi_agent` directory (note the dash vs underscore).
+# Earlier automation expected a `code/` directory but the repo never provided
+# one, causing the import hook to fail and the entire subsystem to be
+# unavailable.  The tests exercise the public `communication.multi_agent`
+# namespace, so we resolve the actual on-disk location here instead of the
+# non-existent legacy path.
 _base_dir = Path(__file__).resolve().parent.parent / "multi-agent"
-_code_dir = _base_dir / "code"
+_code_dir = _base_dir / "multi_agent"
 
 _code_module = _load_package(__name__ + ".code", _code_dir)
 

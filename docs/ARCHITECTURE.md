@@ -1,748 +1,447 @@
-# Hidden Layer - System Architecture
+# AgentMesh Architecture
 
-**Version**: 0.1.0
-**Last Updated**: 2025-11-05
+## 1. Product Scope for v0
 
-## Overview
+**Goal:** Build an MVP of AgentMesh: a platform to design, run, and observe multi-agent workflows.
 
-Hidden Layer is an independent research lab investigating multi-agent architectures, theory of mind, steerability, interpretability, alignment, and human computer and human AI interaction. Current research areas:
+### Core v0 capabilities
+1. Define agents and tools.
+2. Define workflows as directed graphs (nodes = agents/tools, edges = message passing).
+3. Execute a workflow run with a given input payload.
+4. Visualize runs (timeline, node-level inputs/outputs).
+5. Basic human-in-the-loop step (manual approval / edit gate).
 
-1. **Harness** - Core multi-agent infrastructure and experiment tracking
-2. **CRIT** - Collective Reasoning for Iterative Testing (design critique)
-3. **SELPHI** - Study of Epistemic and Logical Processing (theory of mind)
-4. **Introspection** - assessing LLM ability to introspect
-5. **Reasoning and Rationale** exploring explainability
-6. **Latent lens and Laten topologies** investigating the geometry and internal representation of concepts in latent space
-7. **AI to AI communication** Non-linguistic communication between different LLMs
-
-All subsystems are designed for local-first experimentation on Apple Silicon (M4 Max with 128GB RAM) using MLX and Ollama, with seamless fallback to API providers (Anthropic, OpenAI) for comparison.
-
----
-
-## System Architecture
-
-```
-hidden-layer/
-├── harness/             # Core infrastructure library
-├── shared/              # Shared resources (concepts, datasets, utils)
-├── communication/       # Agent communication research
-├── theory-of-mind/      # Theory of mind & self-knowledge research
-├── representations/     # Latent space & interpretability research
-│   └── latent-space/
-│       ├── lens/        # SAE interpretability web app
-│       └── topologies/  # Mobile latent space exploration
-├── alignment/           # Alignment & steerability research
-├── notebooks/           # Jupyter notebooks for experimentation
-├── experiments/         # Auto-generated experiment logs
-└── config/             # Model configurations and presets
-```
-
-**Total**: 6,613 lines of Python code + 5,641 lines of documentation
+### Non-goals for v0
+- No multi-tenant billing.
+- No complex RBAC.
+- No fully pluggable model routing (keep it simple).
 
 ---
 
-## Subsystem 1: Harness
+## 2. High-Level Architecture
 
-**Purpose**: Core infrastructure for multi-agent LLM experimentation
+### 2.1 Components
 
-### Components
+#### Web App (Frontend)
+- **Tech:** React + TypeScript (Next.js or Vite).
+- **Responsibilities:**
+  - Workflow graph editor (nodes/edges).
+  - Agent config editor (prompts, model, tools).
+  - Runs explorer (list + details).
+  - Real-time run status via WebSocket/SSE.
 
-#### 1.1 LLM Provider (`harness/llm_provider.py` - 527 LOC)
+#### API / Control Plane
+- **Tech:** TypeScript (NestJS / Express) or Python (FastAPI).
+- **Responsibilities:**
+  - REST/JSON APIs for CRUD on agents, workflows, runs.
+  - Authentication (simple JWT or session).
+  - Orchestration API surface (start workflow, cancel run).
+  - Persistence layer abstraction (Postgres).
 
-Unified interface to all LLM providers:
+#### Orchestrator / Runtime
+- **Tech:** Could live inside the API initially as a module; later separated as its own service.
+- **Responsibilities:**
+  - Execute workflow DAGs.
+  - Manage node scheduling, retries, backoff.
+  - Persist state for each run/step.
+  - Emit events for observability.
 
-```python
-from harness import llm_call
+#### Workers (Agent Runners)
+- **Tech:** Same language as orchestrator for simplicity.
+- **Responsibilities:**
+  - Execute one "step" (agent call, tool call, human task).
+  - Call external LLM providers (OpenAI, Anthropic, local, etc.).
+  - Enforce timeouts, basic error handling.
 
-# Local inference
-response = llm_call("Question?", provider="mlx", model="mlx-community/Llama-3.2-3B-Instruct-4bit")
-response = llm_call("Question?", provider="ollama", model="llama3.2:latest")
+#### Message Bus / Queue
+- **Tech (v0):** Redis streams or a simple in-process task queue. Later: NATS, Kafka, or Celery/RQ depending on stack.
+- **Responsibilities:**
+  - Dispatch work units (step executions).
+  - Decouple orchestrator from worker execution.
 
-# API inference
-response = llm_call("Question?", provider="anthropic", model="claude-3-5-sonnet-20241022")
-response = llm_call("Question?", provider="openai", model="gpt-4")
-```
-
-**Features**:
-- Automatic cost tracking for API calls
-- Token counting across all providers
-- Streaming support
-- Easy provider switching
-
-**Providers**:
-- `mlx` - Apple Silicon optimized (Metal acceleration)
-- `ollama` - Local model server
-- `anthropic` - Claude API
-- `openai` - GPT API
-
-#### 1.2 Multi-Agent Strategies (`harness/strategies.py` - 749 LOC)
-
-Five different multi-agent strategies:
-
-| Strategy | Description | Use Case |
-|----------|-------------|----------|
-| `single` | Baseline single-model | Standard inference |
-| `debate` | n-agent debate + judge | Reasoning, argumentation |
-| `self_consistency` | Sample multiple times + vote | Math, logic problems |
-| `manager_worker` | Decompose → parallel → synthesize | Complex planning |
-| `consensus` | Multiple agents → find agreement | Decision-making |
-
-```python
-from harness import run_strategy
-
-result = run_strategy(
-    "debate",
-    task_input="Should we invest in renewable energy?",
-    n_debaters=3,
-    provider="ollama",
-    model="llama3.2:latest"
-)
-```
-
-#### 1.3 Experiment Tracking (`harness/experiment_tracker.py`)
-
-Automatic experiment logging with reproducibility:
-
-```python
-from harness import ExperimentConfig, get_tracker
-
-config = ExperimentConfig(
-    experiment_name="baseline_reasoning",
-    strategy="debate",
-    provider="ollama",
-    model="llama3.2:latest"
-)
-
-tracker = get_tracker()
-run_dir = tracker.start_experiment(config)
-
-# ... run experiments ...
-
-summary = tracker.finish_experiment()
-```
-
-**Output Structure**:
-```
-experiments/{name}_{timestamp}_{hash}/
-├── config.json          # Experiment configuration
-├── results.jsonl        # Streaming results (one per line)
-├── summary.json         # Aggregated metrics
-└── README.md            # Human-readable summary
-```
-
-#### 1.4 Evaluation Suite (`harness/evals.py`)
-
-8+ evaluation methods:
-
-- `exact_match` - Exact string matching
-- `keyword_match` - Check for required keywords
-- `numeric_match` - Compare numerical answers
-- `llm_judge` - LLM-as-judge evaluation
-- `win_rate_comparison` - Head-to-head comparison
-- Custom evaluators (extensible)
-
-#### 1.5 Model Configuration (`harness/model_config.py`)
-
-YAML-based model presets:
-
-```yaml
-gpt-oss-20b-reasoning:
-  provider: ollama
-  model: llama3.1:latest
-  temperature: 0.3
-  max_tokens: 2000
-  thinking_budget: 2000
-```
-
-#### 1.6 Rationale Extraction (`harness/rationale.py` - 285 LOC)
-
-Extract reasoning chains from model responses:
-
-```python
-from harness import ask_with_reasoning
-
-response = ask_with_reasoning(
-    "Why is the sky blue?",
-    provider="ollama"
-)
-
-print(response.rationale)  # Step-by-step reasoning
-print(response.answer)     # Final answer
-```
-
-#### 1.7 Benchmark Integration (`harness/benchmarks.py`)
-
-Unified interface to all benchmarks across subsystems:
-
-```python
-from harness import load_benchmark, get_baseline_scores, BENCHMARKS
-
-# List all available benchmarks
-print(BENCHMARKS)  # {'uicrit', 'tombench', 'opentom', 'socialiqa'}
-
-# Load a benchmark
-dataset = load_benchmark('tombench')
-
-# Get baseline performance
-scores = get_baseline_scores('tombench')
-# {'human_performance': 0.95, 'gpt4_performance': 0.76, ...}
-```
+#### Storage
+- **Postgres:** Agents, tools, workflows, runs, steps.
+- **Redis:** Short-lived state, locks, rate limiting.
+- **Optional later:** ClickHouse/BigQuery for long-term logs, Vector DB for agent memories.
 
 ---
 
-## Subsystem 2: CRIT (Design Critique)
-
-**Purpose**: Testing collective design critique reasoning
-
-### Research Question
-
-**Can collective design critique from multiple expert perspectives produce better solutions than a single generalist critic?**
-
-### Components
-
-#### 2.1 Design Problems (`crit/problems.py` - 584 LOC)
-
-8 pre-defined design problems across 5 domains:
-
-| Domain | Problems |
-|--------|----------|
-| **UI/UX** | Mobile checkout flow, Analytics dashboard |
-| **API Design** | REST versioning, GraphQL schema |
-| **System Architecture** | Microservices decomposition, Caching strategy |
-| **Data Modeling** | Permission system |
-| **Workflow** | Multi-stage approval |
-
-```python
-from crit import MOBILE_CHECKOUT, API_VERSIONING, MICROSERVICES
-
-problem = MOBILE_CHECKOUT
-print(problem.domain)           # DesignDomain.UI_UX
-print(problem.description)      # "Improve mobile checkout..."
-print(problem.success_criteria) # ["< 30s checkout time", ...]
-```
-
-#### 2.2 Critique Strategies (`crit/strategies.py`)
-
-4 different critique approaches:
-
-**1. Single Critic** (baseline)
-```python
-from crit import run_critique_strategy, MOBILE_CHECKOUT
-
-result = run_critique_strategy("single", MOBILE_CHECKOUT, provider="ollama")
-```
-
-**2. Multi-Perspective** (9 expert viewpoints)
-```python
-result = run_critique_strategy(
-    "multi_perspective",
-    MOBILE_CHECKOUT,
-    perspectives=["usability", "security", "accessibility", "performance"],
-    synthesize=True
-)
-```
-
-Perspectives: usability, security, accessibility, performance, aesthetics, scalability, maintainability, cost_efficiency, user_delight
-
-**3. Iterative Critique** (cycles of improvement)
-```python
-result = run_critique_strategy(
-    "iterative",
-    MOBILE_CHECKOUT,
-    iterations=2
-)
-```
-
-**4. Adversarial Critique** (proposer vs challenger)
-```python
-result = run_critique_strategy(
-    "adversarial",
-    MOBILE_CHECKOUT
-)
-```
-
-#### 2.3 Evaluation (`crit/evals.py`)
-
-Comprehensive critique quality metrics:
-
-- **Coverage**: How many perspectives are addressed?
-- **Depth**: How specific and detailed are critiques?
-- **Actionability**: Can recommendations be implemented?
-- **Quality Score**: Overall critique effectiveness
-
-```python
-from crit import evaluate_critique
-
-metrics = evaluate_critique(critique_text, problem)
-# {
-#   'coverage_score': 0.85,
-#   'depth_score': 0.72,
-#   'actionability_score': 0.90,
-#   'overall_quality': 0.82
-# }
-```
-
-#### 2.4 Benchmarks (`crit/benchmarks.py`)
-
-**UICrit Dataset** (Google Research, UIST 2024):
-- 11,344 design critiques
-- 1,000 mobile UIs from RICO dataset
-- Expert human critiques + LLM-generated critiques
-- Quality ratings across multiple dimensions
-
-```python
-from crit.benchmarks import load_uicrit, compare_to_experts
-
-dataset = load_uicrit(min_quality_rating=7.0)
-comparison = compare_to_experts(your_critiques, expert_critiques)
-```
-
----
-
-## Subsystem 3: SELPHI (Theory of Mind)
-
-**Purpose**: Evaluating theory of mind and epistemic reasoning in LLMs
-
-### Research Question
-
-**How well can language models understand mental states, beliefs, and perspective-taking?**
-
-### Components
-
-#### 3.1 Scenarios (`selphi/scenarios.py`)
-
-9+ pre-defined Theory of Mind test scenarios:
-
-| Scenario | ToM Type | Difficulty |
-|----------|----------|------------|
-| Sally-Anne | False belief | Easy |
-| Chocolate Bar | False belief | Easy |
-| Ice Cream Van | Belief updating | Medium |
-| Birthday Puppy | Second-order belief | Hard |
-| Museum Trip | Knowledge attribution | Medium |
-| Painted Room | Perspective taking | Medium |
-| Restaurant Bill | Pragmatic reasoning | Medium |
-| Library Book | Epistemic state | Medium |
-| Coffee Shop | Multi-character | Hard |
-
-```python
-from selphi import SALLY_ANNE, BIRTHDAY_PUPPY
-
-scenario = SALLY_ANNE
-print(scenario.scenario_text)  # Story
-print(scenario.question)       # Question about belief
-print(scenario.correct_answer) # Expected answer
-```
-
-#### 3.2 ToM Types (`selphi/scenarios.py`)
-
-7 different types of Theory of Mind reasoning:
-
-- **False Belief**: Understanding beliefs that differ from reality
-- **Knowledge Attribution**: Knowing what others know
-- **Perspective Taking**: Reasoning from another's viewpoint
-- **Belief Updating**: How beliefs change with new information
-- **Second-Order Beliefs**: Beliefs about beliefs ("Alice thinks Bob believes...")
-- **Epistemic States**: Understanding knowledge vs. ignorance
-- **Pragmatic Reasoning**: Understanding communicative intentions
-
-#### 3.3 Evaluation (`selphi/evals.py`)
-
-Multiple evaluation methods:
-
-```python
-from selphi import evaluate_scenario
-
-result = evaluate_scenario(
-    scenario=SALLY_ANNE,
-    model_response="Basket",
-    method="semantic_match"  # or "llm_judge"
-)
-
-# {
-#   'average_score': 1.0,
-#   'reasoning': 'Correct understanding of false belief',
-#   'evaluation_method': 'semantic_match'
-# }
-```
-
-#### 3.4 Benchmarks (`selphi/benchmarks.py`)
-
-Three major ToM benchmarks:
-
-**1. ToMBench** (388 test cases)
-- Multiple levels: first-order, second-order, third-order beliefs
-- Source: https://github.com/wadimiusz/ToMBench
-
-**2. OpenToM** (696 questions)
-- Location, multihop, attitude questions
-- Source: https://github.com/seacowx/OpenToM
-
-**3. SocialIQA** (38,000 questions)
-- Commonsense reasoning about social situations
-- Source: https://leaderboard.allenai.org/socialiqa
-
-```python
-from selphi.benchmarks import load_tombench, load_opentom
-
-dataset = load_tombench(split='test')
-# BenchmarkDataset(name='ToMBench', problems=[...], ...)
-```
-
-#### 3.5 Batch Processing
-
-Run scenarios at scale:
-
-```python
-from selphi import run_multiple_scenarios, get_scenarios_by_difficulty
-
-# Get all medium difficulty scenarios
-scenarios = get_scenarios_by_difficulty("medium")
-
-# Run with multiple models
-results = run_multiple_scenarios(
-    scenarios,
-    provider="ollama",
-    verbose=True
-)
-
-# Compare models
-from selphi import compare_models
-comparison = compare_models(
-    scenarios,
-    providers=["ollama", "anthropic"],
-    models=["llama3.2:latest", "claude-3-5-sonnet-20241022"]
-)
-```
-
----
-
-## Integration Between Subsystems
-
-### Shared Infrastructure
-
-All three subsystems share:
-
-1. **LLM Provider** - Same interface for calling models
-2. **Experiment Tracker** - Unified logging format
-3. **Model Configs** - Shared YAML configuration
-4. **Evaluation Framework** - Common eval patterns
-
-### Cross-Subsystem Workflows
-
-```python
-# Use harness experiment tracking with CRIT
-from harness import get_tracker, ExperimentConfig
-from crit import run_critique_strategy, MOBILE_CHECKOUT
-
-config = ExperimentConfig(
-    experiment_name="crit_multi_perspective",
-    task_type="design_critique",
-    strategy="multi_perspective"
-)
-
-tracker = get_tracker()
-tracker.start_experiment(config)
-
-result = run_critique_strategy("multi_perspective", MOBILE_CHECKOUT)
-tracker.log_result(...)
-tracker.finish_experiment()
-```
-
-### Unified Benchmarks
-
-The `harness.benchmarks` module provides a single interface to access benchmarks from all subsystems:
-
-```python
-from harness import load_benchmark, BENCHMARKS
-
-# BENCHMARKS contains: uicrit (CRIT), tombench/opentom/socialiqa (SELPHI)
-for name, info in BENCHMARKS.items():
-    print(f"{name}: {info.subsystem} - {info.description}")
-```
-
----
-
-## Hardware Optimization (M4 Max)
-
-### Memory Utilization
-
-With 128GB unified memory:
-
-- **Single 70B model**: ~35GB (4-bit quantized)
-- **3x 7B models**: ~10GB (parallel multi-agent)
-- **Fine-tuning 13B**: ~20GB (LoRA)
-
-### Recommended Configurations
-
-**Fast Iteration** (development):
-```python
-provider="ollama"
-model="llama3.2:3b"  # 3B parameter model
-# ~2GB memory, ~100 tokens/sec
-```
-
-**Quality Experiments** (research):
-```python
-provider="ollama"
-model="llama3.1:70b"  # 70B parameter model
-# ~35GB memory, ~15 tokens/sec
-```
-
-**Multi-Agent** (parallel):
-```python
-# 3-4 agents with 7B models simultaneously
-n_debaters=3
-model="llama3.1:8b"
-# ~12GB total, good throughput
-```
-
-**Comparison Baseline** (API):
-```python
-provider="anthropic"
-model="claude-3-5-sonnet-20241022"
-# $3/MTok input, $15/MTok output
-```
-
----
-
-## Extensibility
-
-### Adding New Strategies
-
-**Harness**:
-```python
-# In harness/strategies.py
-def my_new_strategy(task_input: str, **kwargs) -> StrategyResult:
-    # Implementation
-    return StrategyResult(...)
-
-STRATEGIES["my_new"] = my_new_strategy
-```
-
-**CRIT**:
-```python
-# In crit/strategies.py
-def my_critique_strategy(problem: DesignProblem, **kwargs) -> CritiqueResult:
-    # Implementation
-    return CritiqueResult(...)
-```
-
-### Adding New Problems/Scenarios
-
-**CRIT**:
-```python
-from crit import DesignProblem, DesignDomain
-
-MY_PROBLEM = DesignProblem(
-    name="my_problem",
-    domain=DesignDomain.UI_UX,
-    description="...",
-    current_design="...",
-    success_criteria=[...],
-    difficulty="medium"
-)
-```
-
-**SELPHI**:
-```python
-from selphi import ToMScenario, ToMType
-
-MY_SCENARIO = ToMScenario(
-    name="my_scenario",
-    tom_type=ToMType.FALSE_BELIEF,
-    scenario_text="...",
-    question="...",
-    correct_answer="...",
-    difficulty="easy"
-)
-```
-
-### Adding New Evaluations
-
-All subsystems use a registry pattern:
-
-```python
-# Custom evaluator
-def my_eval(output: str, expected: Any) -> float:
-    # Return score 0-1
-    return score
-
-# Register it
-from harness.evals import EVAL_FUNCTIONS
-EVAL_FUNCTIONS["my_eval"] = my_eval
-```
-
----
-
-## Data Flow
-
-### Typical Experiment Flow
-
-```
-1. Define Configuration
-   └─> ExperimentConfig(name, strategy, provider, model, ...)
-
-2. Start Tracking
-   └─> tracker.start_experiment(config)
-   └─> Creates experiments/{name}_{timestamp}/ directory
-
-3. Run Experiments
-   └─> For Harness: run_strategy(...)
-   └─> For CRIT: run_critique_strategy(...)
-   └─> For SELPHI: run_scenario(...)
-
-4. Log Results
-   └─> tracker.log_result(...)
-   └─> Appends to results.jsonl
-
-5. Finish Experiment
-   └─> tracker.finish_experiment()
-   └─> Generates summary.json, README.md
-
-6. Compare Experiments
-   └─> compare_experiments([dir1, dir2], metric="latency_s")
-```
-
-### File Formats
-
-**Configuration** (`config.json`):
-```json
-{
-  "experiment_name": "baseline_reasoning",
-  "strategy": "debate",
-  "provider": "ollama",
-  "model": "llama3.2:latest",
-  "temperature": 0.7,
-  "timestamp": "2025-11-03T14:30:22"
+## 3. Domain Model (Core Entities)
+
+Design these as DB tables + TypeScript/Python models.
+
+### 3.1 Agent
+Represents a logical agent (LLM + behavior + tools).
+
+```ts
+type Provider = 'openai' | 'anthropic' | 'local';
+
+interface Agent {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  modelProvider: Provider;
+  modelName: string;
+  systemPrompt: string;
+  temperature: number;
+  tools: string[];           // tool ids
+  metadata: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
 }
 ```
 
-**Results** (`results.jsonl`):
-```jsonl
-{"task_input": "...", "output": "...", "latency_s": 2.3, "tokens_in": 150, "tokens_out": 200}
-{"task_input": "...", "output": "...", "latency_s": 1.8, "tokens_in": 120, "tokens_out": 180}
+### 3.2 Tool
+Represents an external tool or function that an agent can call.
+
+```ts
+interface Tool {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  type: 'http' | 'function' | 'builtin';
+  // For type === 'http'
+  config: {
+    method?: 'GET' | 'POST';
+    url?: string;
+    headers?: Record<string, string>;
+    // For type === 'function', reference internal code path or plugin
+    functionName?: string;
+  };
+  inputSchema: Record<string, any>;   // JSON Schema
+  outputSchema: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
 ```
 
-**Summary** (`summary.json`):
-```json
-{
-  "total_tasks": 10,
-  "avg_latency_s": 2.1,
-  "total_tokens": 3500,
-  "total_cost_usd": 0.15
+### 3.3 Workflow
+High-level workflow metadata + graph.
+
+```ts
+interface Workflow {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  // List of nodes and edges (graph structure)
+  graph: WorkflowGraph;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface WorkflowGraph {
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+}
+
+type NodeType =
+  | 'agent'
+  | 'tool'
+  | 'start'
+  | 'end'
+  | 'human_approval'
+  | 'branch';
+
+interface WorkflowNode {
+  id: string;
+  type: NodeType;
+  label: string;
+  agentId?: string;         // for type 'agent'
+  toolId?: string;          // for type 'tool'
+  config: Record<string, any>; // e.g., branch condition, human step instructions
+}
+
+interface WorkflowEdge {
+  id: string;
+  fromNodeId: string;
+  toNodeId: string;
+  condition?: string;      // expression against context, for branches
+}
+```
+
+### 3.4 Run & Steps
+Each execution of a workflow produces a Run with many Steps.
+
+```ts
+type RunStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'canceled';
+
+interface WorkflowRun {
+  id: string;
+  workflowId: string;
+  projectId: string;
+  status: RunStatus;
+  input: any;               // initial payload
+  output?: any;             // final result
+  startedAt?: string;
+  finishedAt?: string;
+  error?: string;
+}
+
+type StepStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'waiting_human';
+
+interface WorkflowStep {
+  id: string;
+  runId: string;
+  workflowId: string;
+  nodeId: string;
+  nodeType: NodeType;
+  status: StepStatus;
+  input: any;
+  output?: any;
+  error?: string;
+  startedAt?: string;
+  finishedAt?: string;
+  // pointer to previous steps for traceability
+  parentStepIds: string[];
 }
 ```
 
 ---
 
-## Performance Characteristics
+## 4. Orchestrator Design
 
-### Latency Benchmarks (M4 Max)
+The orchestrator executes a DAG of nodes for each run.
 
-| Model Size | Provider | Tokens/sec | First Token | Memory |
-|------------|----------|------------|-------------|--------|
-| 3B (4-bit) | MLX | ~120 | ~100ms | 2GB |
-| 7B (4-bit) | Ollama | ~80 | ~150ms | 4GB |
-| 13B (4-bit) | Ollama | ~50 | ~200ms | 8GB |
-| 70B (4-bit) | Ollama | ~15 | ~800ms | 35GB |
-| Claude 3.5 Sonnet | API | Variable | ~500ms | N/A |
+### 4.1 Execution Semantics
+1. Start from the start node.
+2. For each node:
+   - Compute node input from:
+     - initial run input
+     - outputs of parent nodes
+     - workflow context (accumulated state).
+   - Enqueue a step to be executed by a worker.
+3. Worker executes step:
+   - If agent node:
+     - Build LLM prompt (system + context + user).
+     - Call provider.
+     - Parse response, persist output.
+   - If tool node:
+     - Call HTTP/function with input.
+   - If human_approval node:
+     - Mark step waiting_human and notify.
+   - If branch node:
+     - Evaluate condition and choose outgoing edge.
+4. Orchestrator listens for step completion events:
+   - Mark step status.
+   - Enqueue next steps whose dependencies are satisfied.
+5. Run completes when:
+   - end node(s) completed → mark run succeeded.
+   - Any fatal error without recovery → mark failed.
 
-### Cost Comparison
+### 4.2 Internal APIs (Pseudo-code)
 
-**Local** (one-time):
-- No per-token cost
-- Electricity: ~$0.01/hour (M4 Max at 50W)
+```http
+// Start a run
+POST /api/workflows/:workflowId/runs
+body: { input: any }
+returns: { runId: string }
+```
 
-**API** (per-use):
-- Claude 3.5 Sonnet: $3/MTok input, $15/MTok output
-- GPT-4: $30/MTok input, $60/MTok output
-
-**Break-even**: ~1M tokens processed (depending on model)
-
----
-
-## Design Principles
-
-### 1. Local-First
-- Prioritize MLX and Ollama for cost-effective iteration
-- API providers as comparison baseline, not default
-
-### 2. Notebook-Centric
-- All core functions work directly in Jupyter
-- Minimal boilerplate, maximum interactivity
-
-### 3. Reproducible
-- Automatic experiment logging
-- Git hash capture
-- Configuration tracking
-
-### 4. Hackable
-- Simple, well-commented code
-- Registry patterns for extensibility
-- No heavy frameworks
-
-### 5. Modular
-- Clear subsystem boundaries
-- Shared infrastructure where it makes sense
-- Independent evolution of each subsystem
-
----
-
-## Future Directions
-
-### Planned Enhancements
-
-1. **Interpretability Tools** (representations/latent-space/topologies integration)
-   - Hidden layer visualization
-   - Attention pattern analysis
-   - Confidence calibration
-
-2. **Fine-Tuning Workflows**
-   - LoRA training with MLX
-   - Dataset generation from experiments
-   - Performance comparison (base vs fine-tuned)
-
-3. **Advanced Strategies**
-   - Chain-of-thought prompting
-   - Tree-of-thought search
-   - Mixture-of-agents
-
-4. **Benchmark Expansion**
-   - MMLU (general knowledge)
-   - GSM8K (math reasoning)
-   - HumanEval (code generation)
-
-5. **Production Features** (if needed)
-   - Distributed execution
-   - Model caching/quantization
-   - Production API serving
+```ts
+// Orchestrator loop (simplified)
+async function processRun(runId: string) {
+  const run = await db.getRun(runId);
+  const wf = await db.getWorkflow(run.workflowId);
+  const readyNodes = findReadyNodes(wf.graph, run);
+  for (const node of readyNodes) {
+    const step = await createStepForNode(run, node);
+    await queue.enqueue('step.execute', { stepId: step.id });
+  }
+}
+```
 
 ---
 
-## References
+## 5. Worker / Step Execution
 
-### Papers & Datasets
+Worker consumes `step.execute` jobs.
 
-**CRIT**:
-- UICrit: Duan et al., "UICrit: 11,344 Design Critiques for Mobile UIs", UIST 2024
+```ts
+async function executeStep(stepId: string) {
+  const step = await db.getStep(stepId);
+  const node = await getNode(step.workflowId, step.nodeId);
 
-**SELPHI**:
-- ToMBench: Nemirovsky et al., 2023
-- OpenToM: Ma et al., 2023
-- SocialIQA: Sap et al., EMNLP 2019
+  await db.updateStep(stepId, { status: 'running', startedAt: now() });
 
-**MLX**:
-- MLX Framework: https://github.com/ml-explore/mlx
-- MLX-LM: https://github.com/ml-explore/mlx-examples/tree/main/llms
+  try {
+    let output;
+    if (node.type === 'agent') {
+      output = await runAgentNode(step, node);
+    } else if (node.type === 'tool') {
+      output = await runToolNode(step, node);
+    } else if (node.type === 'human_approval') {
+      await db.updateStep(stepId, {
+        status: 'waiting_human',
+      });
+      emitEvent('step.waiting_human', { stepId });
+      return;
+    } else if (node.type === 'branch') {
+      output = await evaluateBranch(step, node);
+    }
 
-### External Resources
+    await db.updateStep(stepId, {
+      status: 'succeeded',
+      output,
+      finishedAt: now(),
+    });
 
-- Ollama: https://ollama.ai
-- MLX Models: https://huggingface.co/mlx-community
-- Anthropic API: https://anthropic.com
-- OpenAI API: https://openai.com
+    emitEvent('step.completed', { stepId });
+  } catch (err) {
+    await db.updateStep(stepId, {
+      status: 'failed',
+      error: String(err),
+      finishedAt: now(),
+    });
+    emitEvent('step.failed', { stepId });
+  }
+}
+```
+
+### Agent Execution
+
+```ts
+async function runAgentNode(step: WorkflowStep, node: WorkflowNode) {
+  const agent = await db.getAgent(node.agentId!);
+  const messages = buildMessagesFromContext(step, agent);
+
+  const response = await callLLM({
+    provider: agent.modelProvider,
+    model: agent.modelName,
+    messages,
+    temperature: agent.temperature,
+  });
+
+  return {
+    raw: response,
+    text: extractText(response),
+  };
+}
+```
 
 ---
 
-**Document Status**: Living document, updated as architecture evolves.
+## 6. Observability & Logging
+
+### 6.1 Event Model
+
+Emit structured events from orchestrator + workers to an event sink (could be Postgres JSONB, Redis, or a simple log table).
+
+**Event types:**
+- `run.started`, `run.completed`, `run.failed`
+- `step.started`, `step.completed`, `step.failed`, `step.waiting_human`
+- `agent.request`, `agent.response`
+- `tool.request`, `tool.response`
+
+### 6.2 Log Record
+
+```ts
+interface EventLog {
+  id: string;
+  timestamp: string;
+  projectId: string;
+  runId?: string;
+  stepId?: string;
+  type: string;
+  payload: any;   // structured JSON
+}
+```
+
+This powers:
+- Gantt-like run timelines in the UI.
+- Node detail panels with input/output.
+- Cost/latency dashboards later.
+
+---
+
+## 7. Frontend (MVP Design)
+
+### 7.1 Pages
+1. **Projects Dashboard**
+   - List projects, link to workflows/runs.
+2. **Workflow Editor**
+   - Canvas + left sidebar of node types (start, agent, tool, branch, human).
+   - Node inspector panel (right) for config:
+     - For agent node: select agent, override prompt, temperature.
+     - For branch node: condition expression (e.g. `context.last_output.score > 0.7`).
+3. **Runs List**
+   - Table of runs (status, start time, duration, workflow, input summary).
+4. **Run Detail View**
+   - Graph with nodes colored by step status.
+   - Timeline of steps (vertical list with expand for I/O).
+   - JSON viewer for any step input/output.
+   - “Resume after human approval” button for human steps.
+
+### 7.2 Data Fetching
+- Use REST endpoints:
+  - `GET /api/workflows`, `GET /api/workflows/:id`
+  - `POST /api/workflows`
+  - `GET /api/workflows/:id/runs`
+  - `GET /api/runs/:runId`
+- Use WebSocket/SSE:
+  - Subscribe to `runId` to stream events and update UI in real time.
+
+---
+
+## 8. API Sketch (REST)
+
+```
+POST /api/projects
+POST /api/agents
+GET  /api/agents?projectId=...
+POST /api/tools
+POST /api/workflows
+GET  /api/workflows/:workflowId
+PUT  /api/workflows/:workflowId
+
+POST /api/workflows/:workflowId/runs
+GET  /api/workflows/:workflowId/runs
+GET  /api/runs/:runId
+POST /api/runs/:runId/cancel
+
+POST /api/steps/:stepId/human-complete
+body: { output: any }
+```
+
+---
+
+## 9. v0 Implementation Plan (Milestones)
+
+### Milestone 1 – Skeleton & Models (1–2 weeks)
+- Set up repo (monorepo or separate frontend/backend).
+- Implement:
+  - Project, Agent, Tool, Workflow, Run, Step models & DB migrations.
+  - Basic CRUD APIs for Agents and Workflows (no runtime yet).
+
+### Milestone 2 – Workflow Runtime (2–3 weeks)
+- Implement graph traversal logic.
+- Implement orchestrator loop for a run.
+- Implement worker that executes:
+  - Simple “agent” node calling a single LLM provider.
+  - “tool” node with HTTP calls.
+- Implement event logging and run/step status updates.
+
+### Milestone 3 – Frontend Core (2–3 weeks)
+- Workflow editor with minimal graph UI (React Diagram library).
+- Run list and run detail views.
+- Live updates via polling (then upgrade to WebSocket/SSE).
+
+### Milestone 4 – Human-in-the-Loop + Basic Observability (2 weeks)
+- Human approval step node.
+- UI to show “waiting on human” and submit resolution.
+- Timeline visualization of steps with logs.
+
+---
+
+## 10. How to Use This with a Code Model
+
+You can:
+- Paste this into `/docs/ARCHITECTURE.md`.
+- Then prompt a code model with:
+  - “Implement the data models from section 3 using Prisma + Postgres.”
+  - “Generate NestJS controllers for the API sketch in section 8.”
+  - “Generate React components for the workflow editor described in section 7.”
+
+If you tell me your preferred stack (TypeScript/Nest/Prisma, Python/FastAPI/SQLAlchemy, etc.), I can generate concrete schema definitions, initial migrations, and starter service/controller code next.
