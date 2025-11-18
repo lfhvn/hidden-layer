@@ -133,21 +133,29 @@ response = llm_call("Question?", provider="anthropic", model="claude-3-5-sonnet-
 ---
 
 ## Quick Start
-
-```bash
-# Clone
-git clone https://github.com/yourusername/hidden-layer
-cd hidden-layer
-
-# Setup (optional - only if using local models)
-./setup.sh
-
-# Pick a project
-cd communication/multi-agent    # Or theory-of-mind/selphi, representations/latent-space, etc.
-
-# See project README for specific instructions
-cat README.md
-```
+ 
+ **The Fast Way:**
+ ```bash
+ # Clone
+ git clone https://github.com/yourusername/hidden-layer
+ cd hidden-layer
+ 
+ # One-command setup & launch
+ make start
+ ```
+ This will check your environment, install dependencies, ensure Ollama is running, and launch Jupyter Lab.
+ 
+ **Manual Setup:**
+ ```bash
+ ./setup.sh
+ source venv/bin/activate
+ ```
+ 
+ **Pick a project:**
+ ```bash
+ cd communication/multi-agent    # Or theory-of-mind/selphi, representations/latent-space, etc.
+ cat README.md
+ ```
 
 ### Example: Multi-Agent Debate
 
