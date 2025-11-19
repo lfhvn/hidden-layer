@@ -2,7 +2,30 @@
 
 Research platform for multi-agent coordination and collective intelligence.
 
+## Prerequisites
+
+- Python 3.10+ with Hidden Layer repository set up
+- At least one LLM provider configured:
+  - **Local**: Ollama or MLX (recommended for iteration)
+  - **API**: Anthropic Claude or OpenAI GPT (for frontier capabilities)
+
+**New to Hidden Layer?** See [/QUICKSTART.md](../../QUICKSTART.md) for initial setup.
+
+## Installation
+
+This project uses the shared harness infrastructure. From the repository root:
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Verify setup
+python check_setup.py
+```
+
 ## Quick Start
+
+### Python API
 
 ```python
 from communication.multi_agent import run_strategy
@@ -19,6 +42,21 @@ result = run_strategy(
 
 print(result.output)
 ```
+
+### Jupyter Notebooks
+
+The easiest way to get started is with the provided notebooks:
+
+```bash
+# From repository root
+jupyter lab communication/multi-agent/notebooks/00_quickstart.ipynb
+```
+
+Available notebooks:
+- `00_quickstart.ipynb` - Basic usage and examples
+- `01_baseline_experiments.ipynb` - Strategy comparisons
+- `02_multi_agent_comparison.ipynb` - Performance benchmarks
+- `03_introspection_experiments.ipynb` - Agent reasoning analysis
 
 ## Strategies
 
