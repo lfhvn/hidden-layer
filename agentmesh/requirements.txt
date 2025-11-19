@@ -15,6 +15,7 @@ asyncpg==0.29.0
 # Async task queue
 celery==5.3.6
 redis==5.0.1
+flower==2.0.1  # Celery monitoring
 
 # Auth
 python-jose[cryptography]==3.3.0

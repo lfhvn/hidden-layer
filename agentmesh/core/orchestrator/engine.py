@@ -164,6 +164,8 @@ class WorkflowOrchestrator:
             # Execute based on node type
             if node.type == NodeType.STRATEGY:
                 result = await self._execute_strategy_node(node, input_data)
+            elif node.type == NodeType.HUMAN:
+                result = await self._execute_human_node(node, input_data, step)
             elif node.type == NodeType.START:
                 # Start node just passes input through
                 result = input_data
@@ -214,6 +216,43 @@ class WorkflowOrchestrator:
 
         # Execute strategy (calls Hidden Layer harness!)
         result = await strategy_node.execute(input_data, self.run.context)
+
+        return result
+
+    async def _execute_human_node(self, node: WorkflowNode, input_data: Any, step: WorkflowStep):
+        """
+        Execute a human-in-the-loop node.
+
+        This pauses workflow execution until human completes the step.
+
+        Args:
+            node: Human node
+            input_data: Input data
+            step: Step instance (already created)
+
+        Returns:
+            Human approval result
+        """
+        from agentmesh.core.nodes.human_nodes import get_human_node
+
+        # Get human node executor
+        human_node = get_human_node(node.config.get("node_type", "approval"))
+
+        # Execute - this returns immediately with "waiting" status
+        result = await human_node.execute(input_data, self.run.context)
+
+        # Check if this requires human intervention
+        if result.metadata and result.metadata.get("awaiting_human"):
+            # Update step to WAITING_HUMAN status
+            step.status = StepStatus.WAITING_HUMAN
+            step.output = result.output
+            await self.db.update_step(step)
+
+            # Raise special exception to pause workflow
+            # NOTE: Workflow will be resumed by human_steps.py endpoint
+            raise OrchestrationError(
+                f"Workflow paused: waiting for human approval on step {step.id}"
+            )
 
         return result
 

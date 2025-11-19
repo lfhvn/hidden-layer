@@ -53,6 +53,23 @@ npm run dev
 
 Web UI starts at **http://localhost:3000**
 
+### Terminal 4: Start Celery Worker (Optional - for async execution)
+
+```bash
+cd agentmesh
+
+# Start Celery worker
+bash worker/start_worker.sh
+```
+
+Worker handles async workflow execution in background.
+
+**Optional**: Monitor workers with Flower:
+```bash
+celery -A agentmesh.worker.celery_app flower --port=5555
+```
+Flower UI at **http://localhost:5555**
+
 ---
 
 ## What You Can Do Now
@@ -66,14 +83,24 @@ Web UI starts at **http://localhost:3000**
 5. Connect nodes: start → debate1 → end
 6. Click "Save Workflow"
 
-### 2. Execute via API (Example Script)
+### 2. Execute Workflow
 
+**Option A: Sync execution (immediate response)**
 ```bash
 cd agentmesh
 python example_workflow.py
 ```
 
-This creates and executes a debate workflow.
+**Option B: Async execution (background worker)**
+```bash
+# Requires Celery worker running (Terminal 4)
+curl -X POST http://localhost:8000/api/workflows/{workflow_id}/runs/async \
+  -H "Content-Type: application/json" \
+  -d '{"input": {"task": "Analyze renewable energy"}}'
+
+# Check task status
+curl http://localhost:8000/api/tasks/{task_id}
+```
 
 ### 3. View Results (Web UI)
 
@@ -108,13 +135,15 @@ All from Hidden Layer research:
 ┌──────────────────────────────────────┐
 │  API Server (FastAPI)                │
 │  http://localhost:8000               │
-└──────────────────────────────────────┘
-                ↓
-┌──────────────────────────────────────┐
-│  Orchestrator + Nodes                │
-│  (imports Hidden Layer harness)      │
-└──────────────────────────────────────┘
-                ↓
+└─────────────┬────────────────────────┘
+              ↓                 ↓
+      (sync execution)   (async execution)
+              ↓                 ↓
+┌─────────────────────┐  ┌──────────────────┐
+│  Orchestrator       │  │  Celery Workers  │
+│  + Nodes            │  │  + Redis Queue   │
+└─────────────────────┘  └──────────────────┘
+              ↓                 ↓
 ┌──────────────────────────────────────┐
 │  Hidden Layer Harness                │
 │  (multi-agent strategies)            │
@@ -124,6 +153,10 @@ All from Hidden Layer research:
 │  LLM Providers                       │
 │  (Anthropic, OpenAI, Ollama, MLX)    │
 └──────────────────────────────────────┘
+
+Infrastructure:
+- Postgres (workflows, runs, steps)
+- Redis (Celery queue, task results)
 ```
 
 ---
@@ -243,6 +276,28 @@ npm run lint   # Check for linting issues
 
 ---
 
+## Features
+
+### ✅ Implemented
+
+- **Sync & Async Execution** - Immediate or background workflow processing
+- **6 Research-Backed Strategies** - All from Hidden Layer research
+- **Visual Workflow Editor** - Drag & drop graph builder
+- **Real-time Monitoring** - Live execution timeline
+- **Cost & Performance Tracking** - Tokens, latency, cost per step
+- **Human-in-the-Loop** - Pause workflows for human approval
+- **Multi-Provider Support** - Anthropic, OpenAI, Ollama, MLX
+
+### 🚧 Coming Soon
+
+- **Authentication & User Accounts** - JWT-based auth
+- **Branch/Parallel Execution** - Run multiple paths simultaneously
+- **Settings & Dark Mode** - User preferences
+- **Workflow Templates** - Pre-built workflows
+- **Team Collaboration** - Share workflows across org
+
+---
+
 ## Production Deployment (Future)
 
 ### Backend
@@ -250,7 +305,7 @@ npm run lint   # Check for linting issues
 - Deploy FastAPI on AWS/GCP/Fly.io
 - Use managed Postgres (RDS/Cloud SQL)
 - Use managed Redis (ElastiCache/MemoryStore)
-- Add Celery workers for async execution
+- Scale Celery workers horizontally
 
 ### Frontend
 

@@ -63,10 +63,12 @@ async def health():
 
 
 # Import and register route modules
-from agentmesh.api.routes import workflows, runs
+from agentmesh.api.routes import workflows, runs, async_runs, human_steps
 
 app.include_router(workflows.router, prefix="/api")
 app.include_router(runs.router, prefix="/api")
+app.include_router(async_runs.router, prefix="/api")
+app.include_router(human_steps.router, prefix="/api")
 
 
 if __name__ == "__main__":

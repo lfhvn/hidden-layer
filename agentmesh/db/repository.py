@@ -148,6 +148,14 @@ class AgentMeshRepository:
         await self.session.commit()
         return step
 
+    async def get_step(self, step_id: UUID) -> Optional[WorkflowStep]:
+        """Get step by ID"""
+        result = await self.session.execute(
+            select(StepModel).where(StepModel.id == str(step_id))
+        )
+        db_step = result.scalar_one_or_none()
+        return self._step_from_db(db_step) if db_step else None
+
     async def list_steps(self, run_id: UUID) -> List[WorkflowStep]:
         """List all steps for a run"""
         result = await self.session.execute(
