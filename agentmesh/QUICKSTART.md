@@ -18,11 +18,14 @@ Get AgentMesh running in 5 minutes.
 cd agentmesh
 
 # Start Postgres & Redis
-docker-compose up -d
+# IMPORTANT: Use 'docker compose' (two words) on modern Docker Desktop
+docker compose up -d
 
 # Wait for databases to be ready
-docker-compose ps
+docker compose ps
 ```
+
+**macOS Users**: If you get `docker-compose: command not found`, use `docker compose` (two words). See `QUICKSTART_MAC.md` for Mac-specific instructions.
 
 ---
 
@@ -183,10 +186,10 @@ LLM Providers (Anthropic, OpenAI, Ollama, MLX)
 
 ```bash
 # Check Docker Compose is running
-docker-compose ps
+docker compose ps
 
 # Restart if needed
-docker-compose restart postgres
+docker compose restart postgres
 ```
 
 ### "Module not found: harness"
@@ -232,10 +235,10 @@ Or use Ollama (local, no API key):
 # Stop API server: Ctrl+C
 
 # Stop infrastructure
-docker-compose down
+docker compose down
 
 # Remove data (if you want to start fresh)
-docker-compose down -v
+docker compose down -v
 ```
 
 ---
