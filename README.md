@@ -147,15 +147,23 @@ response = llm_call("Question?", provider="anthropic", model="claude-3-5-sonnet-
 
 ## Quick Start
 
+**New to Hidden Layer?** → See **[QUICKSTART.md](QUICKSTART.md)** for complete setup guide
+
+**Looking for a specific project?** → See **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** for all projects and how to get started
+
 ```bash
 # Clone
 git clone https://github.com/yourusername/hidden-layer
 cd hidden-layer
 
-# Setup (optional - only if using local models)
-./setup.sh
+# Setup environment
+make setup
+source venv/bin/activate
 
-# Pick a project
+# Verify setup
+python check_setup.py
+
+# Pick a project (see PROJECT_GUIDE.md for all options)
 cd communication/multi-agent    # Or theory-of-mind/selphi, representations/latent-space, etc.
 
 # See project README for specific instructions
