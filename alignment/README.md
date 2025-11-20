@@ -6,6 +6,30 @@
 
 ## Projects
 
+### ace/
+
+**ACE (Agentic Context Engineering)**: Reproduction of "Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models" (Zhang et al., 2025, arXiv:2510.04618)
+
+**Core Idea**: Adapt LLMs through structured, evolving contexts (playbooks) rather than fine-tuning weights. Prevents context collapse through incremental delta-based updates.
+
+**Components**:
+- **Generator**: Produces reasoning trajectories for tasks
+- **Reflector**: Extracts insights from execution traces
+- **Curator**: Integrates insights into structured contexts (deterministically)
+
+**Key Innovations**:
+- Structured playbook format (strategies, pitfalls, metadata)
+- Delta-based merging (prevents context collapse)
+- Offline optimization (pre-deployment) and online adaptation (continuous learning)
+
+**Key Questions**:
+- Does context-based adaptation match fine-tuning performance?
+- How do contexts evolve over iterations?
+- Can optimized contexts transfer across models/domains?
+- What strategies emerge from self-reflection?
+
+**See**: `ace/README.md` and `ace/CLAUDE.md` for details
+
 ### steerability/
 
 Research into steering vectors, adherence metrics, and real-time monitoring for model alignment.

@@ -1,0 +1,35 @@
+# ACE Framework Configuration
+
+ace:
+  generator:
+    temperature: 0.7
+    max_tokens: 2048
+
+  reflector:
+    temperature: 0.3
+    num_refinement_iterations: 1
+
+  curator:
+    max_strategies_per_category: 10
+    max_pitfalls: 15
+    merge_strategy: "deterministic"
+
+# Offline ACE configuration
+offline:
+  num_iterations: 5
+  tasks_per_iteration: 20
+  evaluation_tasks: 50
+  save_intermediate: true
+
+# Online ACE configuration
+online:
+  buffer_size: 10
+  update_frequency: 5
+  save_updates: true
+
+# Experiment settings
+experiment:
+  provider: "anthropic"
+  model: "claude-3-5-sonnet-20241022"
+  track_experiments: true
+  results_dir: "results"

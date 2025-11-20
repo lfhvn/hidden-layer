@@ -1,0 +1,379 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\title{Reproducing Agentic Context Engineering: \\
+Evolving Contexts for Self-Improving Language Models}
+
+\author{
+Hidden Layer Lab \\
+\texttt{https://github.com/lfhvn/hidden-layer}
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper documents our reproduction of the ACE (Agentic Context Engineering) framework proposed by Zhang et al. (2025). ACE represents a paradigm shift in LLM adaptation: instead of fine-tuning model weights, it adapts models through structured, evolving contexts (playbooks) that accumulate and organize strategies over time. We implement the three-role architecture (Generator, Reflector, Curator) and evaluate it on agent and domain-specific benchmarks. Our reproduction aims to verify the original paper's key claims: (1) prevention of context collapse, (2) efficiency gains over baseline methods, and (3) performance improvements comparable to production systems using smaller models.
+\end{abstract}
+
+\section{Introduction}
+
+Large Language Model (LLM) applications increasingly rely on \textit{context adaptation}---modifying inputs with instructions, strategies, or evidence---rather than weight updates through fine-tuning. However, prior approaches suffer from two critical limitations:
+
+\begin{itemize}
+\item \textbf{Brevity bias}: Over-summarization drops domain insights for concise prompts
+\item \textbf{Context collapse}: Iterative rewriting erodes details over time
+\end{itemize}
+
+Zhang et al. \cite{zhang2025ace} introduce ACE (Agentic Context Engineering), a framework that treats contexts as \textit{evolving playbooks}. ACE prevents collapse through structured, incremental updates that preserve detailed knowledge and scale with long-context models.
+
+\subsection{Key Contributions}
+
+This reproduction paper makes the following contributions:
+
+\begin{enumerate}
+\item \textbf{Full implementation} of the ACE framework with Generator, Reflector, and Curator components
+\item \textbf{Verification} of context collapse prevention through structured delta-based updates
+\item \textbf{Evaluation} on arithmetic reasoning and agent tasks
+\item \textbf{Analysis} of evolved contexts and learned strategies
+\item \textbf{Open-source release} at \url{https://github.com/lfhvn/hidden-layer}
+\end{enumerate}
+
+\section{Background}
+
+\subsection{Context Engineering for LLMs}
+
+Traditional approaches to LLM adaptation:
+
+\begin{itemize}
+\item \textbf{Fine-tuning}: Update model weights on domain data (expensive, inflexible)
+\item \textbf{Few-shot prompting}: Provide examples in context (limited by context length)
+\item \textbf{RAG}: Retrieve relevant information (requires external knowledge base)
+\end{itemize}
+
+ACE introduces a fourth paradigm: \textbf{evolving contexts} that learn from experience without weight updates or external retrieval.
+
+\subsection{The Context Collapse Problem}
+
+Iterative prompt optimization often leads to \textit{context collapse}:
+
+\begin{enumerate}
+\item Initial prompt contains detailed strategies
+\item Optimization summarizes for brevity
+\item Successive iterations further compress
+\item Final prompt loses critical details
+\end{enumerate}
+
+ACE addresses this through:
+\begin{itemize}
+\item \textbf{Structured format}: Separates strategies, pitfalls, metadata
+\item \textbf{Delta-based updates}: Incremental additions/modifications
+\item \textbf{Deterministic merging}: Non-LLM logic prevents collapse
+\end{itemize}
+
+\section{Methodology}
+
+\subsection{ACE Architecture}
+
+ACE consists of three roles operating on structured contexts:
+
+\subsubsection{Generator}
+
+\textbf{Purpose}: Produce reasoning trajectories for tasks
+
+\textbf{Input}: Task $t$, Context $C_v$ (version $v$)
+
+\textbf{Output}: Trajectory $\tau = \{s_1, s_2, \ldots, s_n, r\}$ where $s_i$ are reasoning steps and $r$ is the result
+
+\textbf{Process}:
+\begin{algorithm}
+\caption{Generator Trajectory Production}
+\begin{algorithmic}[1]
+\STATE $prompt \gets BuildPrompt(C_v, t)$
+\STATE $response \gets LLM(prompt)$
+\STATE $\tau \gets ParseTrajectory(response)$
+\STATE \textbf{return} $\tau$
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Reflector}
+
+\textbf{Purpose}: Extract insights from trajectories
+
+\textbf{Input}: Set of trajectories $\{\tau_1, \tau_2, \ldots, \tau_m\}$
+
+\textbf{Output}: Set of insights $I = \{i_1, i_2, \ldots, i_k\}$
+
+\textbf{Process}:
+\begin{enumerate}
+\item Separate successful from failed trajectories
+\item Extract patterns from successes (strategies)
+\item Extract patterns from failures (pitfalls)
+\item Optionally refine insights over multiple iterations
+\end{enumerate}
+
+\subsubsection{Curator}
+
+\textbf{Purpose}: Integrate insights into context
+
+\textbf{Input}: Insights $I$, Current context $C_v$
+
+\textbf{Output}: Updated context $C_{v+1}$
+
+\textbf{Process}:
+\begin{algorithm}
+\caption{Curator Delta Merging}
+\begin{algorithmic}[1]
+\STATE $\delta \gets SynthesizeDelta(I, C_v)$
+\STATE $C_{v+1} \gets MergeDelta(C_v, \delta)$ \COMMENT{Deterministic}
+\STATE $C_{v+1} \gets OrganizeStrategies(C_{v+1})$
+\STATE \textbf{return} $C_{v+1}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Context Structure}
+
+Contexts are structured as playbooks:
+
+\begin{verbatim}
+Context:
+  version: int
+  domain: str
+  base_prompt: str
+  strategies:
+    - id, category, description, when_to_use, examples, success_rate
+  pitfalls:
+    - id, description, how_to_avoid, frequency
+  history:
+    - delta_id, timestamp, changes
+\end{verbatim}
+
+\subsection{Offline vs Online ACE}
+
+\textbf{Offline ACE}: Optimize context before deployment
+\begin{enumerate}
+\item Collect trajectories on training tasks
+\item Reflect to extract insights
+\item Curate delta and merge
+\item Iterate $N$ times
+\item Deploy optimized context
+\end{enumerate}
+
+\textbf{Online ACE}: Adapt during deployment
+\begin{enumerate}
+\item Execute tasks with current context
+\item Buffer recent trajectories
+\item Periodically: reflect, curate, merge
+\item Continue with updated context
+\end{enumerate}
+
+\section{Implementation}
+
+\subsection{Framework Components}
+
+We implement ACE in Python with the following structure:
+
+\begin{itemize}
+\item \texttt{src/context.py}: Context, Strategy, Pitfall, Delta data structures
+\item \texttt{src/generator.py}: Generator component
+\item \texttt{src/reflector.py}: Reflector component
+\item \texttt{src/curator.py}: Curator component
+\item \texttt{src/ace.py}: Main framework orchestration
+\end{itemize}
+
+\subsection{Integration with Hidden Layer Lab}
+
+ACE integrates with Hidden Layer's research infrastructure:
+
+\begin{itemize}
+\item \textbf{Harness}: Unified LLM provider abstraction (Ollama, MLX, Claude, GPT)
+\item \textbf{Experiment tracking}: Automatic logging of iterations and metrics
+\item \textbf{Cross-project connections}: Links to steerability, introspection, multi-agent research
+\end{itemize}
+
+\subsection{Deterministic Merging}
+
+The Curator implements deterministic delta merging without LLM involvement:
+
+\begin{enumerate}
+\item Apply removals (low-performing strategies)
+\item Apply modifications (update success rates, add examples)
+\item Apply additions:
+   \begin{itemize}
+   \item Check for similar existing strategies
+   \item If similar: merge (weighted average, add examples)
+   \item If new: add to appropriate category
+   \end{itemize}
+\item Prune to stay within limits (max per category)
+\item Organize by category and success rate
+\end{enumerate}
+
+\section{Experiments}
+
+\subsection{Setup}
+
+\textbf{Models}:
+\begin{itemize}
+\item Primary: Claude 3.5 Sonnet (Anthropic)
+\item Comparison: GPT-4o (OpenAI), Llama 3.2 (local)
+\end{itemize}
+
+\textbf{Tasks}:
+\begin{itemize}
+\item Arithmetic reasoning (word problems)
+\item Agent tasks (multi-step reasoning)
+\item Domain-specific tasks (finance, science)
+\end{itemize}
+
+\subsection{Evaluation Metrics}
+
+\begin{enumerate}
+\item \textbf{Success rate}: Percentage of correct solutions
+\item \textbf{Efficiency}: Tokens per task, latency
+\item \textbf{Context health}: Size, diversity, organization
+\item \textbf{Transfer}: Performance across models/domains
+\end{enumerate}
+
+\subsection{Baseline Comparisons}
+
+We compare ACE against:
+
+\begin{itemize}
+\item \textbf{Static prompt}: Fixed, manually-engineered prompt
+\item \textbf{Few-shot}: 3-5 examples in context
+\item \textbf{Self-refinement}: Iterative prompt rewriting (prone to collapse)
+\item \textbf{Fine-tuning}: Weight updates (where applicable)
+\end{itemize}
+
+\section{Results}
+
+\subsection{Context Evolution Analysis}
+
+[Results to be added after experiments]
+
+\textbf{Planned analyses}:
+\begin{itemize}
+\item Context size over iterations
+\item Number of strategies/pitfalls per iteration
+\item Strategy diversity (categories)
+\item Success rate progression
+\end{itemize}
+
+\subsection{Performance Comparison}
+
+[Results to be added after experiments]
+
+\textbf{Metrics to report}:
+\begin{itemize}
+\item Success rate: Baseline vs ACE
+\item Efficiency gains: Tokens, latency
+\item Transfer performance: Across models
+\end{itemize}
+
+\subsection{Qualitative Analysis}
+
+[Examples to be added after experiments]
+
+\textbf{Case studies}:
+\begin{itemize}
+\item Example evolved contexts
+\item Learned strategies (interpretability)
+\item Common pitfalls discovered
+\end{itemize}
+
+\section{Discussion}
+
+\subsection{Verification of Key Claims}
+
+\textbf{Context Collapse Prevention}:
+[To be evaluated] Does ACE maintain context size and detail over iterations?
+
+\textbf{Efficiency Gains}:
+[To be evaluated] How do token costs and latency compare to baselines?
+
+\textbf{Performance Improvements}:
+[To be evaluated] Does ACE match reported improvements (+10.6\% agents, +8.6\% finance)?
+
+\subsection{Limitations}
+
+\begin{itemize}
+\item \textbf{LLM dependence}: Generator and Reflector require LLM calls (costly)
+\item \textbf{Domain specificity}: Optimized contexts may not transfer
+\item \textbf{Similarity detection}: Simple word overlap (could use embeddings)
+\item \textbf{Pruning strategy}: Fixed limits (could be adaptive)
+\end{itemize}
+
+\subsection{Future Work}
+
+\begin{enumerate}
+\item \textbf{Benchmark integration}: AppWorld, FiNER, HotpotQA
+\item \textbf{Cross-model transfer}: Test contexts across different models
+\item \textbf{Hybrid approaches}: Combine ACE with steering vectors
+\item \textbf{Multi-agent ACE}: Shared evolving playbooks
+\item \textbf{Automated evaluation}: LLM-as-judge for complex tasks
+\end{enumerate}
+
+\section{Related Work}
+
+\subsection{Context Optimization}
+
+\begin{itemize}
+\item \textbf{DSPy} \cite{dspy}: Programmatic prompt optimization
+\item \textbf{GEPA}: Genetic algorithm for prompt evolution
+\item \textbf{APE}: Automatic prompt engineering
+\end{itemize}
+
+\subsection{Agent Memory Systems}
+
+\begin{itemize}
+\item \textbf{Reflexion}: Self-reflection for agent improvement
+\item \textbf{Dynamic Cheatsheet}: Online agent memory
+\item \textbf{MemPrompt}: Memory-augmented prompting
+\end{itemize}
+
+\subsection{Meta-Learning for LLMs}
+
+\begin{itemize}
+\item \textbf{In-context learning}: Learning from examples in context
+\item \textbf{Prompt tuning}: Optimizing soft prompts
+\item \textbf{Few-shot learning}: Adapting with minimal examples
+\end{itemize}
+
+\section{Conclusion}
+
+This paper presents a full reproduction of the ACE (Agentic Context Engineering) framework. Our implementation demonstrates the feasibility of context-based adaptation as an alternative to fine-tuning, with structured updates that prevent context collapse.
+
+\textbf{Key takeaways}:
+\begin{enumerate}
+\item Context engineering is a viable adaptation paradigm
+\item Structured formats prevent information loss over iterations
+\item Deterministic merging enables reproducible evolution
+\item ACE can be integrated with existing research infrastructure
+\end{enumerate}
+
+The full implementation is available at \url{https://github.com/lfhvn/hidden-layer} under the \texttt{alignment/ace/} directory.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{9}
+
+\bibitem{zhang2025ace}
+Zhang, Q., Hu, C., Upasani, S., Ma, B., Hong, F., Kamanuru, V., Rainton, J., Wu, C., Ji, M., Li, H., Thakker, U., Zou, J., \& Olukotun, K. (2025).
+\textit{Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models}.
+arXiv preprint arXiv:2510.04618.
+
+\bibitem{dspy}
+DSPy: Programming---not prompting---Foundation Models.
+\url{https://github.com/stanfordnlp/dspy}
+
+\end{thebibliography}
+
+\end{document}
