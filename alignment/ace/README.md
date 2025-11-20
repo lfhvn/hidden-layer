@@ -149,13 +149,36 @@ agent_memory = ace.run_online(
 
 ## Benchmarks
 
-### Agent Benchmarks
-- **AppWorld**: Realistic app interaction tasks
-- **Custom agent scenarios**: Multi-step reasoning, tool use
+We provide 6 integrated benchmarks for evaluating ACE:
 
-### Domain-Specific Benchmarks
-- **FiNER**: Finance named entity recognition
-- **Domain reasoning**: Specialized knowledge tasks
+### Agent Benchmarks
+- **SimpleAgent**: Multi-step planning, prioritization, scheduling (8 test + 3 train tasks)
+- **ToolUse**: Function calling and tool selection (4 test tasks)
+- **Reasoning**: Logic, causal, and planning reasoning (4 test tasks)
+
+### Domain Benchmarks
+- **Math**: Arithmetic, word problems, algebra (8 test + 3 train tasks)
+- **Finance**: ROI, budgeting, entity recognition, FiNER-inspired (7 test tasks)
+- **Code**: Bug finding, completion, complexity analysis (5 test tasks)
+
+### Running Benchmarks
+
+**Offline ACE** (pre-deployment optimization):
+```bash
+python experiments/offline_ace.py --benchmark math --iterations 3
+```
+
+**Online ACE** (continuous adaptation):
+```bash
+python experiments/online_ace.py --benchmark agent --buffer-size 10
+```
+
+**All benchmarks** (comprehensive evaluation):
+```bash
+python experiments/run_all_benchmarks.py --iterations 3
+```
+
+See `experiments/README.md` for detailed benchmark documentation.
 
 ---
 
@@ -171,15 +194,18 @@ agent_memory = ace.run_online(
 
 ## Implementation Status
 
-- [ ] Core ACE components (Generator, Reflector, Curator)
-- [ ] Context management system
-- [ ] Delta-based merging logic
-- [ ] Offline ACE optimization
-- [ ] Online ACE optimization
-- [ ] Agent benchmark integration (AppWorld)
-- [ ] Domain benchmark integration (FiNER)
-- [ ] Experiment tracking and metrics
-- [ ] Comparative evaluation vs baselines
+- [x] Core ACE components (Generator, Reflector, Curator)
+- [x] Context management system
+- [x] Delta-based merging logic
+- [x] Offline ACE optimization
+- [x] Online ACE optimization
+- [x] Agent benchmark integration (SimpleAgent, ToolUse, Reasoning)
+- [x] Domain benchmark integration (Math, Finance, Code)
+- [x] Experiment tracking and metrics
+- [x] Benchmark evaluation framework
+- [ ] Comparative evaluation vs baselines (static prompts, fine-tuning)
+- [ ] Cross-model transfer experiments
+- [ ] Real AppWorld/FiNER dataset integration
 
 ---
 
