@@ -59,6 +59,10 @@ What are internal representations and how can we make them interpretable?
   - **Topologies**: Mobile latent space exploration (visual/audio/haptic)
   - Research Q: How can we understand and experience latent representations?
 
+- **State Explorer** → `representations/state-explorer/`
+  - LLM internal state visualization and exploration
+  - Research Q: How can we visualize and navigate model states?
+
 ### 4. Alignment (`alignment/`)
 How can we reliably steer AI systems and detect deception?
 
@@ -66,6 +70,54 @@ How can we reliably steer AI systems and detect deception?
 - **Steerability** → `alignment/steerability/CLAUDE.md`
   - Steering vectors, adherence metrics, alignment
   - Research Q: How can we reliably control model behavior?
+
+### 5. Memory (`memory/`)
+How can AI systems maintain long-term memory and personalization?
+
+**Projects**:
+- **Lifelog Personalization** → `memory/lifelog-personalization/README.md`
+  - Long-term memory evaluation and lifelog retrieval
+  - Preference-aware personalization and adapter promotion gates
+  - Research Q: How can systems maintain coherent long-term context?
+
+---
+
+## Platform & Tools
+
+### AgentMesh (`agentmesh/`)
+**Multi-agent workflow orchestration platform built on Hidden Layer research**
+
+- Visual workflow design and execution
+- Wraps research strategies (debate, CRIT, consensus) in production-ready API
+- Persistent state management with Postgres/Redis
+- REST API with FastAPI
+
+**Status**: Product spinoff - commercial SaaS offering
+**Documentation**: `agentmesh/README.md`, `agentmesh/QUICKSTART.md`
+
+### MLX Lab (`mlx_lab/`)
+**CLI tool for local MLX model management and research**
+
+- Model management and downloading
+- Performance benchmarking
+- Concept browser for SAE features
+- Integrated with Hidden Layer workflows
+
+**Usage**: `mlx-lab` CLI command (after `pip install -e .`)
+
+### Academic Papers (`papers/`)
+**LaTeX sources for research publications**
+
+Papers documenting the research:
+- `multi-agent-coordination.tex` - Multi-agent strategies
+- `ai-to-ai-communication.tex` - Non-linguistic communication
+- `selphi-theory-of-mind.tex` - Theory of mind evaluation
+- `model-introspection.tex` - Introspection experiments
+- `latent-lens-sae.tex` - SAE interpretability
+- `latent-topologies-multimodal.tex` - Multimodal latent exploration
+- `steerability-adherence.tex` - Steering and alignment
+
+---
 
 ### Research Theme Connections
 
@@ -274,24 +326,37 @@ hidden-layer/
 ├── web-tools/                  # Deployment versions of web applications
 │
 ├── communication/              # Research Area: Agent Communication
-│   ├── multi-agent/           # Multi-agent coordination
-│   └── ai-to-ai-comm/         # Non-linguistic communication
+│   ├── multi-agent/           # Multi-agent coordination (project files)
+│   ├── multi_agent/           # Python package (importable)
+│   ├── ai-to-ai-comm/         # AI-to-AI communication (project files)
+│   └── ai_to_ai_comm/         # Python package (importable)
 │
 ├── theory-of-mind/             # Research Area: Theory of Mind & Self-Knowledge
 │   ├── selphi/                # Theory of mind evaluation
 │   └── introspection/         # Model introspection
 │
+├── theory_of_mind/             # Python package wrapper for theory-of-mind
+│
 ├── representations/            # Research Area: Internal Representations
-│   └── latent-space/
-│       ├── lens/              # SAE interpretability
-│       └── topologies/        # Mobile latent exploration
+│   ├── latent-space/
+│   │   ├── lens/              # SAE interpretability
+│   │   └── topologies/        # Mobile latent exploration
+│   └── state-explorer/        # LLM state visualization
 │
 ├── alignment/                  # Research Area: Alignment & Steerability
 │   └── steerability/          # Steering vectors & metrics
 │
+├── memory/                     # Research Area: Long-term Memory
+│   └── lifelog-personalization/  # Lifelog retrieval & preference
+│
+├── agentmesh/                  # Platform: Workflow orchestration
+├── mlx_lab/                    # Tool: MLX model management CLI
+├── papers/                     # Academic paper sources (.tex)
+│
 ├── docs/                       # Lab-wide documentation
 ├── tests/                      # Lab-wide tests
 ├── config/                     # Lab-wide configuration
+├── scripts/                    # Utility scripts
 │
 ├── README.md                   # Lab overview
 ├── RESEARCH.md                 # Research themes & connections
@@ -300,18 +365,49 @@ hidden-layer/
 └── SETUP.md                    # Setup instructions
 ```
 
+---
+
+## Directory Naming Convention
+
+**Important**: The codebase uses a dual-directory pattern for Python compatibility:
+
+| Purpose | Naming | Example |
+|---------|--------|---------|
+| Project files (README, config, notebooks) | Dash-separated | `multi-agent/` |
+| Python packages (importable code) | Underscore-separated | `multi_agent/` |
+
+**Why?** Python identifiers cannot contain dashes. Research projects use dash-naming for readability, but Python imports require underscores.
+
+**How to use**:
+```python
+# Import from underscore-named packages
+from communication.multi_agent import strategies
+from theory_of_mind.selphi import scenarios
+
+# Navigate to dash-named directories for project context
+# cd communication/multi-agent/  # README, CLAUDE.md, notebooks here
+```
+
+**For new projects**:
+1. Create dash-named directory for project files: `myarea/my-project/`
+2. Create underscore-named directory for Python code: `myarea/my_project/`
+3. Actual code can live in either location; the underscore package loads it
+
+---
+
 ### Key Organizational Principles
 
 1. **Research Areas at Top Level**: Projects grouped by thematic focus
 2. **Infrastructure at Root**: `harness/`, `shared/`, `web-tools/` for easy imports
 3. **Scalable Structure**: Easy to add new areas or projects within areas
 4. **No Breaking Changes**: Import paths unchanged (`from harness import ...`)
+5. **Dual-Directory Pattern**: Dash for docs, underscore for imports
 
 ### Working with Research Areas
 
 **Navigate to an area**:
 ```bash
-cd communication/     # or theory-of-mind/, representations/, alignment/
+cd communication/     # or theory-of-mind/, representations/, alignment/, memory/
 ```
 
 **Each area contains**:

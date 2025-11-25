@@ -7,10 +7,13 @@ Usage:
     python cli.py "What is 2+2?" --strategy single --provider ollama
     python cli.py "Should we invest in AI?" --strategy debate --n-debaters 3
 """
+from __future__ import annotations
+
 import argparse
 import json
 import sys
 from pathlib import Path
+from typing import NoReturn
 
 # Add harness to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -19,8 +22,8 @@ from harness import STRATEGIES, get_model_config, list_model_configs, run_strate
 from harness.defaults import DEFAULT_MODEL, DEFAULT_PROVIDER
 
 
-def list_configs_command():
-    """List all available model configurations"""
+def list_configs_command() -> None:
+    """List all available model configurations."""
     configs = list_model_configs()
 
     if not configs:
@@ -45,7 +48,8 @@ def list_configs_command():
         print()
 
 
-def main():
+def main() -> None:
+    """Main CLI entry point."""
     parser = argparse.ArgumentParser(
         description="Test the agentic simulation harness",
         formatter_class=argparse.RawDescriptionHelpFormatter,
