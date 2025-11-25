@@ -1,28 +1,20 @@
 """
-Shared resources for Hidden Layer projects.
+Shared utilities for Hidden Layer projects.
 
-Includes:
-- Concept vectors
-- Datasets
-- Common utilities
+Common functionality used across research projects:
+- File handling
+- JSON/YAML utilities
+- Text processing
+- Timing and profiling
+- Logging
 """
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
-
-# Re-export utilities for convenience
-from shared.utils import (
-    Timer,
-    timed,
-    ensure_dir,
-    load_json,
-    save_json,
-    load_yaml,
-    save_yaml,
-    truncate_text,
-    word_count,
-    extract_json_from_text,
+from shared.utils.timing import Timer, timed
+from shared.utils.files import ensure_dir, load_json, load_yaml, save_json, save_yaml
+from shared.utils.text import truncate_text, word_count, extract_json_from_text
+from shared.utils.logging import (
     setup_logging,
     get_logger,
     LogContext,
