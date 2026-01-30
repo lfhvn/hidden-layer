@@ -84,6 +84,22 @@ def generate_digest(
         total_items += len(events)
         print(f"  Found {len(events)} events ({h.latency_s:.1f}s)")
 
+    # --- Deduplication ---
+    from ai_research_aggregator.storage import HistoryDB, deduplicate_items
+
+    history = HistoryDB()
+    recently_published = history.get_recently_published_hashes()
+
+    pre_dedup = len(papers) + len(blogs) + len(community) + len(events)
+    papers = deduplicate_items(papers, recently_published=recently_published)
+    blogs = deduplicate_items(blogs, recently_published=recently_published)
+    community = deduplicate_items(community, recently_published=recently_published)
+    events = deduplicate_items(events, recently_published=recently_published)
+    post_dedup = len(papers) + len(blogs) + len(community) + len(events)
+
+    if pre_dedup != post_dedup:
+        print(f"  Deduplication: {pre_dedup} -> {post_dedup} items ({pre_dedup - post_dedup} removed)")
+
     # --- Rank and summarize ---
     rank_fn = rank_with_llm if use_llm else rank_with_keywords
 
@@ -131,6 +147,12 @@ def generate_digest(
     if use_llm and sections:
         print("Generating opportunity analysis...")
         opportunity = generate_opportunity_analysis(sections, config)
+
+    # Mark all published items in history for cross-day dedup
+    all_published = []
+    for section in sections:
+        all_published.extend(section.items)
+    history.mark_published(all_published)
 
     elapsed = time.time() - start_time
     print(f"\nDigest generated in {elapsed:.1f}s ({total_items} items scanned)")

@@ -95,6 +95,26 @@ def cmd_config_path(args):
     print(f"Exists: {'yes' if exists else 'no (using defaults)'}")
 
 
+def cmd_history_stats(args):
+    """Show deduplication history stats."""
+    from ai_research_aggregator.storage import HistoryDB
+    db = HistoryDB()
+    stats = db.stats()
+    print("Deduplication History:")
+    print(f"  Database: {stats['db_path']}")
+    print(f"  Total items seen: {stats['total_items']}")
+    print(f"  Published in digest: {stats['published_items']}")
+    print(f"  Seen in last 7 days: {stats['seen_last_7_days']}")
+
+
+def cmd_history_clear(args):
+    """Clear all deduplication history."""
+    from ai_research_aggregator.storage import HistoryDB
+    db = HistoryDB()
+    db.clear()
+    print("History cleared.")
+
+
 def cmd_sources_test(args):
     """Test content sources."""
     if args.verbose:
@@ -444,6 +464,16 @@ def create_parser() -> argparse.ArgumentParser:
     path_parser = config_subparsers.add_parser("path", help="Show config file path")
     path_parser.set_defaults(func=cmd_config_path)
 
+    # History commands
+    history_parser = subparsers.add_parser("history", help="Deduplication history")
+    history_subparsers = history_parser.add_subparsers(dest="history_command", help="History commands")
+
+    history_stats_parser = history_subparsers.add_parser("stats", help="Show history stats")
+    history_stats_parser.set_defaults(func=cmd_history_stats)
+
+    history_clear_parser = history_subparsers.add_parser("clear", help="Clear all history")
+    history_clear_parser.set_defaults(func=cmd_history_clear)
+
     # Sources commands
     sources_parser = subparsers.add_parser("sources", help="Source management")
     sources_subparsers = sources_parser.add_subparsers(dest="sources_command", help="Source commands")
@@ -513,6 +543,8 @@ def main():
     if not hasattr(args, "func"):
         if args.command == "config":
             parser.parse_args(["config", "-h"])
+        elif args.command == "history":
+            parser.parse_args(["history", "-h"])
         elif args.command == "sources":
             parser.parse_args(["sources", "-h"])
         elif args.command == "newsletter":
