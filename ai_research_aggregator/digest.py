@@ -20,9 +20,12 @@ from ai_research_aggregator.models import (
     SourceHealth,
 )
 from ai_research_aggregator.ranking import (
+    check_api_key,
     generate_opportunity_analysis,
+    get_cost_tracker,
     rank_with_keywords,
     rank_with_llm,
+    reset_cost_tracker,
 )
 from ai_research_aggregator.sources.arxiv import ArxivSource
 from ai_research_aggregator.sources.blogs import BlogAggregatorSource
@@ -56,6 +59,14 @@ def generate_digest(
     health_reports: List[SourceHealth] = []
 
     sections = []
+
+    # --- Detect API key early ---
+    if use_llm and not check_api_key(config.llm.provider):
+        print(f"  Warning: No API key found for {config.llm.provider}. Using keyword ranking.")
+        use_llm = False
+
+    # --- Initialize cost tracker ---
+    cost_tracker = reset_cost_tracker(config.llm.model) if use_llm else None
 
     # --- Fetch from all sources (parallel) ---
     from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -162,6 +173,18 @@ def generate_digest(
     elapsed = time.time() - start_time
     print(f"\nDigest generated in {elapsed:.1f}s ({total_items} items scanned)")
 
+    # Collect LLM cost data
+    llm_cost = 0.0
+    llm_input_tokens = 0
+    llm_output_tokens = 0
+    llm_calls = 0
+    tracker = get_cost_tracker()
+    if tracker:
+        llm_cost = tracker.estimated_cost
+        llm_input_tokens = tracker.total_input_tokens
+        llm_output_tokens = tracker.total_output_tokens
+        llm_calls = tracker.total_calls
+
     return DailyDigest(
         date=datetime.now(),
         sections=sections,
@@ -169,6 +192,10 @@ def generate_digest(
         generation_time_s=elapsed,
         opportunity_analysis=opportunity,
         source_health=health_reports,
+        llm_cost_estimate=llm_cost,
+        llm_input_tokens=llm_input_tokens,
+        llm_output_tokens=llm_output_tokens,
+        llm_calls=llm_calls,
     )
 
 

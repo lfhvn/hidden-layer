@@ -106,6 +106,12 @@ class DailyDigest:
     # Per-source health data
     source_health: List["SourceHealth"] = field(default_factory=list)
 
+    # LLM cost tracking
+    llm_cost_estimate: float = 0.0
+    llm_input_tokens: int = 0
+    llm_output_tokens: int = 0
+    llm_calls: int = 0
+
     def to_markdown(self) -> str:
         """Render the digest as markdown."""
         lines = []

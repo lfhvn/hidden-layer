@@ -7,11 +7,16 @@ Usage:
     ai-digest digest --save                # Also save to markdown file
     ai-digest digest --no-llm              # Skip LLM ranking (keyword-only, faster)
     ai-digest digest --skip-events         # Skip event fetching
+    ai-digest digest --cost-report         # Show LLM token usage and cost estimate
+    ai-digest run                              # Run with retry, logging, and notification
+    ai-digest run --notify email@example.com   # Send notification on success/failure
     ai-digest config init                  # Create default config file
     ai-digest config show                  # Show current configuration
     ai-digest config path                  # Show config file path
     ai-digest sources test                 # Test all sources
     ai-digest sources test --source arxiv  # Test a specific source
+    ai-digest history runs                 # Show recent run history
+    ai-digest install-schedule --time 07:00  # Generate systemd/launchd schedule
     ai-digest newsletter preview           # Generate & preview newsletter HTML
     ai-digest newsletter draft             # Create a Substack draft
     ai-digest newsletter publish           # Create & publish to Substack
@@ -52,6 +57,14 @@ def cmd_digest(args):
 
     # Terminal output
     print_digest_terminal(digest)
+
+    # Cost report
+    if getattr(args, "cost_report", False) and digest.llm_calls > 0:
+        from ai_research_aggregator.ranking import get_cost_tracker
+        tracker = get_cost_tracker()
+        if tracker:
+            print("")
+            print(tracker.summary())
 
     # Save to file if requested
     if args.save:
@@ -113,6 +126,88 @@ def cmd_history_clear(args):
     db = HistoryDB()
     db.clear()
     print("History cleared.")
+
+
+def cmd_history_runs(args):
+    """Show recent run history."""
+    from ai_research_aggregator.scheduler import get_recent_runs
+    runs = get_recent_runs(count=args.count if hasattr(args, "count") else 10)
+    if not runs:
+        print("No run history found.")
+        return
+
+    print(f"Last {len(runs)} runs:")
+    print("-" * 70)
+    for run in reversed(runs):
+        ts = run.get("timestamp", "unknown")
+        status = run.get("status", "unknown")
+        duration = run.get("duration_s", 0)
+        scanned = run.get("items_scanned", 0)
+        published = run.get("items_published", 0)
+        cost = run.get("llm_cost_estimate", 0)
+        attempt = run.get("attempt", 1)
+        errors = run.get("errors", [])
+
+        status_icon = "OK" if status == "success" else "FAIL"
+        line = f"  [{status_icon}] {ts}  {duration:.0f}s  {scanned} scanned / {published} published"
+        if cost > 0:
+            line += f"  ${cost:.4f}"
+        if attempt > 1:
+            line += f"  (attempt {attempt})"
+        print(line)
+
+        if errors:
+            for err in errors:
+                print(f"       Error: {err[:100]}")
+    print("-" * 70)
+
+
+def cmd_run(args):
+    """Run digest with retry, logging, and optional notification."""
+    config = AggregatorConfig.load(args.config) if args.config else AggregatorConfig.load()
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG, format="%(name)s: %(message)s")
+    else:
+        logging.basicConfig(level=logging.WARNING)
+
+    if getattr(args, "no_cache", False):
+        from ai_research_aggregator.sources.base import BaseSource
+        BaseSource.clear_cache()
+
+    from ai_research_aggregator.scheduler import run_digest
+    from ai_research_aggregator.digest import print_digest_terminal
+
+    should_save = args.save and not getattr(args, "no_save", False)
+
+    digest = run_digest(
+        config=config,
+        use_llm=not args.no_llm,
+        skip_events=args.skip_events,
+        save=should_save,
+        max_retries=args.retries,
+        retry_delay_s=args.retry_delay,
+        notify_email=args.notify if hasattr(args, "notify") else None,
+    )
+
+    if digest:
+        print_digest_terminal(digest)
+
+        if getattr(args, "cost_report", False) and digest.llm_calls > 0:
+            from ai_research_aggregator.ranking import get_cost_tracker
+            tracker = get_cost_tracker()
+            if tracker:
+                print("")
+                print(tracker.summary())
+    else:
+        print("\nAll attempts failed. Check 'ai-digest history runs' for details.")
+        sys.exit(1)
+
+
+def cmd_install_schedule(args):
+    """Generate and print schedule installation instructions."""
+    from ai_research_aggregator.scheduler import print_schedule_instructions
+    print_schedule_instructions(time_str=args.time)
 
 
 def cmd_sources_test(args):
@@ -447,7 +542,26 @@ def create_parser() -> argparse.ArgumentParser:
     digest_parser.add_argument("--no-llm", action="store_true", help="Skip LLM ranking (keyword-only)")
     digest_parser.add_argument("--no-cache", action="store_true", help="Bypass response cache")
     digest_parser.add_argument("--skip-events", action="store_true", help="Skip event fetching")
+    digest_parser.add_argument("--cost-report", action="store_true", help="Print LLM cost estimate after generation")
     digest_parser.set_defaults(func=cmd_digest)
+
+    # Run command (digest with retry + logging + notification)
+    run_parser = subparsers.add_parser("run", help="Run digest with retry, logging, and notification")
+    run_parser.add_argument("--save", "-s", action="store_true", default=True, help="Save digest to markdown file (default: yes)")
+    run_parser.add_argument("--no-save", action="store_true", help="Don't save digest to file")
+    run_parser.add_argument("--no-llm", action="store_true", help="Skip LLM ranking (keyword-only)")
+    run_parser.add_argument("--no-cache", action="store_true", help="Bypass response cache")
+    run_parser.add_argument("--skip-events", action="store_true", help="Skip event fetching")
+    run_parser.add_argument("--cost-report", action="store_true", help="Print LLM cost estimate")
+    run_parser.add_argument("--retries", type=int, default=2, help="Max retries on failure (default: 2)")
+    run_parser.add_argument("--retry-delay", type=int, default=300, help="Seconds between retries (default: 300)")
+    run_parser.add_argument("--notify", metavar="EMAIL", help="Send notification to this email")
+    run_parser.set_defaults(func=cmd_run)
+
+    # Install schedule command
+    schedule_parser = subparsers.add_parser("install-schedule", help="Generate daily schedule config")
+    schedule_parser.add_argument("--time", default="07:00", help="Daily run time in HH:MM format (default: 07:00)")
+    schedule_parser.set_defaults(func=cmd_install_schedule)
 
     # Config commands
     config_parser = subparsers.add_parser("config", help="Configuration management")
@@ -473,6 +587,10 @@ def create_parser() -> argparse.ArgumentParser:
 
     history_clear_parser = history_subparsers.add_parser("clear", help="Clear all history")
     history_clear_parser.set_defaults(func=cmd_history_clear)
+
+    history_runs_parser = history_subparsers.add_parser("runs", help="Show recent run history")
+    history_runs_parser.add_argument("--count", "-n", type=int, default=10, help="Number of runs to show")
+    history_runs_parser.set_defaults(func=cmd_history_runs)
 
     # Sources commands
     sources_parser = subparsers.add_parser("sources", help="Source management")
@@ -536,6 +654,7 @@ def main():
         args.save = False
         args.no_llm = False
         args.skip_events = False
+        args.cost_report = False
         cmd_digest(args)
         return
 
