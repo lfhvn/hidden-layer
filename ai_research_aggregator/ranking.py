@@ -203,6 +203,75 @@ def _keyword_score_batch(
     return items
 
 
+OPPORTUNITY_PROMPT = """You are a strategic AI research analyst for an independent research lab called Hidden Layer. Given today's top-ranked research highlights, identify ONE compelling opportunity — either a business opportunity or a promising direction for further research — that emerges from the convergence of these items.
+
+## User's Research Interests
+{interests}
+
+## Today's Top Highlights
+{highlights}
+
+## Instructions
+Write a 2-3 paragraph analysis that:
+1. Identifies a specific opportunity (business venture, research direction, tool/product, or collaboration) that connects two or more of today's highlights
+2. Explains WHY this opportunity exists now — what convergence of advances makes it timely
+3. Outlines a concrete first step someone could take to pursue it
+
+Be specific and sophisticated. Avoid generic advice like "stay informed" or "consider AI safety." Instead, identify non-obvious connections between the day's highlights and articulate an actionable opportunity that a technically sophisticated reader would find genuinely insightful.
+
+Write in a direct, analytical tone. No bullet points — use flowing prose. Do not include a title or heading; just the analysis text."""
+
+
+def generate_opportunity_analysis(
+    digest_sections: list,
+    config: "AggregatorConfig",
+) -> str:
+    """
+    Use LLM to synthesize an opportunity from the day's top highlights.
+
+    Returns the analysis text, or empty string if LLM is unavailable.
+    """
+    try:
+        from harness import llm_call
+    except ImportError:
+        logger.warning("Harness not available, skipping opportunity analysis")
+        return ""
+
+    # Collect top items from each section for the prompt
+    highlights = []
+    for section in digest_sections:
+        for item in section.items[:5]:
+            entry = {
+                "title": item.title,
+                "source": item.source.value,
+                "summary": item.summary or item.abstract[:200],
+            }
+            if item.relevance_reason:
+                entry["why_it_matters"] = item.relevance_reason
+            highlights.append(entry)
+
+    if not highlights:
+        return ""
+
+    prompt = OPPORTUNITY_PROMPT.format(
+        interests="\n".join(f"- {t}" for t in config.interests.topics),
+        highlights=json.dumps(highlights, indent=2),
+    )
+
+    try:
+        response = llm_call(
+            prompt=prompt,
+            provider=config.llm.provider,
+            model=config.llm.model,
+            temperature=0.5,
+            max_tokens=1024,
+        )
+        return response.text.strip()
+    except Exception as e:
+        logger.warning(f"Opportunity analysis generation failed: {e}")
+        return ""
+
+
 def _parse_ranking_response(text: str) -> List[Dict]:
     """Parse LLM ranking response, extracting JSON array."""
     # Try to find JSON array in the response

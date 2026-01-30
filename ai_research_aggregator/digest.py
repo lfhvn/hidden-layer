@@ -18,7 +18,11 @@ from ai_research_aggregator.models import (
     DigestSection,
     EventItem,
 )
-from ai_research_aggregator.ranking import rank_with_keywords, rank_with_llm
+from ai_research_aggregator.ranking import (
+    generate_opportunity_analysis,
+    rank_with_keywords,
+    rank_with_llm,
+)
 from ai_research_aggregator.sources.arxiv import ArxivSource
 from ai_research_aggregator.sources.blogs import BlogAggregatorSource
 from ai_research_aggregator.sources.communities import CommunitySource
@@ -116,6 +120,12 @@ def generate_digest(
             items=events[:config.llm.top_events],
         ))
 
+    # --- Opportunity analysis ---
+    opportunity = ""
+    if use_llm and sections:
+        print("Generating opportunity analysis...")
+        opportunity = generate_opportunity_analysis(sections, config)
+
     elapsed = time.time() - start_time
     print(f"\nDigest generated in {elapsed:.1f}s ({total_items} items scanned)")
 
@@ -124,6 +134,7 @@ def generate_digest(
         sections=sections,
         total_items_scanned=total_items,
         generation_time_s=elapsed,
+        opportunity_analysis=opportunity,
     )
 
 
@@ -235,6 +246,9 @@ def print_digest_terminal(digest: DailyDigest):
                     abstract += "..."
                 print(f"     {abstract}")
 
+            if item.relevance_reason:
+                print(f"     Why it matters: {item.relevance_reason}")
+
             if isinstance(item, EventItem):
                 if item.event_date:
                     print(f"     When: {item.event_date.strftime('%B %d, %Y %I:%M %p')}")
@@ -242,6 +256,17 @@ def print_digest_terminal(digest: DailyDigest):
                     print(f"     Where: {item.location}")
 
             print(f"     {item.url}")
+            print("")
+
+    if digest.opportunity_analysis:
+        print("")
+        print("  OPPORTUNITY SPOTLIGHT")
+        print("-" * 70)
+        # Word-wrap the analysis to ~66 chars for terminal readability
+        import textwrap
+        for paragraph in digest.opportunity_analysis.split("\n\n"):
+            wrapped = textwrap.fill(paragraph.strip(), width=66, initial_indent="  ", subsequent_indent="  ")
+            print(wrapped)
             print("")
 
     print("=" * 70)

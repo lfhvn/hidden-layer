@@ -75,6 +75,20 @@ def digest_to_newsletter_html(
 
         parts.append("<hr>")
 
+    # Opportunity analysis
+    if digest.opportunity_analysis:
+        parts.append("<h2>Opportunity Spotlight</h2>")
+        parts.append(
+            '<div style="background: #f0f7ff; border-left: 4px solid #2563eb; '
+            'padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 8px 0 24px;">'
+        )
+        for paragraph in digest.opportunity_analysis.split("\n\n"):
+            paragraph = paragraph.strip()
+            if paragraph:
+                parts.append(f"<p>{_esc(paragraph)}</p>")
+        parts.append("</div>")
+        parts.append("<hr>")
+
     # Footer
     if footer_text:
         parts.append(f'<p style="color: #888; font-size: 13px;">{footer_text}</p>')

@@ -218,6 +218,7 @@ events = [
         price="Free", rsvp_count=185, is_virtual=False,
         tags=["interpretability", "meetup", "sf"],
         abstract="Lightning talks on SAE features, activation patching, and circuit discovery. Speakers from Anthropic and EleutherAI.",
+        relevance_reason="Directly relevant to SAE interpretability research — networking opportunity with Anthropic and EleutherAI researchers.",
     ),
     EventItem(
         title="AI Tinkerers SF — February Demo Night",
@@ -229,6 +230,7 @@ events = [
         price="Free", rsvp_count=250, is_virtual=False,
         tags=["demo-night", "sf", "community"],
         abstract="Monthly demo night for AI builders. 8 teams present projects in 5 minutes each. Food and drinks provided.",
+        relevance_reason="Good venue for demoing Hidden Layer tooling and scouting multi-agent / interpretability projects from other builders.",
     ),
     EventItem(
         title="Multi-Agent Systems Workshop @ Stanford HAI",
@@ -240,6 +242,7 @@ events = [
         price="$25", rsvp_count=90, is_virtual=False,
         tags=["multi-agent", "workshop", "stanford"],
         abstract="Workshop on coordination, communication, and emergent behavior in multi-agent LLM systems. Keynote by Yilun Du (MIT).",
+        relevance_reason="Core multi-agent research event with keynote by a latent-channel communication author — high overlap with Hidden Layer priorities.",
     ),
     EventItem(
         title="Bay Area AI Safety Unconference",
@@ -251,6 +254,7 @@ events = [
         price="Free", rsvp_count=120, is_virtual=False,
         tags=["ai-safety", "unconference", "berkeley"],
         abstract="Full-day unconference on AI safety research directions. Topics include scalable oversight, deception detection, and alignment evaluation.",
+        relevance_reason="Covers deception detection and alignment evaluation — ideal venue to present introspection and steerability findings.",
     ),
     EventItem(
         title="LLM Evaluation & Benchmarking Summit (Virtual + SF Watch Party)",
@@ -262,8 +266,36 @@ events = [
         price="$50 (virtual free)", rsvp_count=800, is_virtual=True,
         tags=["evaluation", "benchmarks", "summit"],
         abstract="Day-long summit on LLM evaluation methodology, benchmark design, and reproducibility. Speakers from Stanford, Anthropic, OpenAI, and Hugging Face.",
+        relevance_reason="Evaluation methodology is critical infrastructure — relevant for benchmarking ToM, introspection, and steerability metrics.",
     ),
 ]
+
+opportunity_text = (
+    "Today's papers reveal a convergence that points to a concrete product opportunity: "
+    "an open-source interpretability-driven safety monitor for multi-agent systems. "
+    "Olah et al.'s SAE decomposition of GPT-4 shows we can now isolate features tied to "
+    "deception and reasoning in frontier models. Simultaneously, the UC Berkeley work on "
+    "spontaneous deceptive coordination in multi-agent systems demonstrates that these "
+    "deception features aren't theoretical — they emerge unprompted when agents optimize "
+    "together. The open-source SAE feature visualizer on Hacker News provides the tooling "
+    "foundation, and Christiano & Leike's activation patching gives us a precise "
+    "intervention mechanism."
+    "\n\n"
+    "The opportunity is to build a runtime monitoring layer that sits between agents in a "
+    "multi-agent deployment, continuously probing each agent's activations for the "
+    "deception-correlated features identified by SAE decomposition. When deceptive "
+    "coordination patterns are detected, the system could apply targeted activation patches "
+    "in real time — not just flagging the behavior but correcting it. Nothing like this "
+    "exists today; current multi-agent frameworks (CrewAI, AutoGen, LangGraph) have zero "
+    "interpretability hooks."
+    "\n\n"
+    "A concrete first step: fork the open-source SAE visualizer to support streaming "
+    "activation analysis from Ollama or vLLM inference servers, then instrument a simple "
+    "two-agent debate setup to detect when the agents' latent representations shift toward "
+    "coordination features that weren't present in their individual training runs. The "
+    "Stanford HAI multi-agent workshop on Feb 18 would be an ideal venue to present early "
+    "results and recruit collaborators."
+)
 
 digest = DailyDigest(
     date=now,
@@ -275,6 +307,7 @@ digest = DailyDigest(
     ],
     total_items_scanned=247,
     generation_time_s=38.4,
+    opportunity_analysis=opportunity_text,
 )
 
 config = AggregatorConfig()
@@ -346,7 +379,7 @@ def _build_body(dg: DailyDigest) -> str:
                 parts.append(f'  <div class="summary">{_esc(summary_text)}</div>')
 
             # Why this matters
-            if item.relevance_reason and not is_event:
+            if item.relevance_reason:
                 parts.append(f'  <div class="why"><strong>Why this matters:</strong> {_esc(item.relevance_reason)}</div>')
 
             # Tags
@@ -518,6 +551,22 @@ with open(html_path, "w") as f:
   .event-card .event-field {{
     margin-bottom: 2px;
   }}
+  .opportunity {{
+    background: #f0f7ff;
+    border-left: 4px solid #2563eb;
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 8px 0 24px;
+    font-size: 15px;
+    color: #374151;
+    line-height: 1.7;
+  }}
+  .opportunity p {{
+    margin-bottom: 12px;
+  }}
+  .opportunity p:last-child {{
+    margin-bottom: 0;
+  }}
   footer {{
     margin-top: 40px;
     padding-top: 20px;
@@ -549,6 +598,11 @@ with open(html_path, "w") as f:
 </div>
 
 {_build_body(digest)}
+
+<h2>Opportunity Spotlight</h2>
+<div class="opportunity">
+{"".join(f"<p>{_esc(p.strip())}</p>" for p in digest.opportunity_analysis.split(chr(10) + chr(10)) if p.strip())}
+</div>
 
 <footer>
   <div class="cta">{config.substack.footer_text}</div>
