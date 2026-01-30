@@ -57,32 +57,37 @@ def generate_digest(
 
     sections = []
 
-    # --- Fetch from all sources ---
-    print("Fetching AI research papers...")
-    papers, h = _fetch_papers(config)
-    health_reports.append(h)
-    total_items += len(papers)
-    print(f"  Found {len(papers)} papers ({h.latency_s:.1f}s)")
+    # --- Fetch from all sources (parallel) ---
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    print("Fetching blog posts...")
-    blogs, h = _fetch_blogs(config)
-    health_reports.append(h)
-    total_items += len(blogs)
-    print(f"  Found {len(blogs)} blog posts ({h.latency_s:.1f}s)")
-
-    print("Fetching community posts...")
-    community, h = _fetch_community(config)
-    health_reports.append(h)
-    total_items += len(community)
-    print(f"  Found {len(community)} community posts ({h.latency_s:.1f}s)")
-
-    events = []
+    fetch_tasks = {
+        "papers": (_fetch_papers, config),
+        "blogs": (_fetch_blogs, config),
+        "community": (_fetch_community, config),
+    }
     if not skip_events and config.sources.enable_events:
-        print("Fetching SF AI events...")
-        events, h = _fetch_events(config)
-        health_reports.append(h)
-        total_items += len(events)
-        print(f"  Found {len(events)} events ({h.latency_s:.1f}s)")
+        fetch_tasks["events"] = (_fetch_events, config)
+
+    print("Fetching from all sources...")
+    results = {}
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = {
+            executor.submit(fn, cfg): name
+            for name, (fn, cfg) in fetch_tasks.items()
+        }
+        for future in as_completed(futures):
+            name = futures[future]
+            items, h = future.result()
+            results[name] = items
+            health_reports.append(h)
+            total_items += len(items)
+            status = f"FAILED ({h.error})" if h.error else f"{len(items)} items ({h.latency_s:.1f}s)"
+            print(f"  {h.source_name}: {status}")
+
+    papers = results.get("papers", [])
+    blogs = results.get("blogs", [])
+    community = results.get("community", [])
+    events = results.get("events", [])
 
     # --- Deduplication ---
     from ai_research_aggregator.storage import HistoryDB, deduplicate_items

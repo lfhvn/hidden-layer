@@ -43,6 +43,54 @@ BLOG_FEEDS: List[Dict] = [
         "source": SourceName.META_AI_BLOG,
         "format": "rss",
     },
+    {
+        "name": "Google AI Blog",
+        "url": "https://blog.google/technology/ai/rss/",
+        "source": SourceName.GOOGLE_AI_BLOG,
+        "format": "rss",
+    },
+    {
+        "name": "Hugging Face Blog",
+        "url": "https://huggingface.co/blog/feed.xml",
+        "source": SourceName.HUGGINGFACE_BLOG,
+        "format": "atom",
+    },
+    {
+        "name": "Microsoft Research Blog",
+        "url": "https://www.microsoft.com/en-us/research/feed/",
+        "source": SourceName.MS_RESEARCH_BLOG,
+        "format": "rss",
+    },
+    {
+        "name": "EleutherAI Blog",
+        "url": "https://blog.eleuther.ai/rss/",
+        "source": SourceName.ELEUTHERAI_BLOG,
+        "format": "rss",
+    },
+    {
+        "name": "Mistral AI Blog",
+        "url": "https://mistral.ai/feed.xml",
+        "source": SourceName.MISTRAL_BLOG,
+        "format": "atom",
+    },
+    {
+        "name": "Together AI Blog",
+        "url": "https://www.together.ai/blog/rss.xml",
+        "source": SourceName.TOGETHER_BLOG,
+        "format": "rss",
+    },
+    {
+        "name": "AI2 Blog",
+        "url": "https://blog.allenai.org/feed",
+        "source": SourceName.AI2_BLOG,
+        "format": "rss",
+    },
+    {
+        "name": "Cohere Blog",
+        "url": "https://cohere.com/blog/rss.xml",
+        "source": SourceName.COHERE_BLOG,
+        "format": "rss",
+    },
 ]
 
 # Key AI figures to track (name -> relevant URLs/identifiers)
