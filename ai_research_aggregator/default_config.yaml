@@ -1,0 +1,94 @@
+# AI Research Aggregator - Default Configuration
+# Copy to ~/.config/ai-research-aggregator/config.yaml and customize
+
+interests:
+  # Core research topics (used for ranking relevance)
+  topics:
+    - agent communication and coordination
+    - theory of mind in AI
+    - model interpretability and mechanistic interpretability
+    - AI alignment and safety
+    - AI steerability and control
+    - sparse autoencoders (SAEs)
+    - activation steering and representation engineering
+    - multi-agent systems
+    - LLM self-knowledge and introspection
+    - latent space representations
+    - AI deception detection
+    - emergent capabilities in language models
+    - chain-of-thought reasoning
+    - RLHF and preference learning
+    - long-context and memory in LLMs
+
+  # Extra search terms for paper sources
+  search_terms:
+    - interpretability
+    - alignment
+    - multi-agent
+    - theory of mind
+    - sparse autoencoder
+    - steering vectors
+    - activation engineering
+    - chain of thought
+    - model introspection
+    - AI safety
+
+  # Key AI figures to track
+  key_figures:
+    - Dario Amodei
+    - Daniela Amodei
+    - Ilya Sutskever
+    - Yann LeCun
+    - Andrej Karpathy
+    - Sam Altman
+    - Demis Hassabis
+    - Geoffrey Hinton
+    - Yoshua Bengio
+    - Jan Leike
+    - Chris Olah
+    - Sasha Rush
+    - Percy Liang
+    - Jacob Steinhardt
+    - Paul Christiano
+    - Eliezer Yudkowsky
+
+  # arXiv categories to monitor
+  arxiv_categories:
+    - cs.AI
+    - cs.CL
+    - cs.LG
+    - cs.CV
+    - cs.MA
+    - cs.NE
+    - stat.ML
+
+sources:
+  max_papers: 50
+  max_blog_posts: 30
+  max_community_posts: 30
+  max_events: 20
+  papers_days_back: 3
+  subreddits:
+    - MachineLearning
+    - artificial
+    - LocalLLaMA
+  enable_arxiv: true
+  enable_blogs: true
+  enable_communities: true
+  enable_events: true
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  temperature: 0.3
+  max_tokens: 4096
+  ranking_batch_size: 15
+  top_papers: 10
+  top_blog_posts: 8
+  top_community: 8
+  top_events: 10
+
+output:
+  output_dir: digests
+  markdown: true
+  terminal: true

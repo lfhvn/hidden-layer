@@ -25,6 +25,8 @@ setup(
             "shared.*",
             "mlx_lab",
             "mlx_lab.*",
+            "ai_research_aggregator",
+            "ai_research_aggregator.*",
             # Research areas - Python package names (underscore)
             "communication",
             "communication.*",
@@ -73,6 +75,7 @@ setup(
     entry_points={
         "console_scripts": [
             "mlx-lab=mlx_lab.cli:main",
+            "ai-digest=ai_research_aggregator.cli:main",
         ],
     },
     classifiers=[
