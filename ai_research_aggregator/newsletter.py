@@ -81,7 +81,7 @@ def digest_to_newsletter_html(
 
     parts.append(
         '<p style="color: #999; font-size: 12px; text-align: center;">'
-        "Curated by the Hidden Layer AI Research Aggregator"
+        "Curated by Hidden Layer"
         "</p>"
     )
 
@@ -102,7 +102,7 @@ def digest_to_newsletter_subject(digest: DailyDigest) -> str:
                 highlight += "..."
             break
 
-    return f"AI Research Digest - {date_str}{highlight}"
+    return f"Hidden Layer Digest - {date_str}{highlight}"
 
 
 def digest_to_newsletter_subtitle(digest: DailyDigest) -> str:

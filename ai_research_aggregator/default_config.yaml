@@ -96,8 +96,8 @@ output:
 # Substack newsletter publishing
 # Set your publication slug to enable newsletter features
 substack:
-  # Your Substack URL slug (e.g., "myresearch" for myresearch.substack.com)
-  publication: ""
+  # Your Substack URL slug (e.g., "hidden-layer" for hidden-layer.substack.com)
+  publication: "hidden-layer"
 
   # Login email (password is entered interactively or via token)
   email: ""
@@ -114,10 +114,12 @@ substack:
 
   # Text shown at the top of every newsletter issue
   intro_text: >
-    Your daily briefing on the most important AI research,
-    lab updates, community discussions, and Bay Area AI events.
+    Welcome to the Hidden Layer digest — your daily briefing on the most
+    important AI research, lab updates, community discussions, and Bay
+    Area AI events.
 
   # Text shown at the bottom of every newsletter issue
   footer_text: >
-    Found this useful? Share it with a friend who's interested in AI research.
-    Hit reply to send feedback or suggest sources.
+    Thanks for reading Hidden Layer. Found this useful? Share it with a
+    friend who's interested in AI research. Hit reply to send feedback
+    or suggest sources we should track.

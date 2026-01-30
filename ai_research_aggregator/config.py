@@ -157,8 +157,8 @@ class OutputSettings:
 class SubstackSettings:
     """Settings for Substack newsletter publishing."""
 
-    # Your Substack publication URL slug (e.g., "myresearch" for myresearch.substack.com)
-    publication: str = ""
+    # Your Substack publication URL slug (e.g., "hidden-layer" for hidden-layer.substack.com)
+    publication: str = "hidden-layer"
 
     # Authentication (email/password or token)
     email: str = ""
@@ -175,14 +175,14 @@ class SubstackSettings:
 
     # Newsletter intro text (appears at top of every issue)
     intro_text: str = (
-        "Your daily briefing on the most important AI research, "
-        "lab updates, community discussions, and Bay Area AI events."
+        "Welcome to the Hidden Layer digest — your daily briefing on the most "
+        "important AI research, lab updates, community discussions, and Bay Area AI events."
     )
 
     # Newsletter footer text
     footer_text: str = (
-        "Found this useful? Share it with a friend who's interested in AI research. "
-        "Hit reply to send feedback or suggest sources."
+        "Thanks for reading Hidden Layer. Found this useful? Share it with a friend "
+        "who's interested in AI research. Hit reply to send feedback or suggest sources we should track."
     )
 
 
