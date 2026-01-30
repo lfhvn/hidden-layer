@@ -9,8 +9,6 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from typing import List, Optional
 
-import requests
-
 from ai_research_aggregator.models import ContentItem, ContentType, SourceName
 
 from .base import BaseSource
@@ -41,12 +39,16 @@ HEADERS = {
 class ArxivSource(BaseSource):
     """Fetches recent AI papers from arXiv."""
 
+    cache_ttl_s = 14400  # arXiv updates slowly; cache 4 hours
+    request_delay_s = 1.0  # arXiv rate-limits aggressively
+
     def __init__(
         self,
         categories: Optional[List[str]] = None,
         search_terms: Optional[List[str]] = None,
         days_back: int = 2,
     ):
+        super().__init__()
         self.categories = categories or DEFAULT_CATEGORIES
         self.search_terms = search_terms or []
         self.days_back = days_back
@@ -78,8 +80,7 @@ class ArxivSource(BaseSource):
             "sortOrder": "descending",
         }
 
-        response = requests.get(ARXIV_API_URL, params=params, headers=HEADERS, timeout=30)
-        response.raise_for_status()
+        response = self._cached_get(ARXIV_API_URL, params=params, headers=HEADERS, timeout=30)
 
         root = ET.fromstring(response.text)
 

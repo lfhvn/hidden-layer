@@ -17,6 +17,7 @@ from ai_research_aggregator.models import (
     DailyDigest,
     DigestSection,
     EventItem,
+    SourceHealth,
 )
 from ai_research_aggregator.ranking import (
     generate_opportunity_analysis,
@@ -52,31 +53,36 @@ def generate_digest(
 
     start_time = time.time()
     total_items = 0
+    health_reports: List[SourceHealth] = []
 
     sections = []
 
     # --- Fetch from all sources ---
     print("Fetching AI research papers...")
-    papers = _fetch_papers(config)
+    papers, h = _fetch_papers(config)
+    health_reports.append(h)
     total_items += len(papers)
-    print(f"  Found {len(papers)} papers")
+    print(f"  Found {len(papers)} papers ({h.latency_s:.1f}s)")
 
     print("Fetching blog posts...")
-    blogs = _fetch_blogs(config)
+    blogs, h = _fetch_blogs(config)
+    health_reports.append(h)
     total_items += len(blogs)
-    print(f"  Found {len(blogs)} blog posts")
+    print(f"  Found {len(blogs)} blog posts ({h.latency_s:.1f}s)")
 
     print("Fetching community posts...")
-    community = _fetch_community(config)
+    community, h = _fetch_community(config)
+    health_reports.append(h)
     total_items += len(community)
-    print(f"  Found {len(community)} community posts")
+    print(f"  Found {len(community)} community posts ({h.latency_s:.1f}s)")
 
     events = []
     if not skip_events and config.sources.enable_events:
         print("Fetching SF AI events...")
-        events = _fetch_events(config)
+        events, h = _fetch_events(config)
+        health_reports.append(h)
         total_items += len(events)
-        print(f"  Found {len(events)} events")
+        print(f"  Found {len(events)} events ({h.latency_s:.1f}s)")
 
     # --- Rank and summarize ---
     rank_fn = rank_with_llm if use_llm else rank_with_keywords
@@ -135,47 +141,72 @@ def generate_digest(
         total_items_scanned=total_items,
         generation_time_s=elapsed,
         opportunity_analysis=opportunity,
+        source_health=health_reports,
     )
 
 
-def _fetch_papers(config: AggregatorConfig) -> List[ContentItem]:
-    """Fetch papers from configured sources."""
+def _fetch_papers(config: AggregatorConfig):
+    """Fetch papers from configured sources. Returns (items, SourceHealth)."""
     if not config.sources.enable_arxiv:
-        return []
+        return [], SourceHealth(source_name="arXiv", items_count=0)
 
     source = ArxivSource(
         categories=config.interests.arxiv_categories,
         search_terms=config.interests.search_terms,
         days_back=config.sources.papers_days_back,
     )
-    return source.fetch_safe(max_items=config.sources.max_papers)
+    items, result = source.fetch_with_health(max_items=config.sources.max_papers)
+    return items, SourceHealth(
+        source_name=result.source_name,
+        items_count=result.items_count,
+        error=result.error,
+        latency_s=result.latency_s,
+    )
 
 
-def _fetch_blogs(config: AggregatorConfig) -> List[ContentItem]:
-    """Fetch blog posts from configured sources."""
+def _fetch_blogs(config: AggregatorConfig):
+    """Fetch blog posts from configured sources. Returns (items, SourceHealth)."""
     if not config.sources.enable_blogs:
-        return []
+        return [], SourceHealth(source_name="AI Blogs", items_count=0)
 
     source = BlogAggregatorSource()
-    return source.fetch_safe(max_items=config.sources.max_blog_posts)
+    items, result = source.fetch_with_health(max_items=config.sources.max_blog_posts)
+    return items, SourceHealth(
+        source_name=result.source_name,
+        items_count=result.items_count,
+        error=result.error,
+        latency_s=result.latency_s,
+    )
 
 
-def _fetch_community(config: AggregatorConfig) -> List[ContentItem]:
-    """Fetch community posts from configured sources."""
+def _fetch_community(config: AggregatorConfig):
+    """Fetch community posts from configured sources. Returns (items, SourceHealth)."""
     if not config.sources.enable_communities:
-        return []
+        return [], SourceHealth(source_name="AI Communities", items_count=0)
 
     source = CommunitySource()
-    return source.fetch_safe(max_items=config.sources.max_community_posts)
+    items, result = source.fetch_with_health(max_items=config.sources.max_community_posts)
+    return items, SourceHealth(
+        source_name=result.source_name,
+        items_count=result.items_count,
+        error=result.error,
+        latency_s=result.latency_s,
+    )
 
 
-def _fetch_events(config: AggregatorConfig) -> List[ContentItem]:
-    """Fetch events from configured sources."""
+def _fetch_events(config: AggregatorConfig):
+    """Fetch events from configured sources. Returns (items, SourceHealth)."""
     if not config.sources.enable_events:
-        return []
+        return [], SourceHealth(source_name="SF AI Events", items_count=0)
 
     source = SFEventsSource()
-    return source.fetch_safe(max_items=config.sources.max_events)
+    items, result = source.fetch_with_health(max_items=config.sources.max_events)
+    return items, SourceHealth(
+        source_name=result.source_name,
+        items_count=result.items_count,
+        error=result.error,
+        latency_s=result.latency_s,
+    )
 
 
 def save_digest(digest: DailyDigest, config: Optional[AggregatorConfig] = None) -> str:
@@ -211,6 +242,14 @@ def print_digest_terminal(digest: DailyDigest):
     print("=" * 70)
     print(f"  AI RESEARCH DIGEST - {date_str}")
     print(f"  Scanned {digest.total_items_scanned} items | Generated in {digest.generation_time_s:.1f}s")
+    if digest.source_health:
+        health_parts = []
+        for sh in digest.source_health:
+            if sh.error:
+                health_parts.append(f"{sh.source_name}: FAILED")
+            else:
+                health_parts.append(f"{sh.source_name}: {sh.items_count} ({sh.latency_s:.1f}s)")
+        print(f"  Sources: {' | '.join(health_parts)}")
     print("=" * 70)
 
     for section in digest.sections:

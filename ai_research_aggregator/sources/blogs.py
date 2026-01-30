@@ -11,8 +11,6 @@ from datetime import datetime
 from email.utils import parsedate_to_datetime
 from typing import Dict, List, Optional, Tuple
 
-import requests
-
 from ai_research_aggregator.models import ContentItem, ContentType, SourceName
 
 from .base import BaseSource
@@ -71,7 +69,11 @@ HEADERS = {
 class BlogAggregatorSource(BaseSource):
     """Aggregates content from AI research blogs."""
 
+    cache_ttl_s = 14400  # Blogs update slowly; cache 4 hours
+    request_delay_s = 0.5
+
     def __init__(self, extra_feeds: Optional[List[Dict]] = None):
+        super().__init__()
         self.feeds = BLOG_FEEDS.copy()
         if extra_feeds:
             self.feeds.extend(extra_feeds)
@@ -97,8 +99,7 @@ class BlogAggregatorSource(BaseSource):
 
     def _fetch_feed(self, config: Dict, max_per_feed: int = 20) -> List[ContentItem]:
         """Fetch and parse a single RSS/Atom feed."""
-        response = requests.get(config["url"], headers=HEADERS, timeout=15)
-        response.raise_for_status()
+        response = self._cached_get(config["url"], headers=HEADERS, timeout=15)
 
         items = []
         try:

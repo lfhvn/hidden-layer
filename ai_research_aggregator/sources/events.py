@@ -11,8 +11,6 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import List, Optional
 
-import requests
-
 from ai_research_aggregator.models import ContentType, EventItem, SourceName
 
 from .base import BaseSource
@@ -65,6 +63,12 @@ SF_LOCATIONS = [
 class LumaEventsSource(BaseSource):
     """Fetches AI events from Lu.ma."""
 
+    cache_ttl_s = 3600  # 1 hour
+    request_delay_s = 0.5
+
+    def __init__(self):
+        super().__init__()
+
     @property
     def name(self) -> str:
         return "Lu.ma Events"
@@ -79,7 +83,7 @@ class LumaEventsSource(BaseSource):
         for query in search_queries:
             try:
                 # Lu.ma public search endpoint
-                response = requests.get(
+                response = self._cached_get(
                     "https://api.lu.ma/public/v2/event/search",
                     params={"query": query, "limit": 10},
                     headers=HEADERS,
@@ -105,7 +109,7 @@ class LumaEventsSource(BaseSource):
         """Fallback: try Lu.ma discover for SF area."""
         items = []
         try:
-            response = requests.get(
+            response = self._request_with_retry(
                 "https://lu.ma/sf",
                 headers=HEADERS,
                 timeout=10,
@@ -185,6 +189,12 @@ class LumaEventsSource(BaseSource):
 class EventbriteSource(BaseSource):
     """Fetches AI events from Eventbrite (public search, no API key required)."""
 
+    cache_ttl_s = 3600  # 1 hour
+    request_delay_s = 0.5
+
+    def __init__(self):
+        super().__init__()
+
     @property
     def name(self) -> str:
         return "Eventbrite"
@@ -196,7 +206,7 @@ class EventbriteSource(BaseSource):
         search_url = "https://www.eventbrite.com/d/ca--san-francisco/ai-artificial-intelligence/"
 
         try:
-            response = requests.get(search_url, headers=HEADERS, timeout=15)
+            response = self._cached_get(search_url, headers=HEADERS, timeout=15)
             if response.status_code == 200:
                 # Extract structured data from the page
                 items = self._parse_eventbrite_html(response.text)
@@ -314,6 +324,7 @@ class SFEventsSource(BaseSource):
     """Meta-source that aggregates all SF AI event sources."""
 
     def __init__(self):
+        super().__init__()
         self.sources = [
             LumaEventsSource(),
             EventbriteSource(),

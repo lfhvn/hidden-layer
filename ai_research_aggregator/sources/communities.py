@@ -8,8 +8,6 @@ import logging
 from datetime import datetime
 from typing import List, Optional
 
-import requests
-
 from ai_research_aggregator.models import ContentItem, ContentType, SourceName
 
 from .base import BaseSource
@@ -30,7 +28,11 @@ REDDIT_URL = "https://www.reddit.com/r/{subreddit}/hot.json"
 class HackerNewsSource(BaseSource):
     """Fetches AI-related posts from Hacker News."""
 
+    cache_ttl_s = 3600  # 1 hour
+    request_delay_s = 0.5
+
     def __init__(self, search_terms: Optional[List[str]] = None):
+        super().__init__()
         self.search_terms = search_terms or [
             "AI", "LLM", "GPT", "Claude", "machine learning",
             "neural network", "transformer", "deep learning",
@@ -55,8 +57,7 @@ class HackerNewsSource(BaseSource):
                     "hitsPerPage": min(10, max_items),
                     "numericFilters": f"created_at_i>{int(datetime.now().timestamp()) - 86400 * 3}",
                 }
-                response = requests.get(HN_SEARCH_URL, params=params, headers=HEADERS, timeout=10)
-                response.raise_for_status()
+                response = self._cached_get(HN_SEARCH_URL, params=params, headers=HEADERS, timeout=10)
                 data = response.json()
 
                 for hit in data.get("hits", []):
@@ -105,7 +106,11 @@ class HackerNewsSource(BaseSource):
 class RedditMLSource(BaseSource):
     """Fetches posts from ML-related subreddits."""
 
+    cache_ttl_s = 3600  # 1 hour
+    request_delay_s = 1.0  # Reddit is strict about rate limits
+
     def __init__(self, subreddits: Optional[List[str]] = None):
+        super().__init__()
         self.subreddits = subreddits or [
             "MachineLearning",
             "artificial",
@@ -125,13 +130,12 @@ class RedditMLSource(BaseSource):
         for subreddit in self.subreddits:
             try:
                 url = REDDIT_URL.format(subreddit=subreddit)
-                response = requests.get(
+                response = self._cached_get(
                     url,
                     headers={**HEADERS, "Accept": "application/json"},
                     params={"limit": per_sub, "raw_json": 1},
                     timeout=10,
                 )
-                response.raise_for_status()
                 data = response.json()
 
                 for post_data in data.get("data", {}).get("children", []):
@@ -182,6 +186,7 @@ class CommunitySource(BaseSource):
     """Meta-source that aggregates all community sources."""
 
     def __init__(self):
+        super().__init__()
         self.sources = [
             HackerNewsSource(),
             RedditMLSource(),

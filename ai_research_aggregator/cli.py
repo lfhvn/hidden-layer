@@ -40,6 +40,10 @@ def cmd_digest(args):
     else:
         logging.basicConfig(level=logging.WARNING)
 
+    if getattr(args, "no_cache", False):
+        from ai_research_aggregator.sources.base import BaseSource
+        BaseSource.clear_cache()
+
     digest = generate_digest(
         config=config,
         use_llm=not args.no_llm,
@@ -421,6 +425,7 @@ def create_parser() -> argparse.ArgumentParser:
     digest_parser = subparsers.add_parser("digest", help="Generate daily digest (default)")
     digest_parser.add_argument("--save", "-s", action="store_true", help="Save digest to markdown file")
     digest_parser.add_argument("--no-llm", action="store_true", help="Skip LLM ranking (keyword-only)")
+    digest_parser.add_argument("--no-cache", action="store_true", help="Bypass response cache")
     digest_parser.add_argument("--skip-events", action="store_true", help="Skip event fetching")
     digest_parser.set_defaults(func=cmd_digest)
 

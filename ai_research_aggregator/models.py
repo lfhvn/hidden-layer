@@ -73,6 +73,16 @@ class DigestSection:
 
 
 @dataclass
+class SourceHealth:
+    """Health report for a source fetch."""
+
+    source_name: str
+    items_count: int = 0
+    error: Optional[str] = None
+    latency_s: float = 0.0
+
+
+@dataclass
 class DailyDigest:
     """The full daily digest output."""
 
@@ -84,6 +94,9 @@ class DailyDigest:
     # LLM-generated synthesis identifying a business or research opportunity
     # that emerges from the day's highlights
     opportunity_analysis: str = ""
+
+    # Per-source health data
+    source_health: List["SourceHealth"] = field(default_factory=list)
 
     def to_markdown(self) -> str:
         """Render the digest as markdown."""
