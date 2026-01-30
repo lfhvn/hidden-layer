@@ -119,42 +119,29 @@ def check_api_key(provider: str) -> bool:
         return True  # Local provider, always available
     return bool(os.environ.get(env_var))
 
-# Prompt for LLM-based ranking
-RANKING_PROMPT = """You are an AI research analyst. Given the user's research interests and a list of content items, score each item's relevance and provide a brief summary.
+# --- Prompt loading ---
+# Prompts are loaded from .txt files in the prompts/ directory.
+# The editorial persona is automatically injected via {persona} placeholder.
 
-## User's Research Interests
-{interests}
+def _get_ranking_prompt(interests: str, key_figures: str, items_json: str) -> str:
+    """Build the ranking prompt from template files."""
+    from ai_research_aggregator.prompts import get_prompt
+    return get_prompt(
+        "ranking",
+        interests=interests,
+        key_figures=key_figures,
+        items_json=items_json,
+    )
 
-## Key Figures of Interest
-{key_figures}
 
-## Content Items to Rank
-{items_json}
-
-## Instructions
-For each item, provide:
-1. **relevance_score**: 0-100 integer (100 = extremely relevant to the user's interests)
-2. **summary**: 1-2 sentence summary of what this item is about
-3. **relevance_reason**: Brief explanation of why this is (or isn't) relevant
-
-Consider:
-- Direct topic match with user interests (highest weight)
-- Authored by or mentioning key figures of interest (bonus)
-- Novelty and potential impact of the work
-- Recency (prefer newer content)
-- Community engagement signals (points, comments) for community posts
-
-Return a JSON array with objects containing: "index", "relevance_score", "summary", "relevance_reason"
-
-Example:
-```json
-[
-  {{"index": 0, "relevance_score": 85, "summary": "Proposes a new method for steering LLM behavior using activation vectors.", "relevance_reason": "Directly relates to steerability and activation engineering interests."}},
-  {{"index": 1, "relevance_score": 40, "summary": "Benchmark for image classification on medical datasets.", "relevance_reason": "Computer vision paper but not in core interest areas."}}
-]
-```
-
-Return ONLY the JSON array, no other text."""
+def _get_opportunity_prompt(interests: str, highlights: str) -> str:
+    """Build the opportunity analysis prompt from template files."""
+    from ai_research_aggregator.prompts import get_prompt
+    return get_prompt(
+        "opportunity",
+        interests=interests,
+        highlights=highlights,
+    )
 
 
 def rank_with_llm(
@@ -197,9 +184,11 @@ def rank_with_llm(
         # Prepare full items for the prompt
         items_for_prompt = _prepare_items_for_prompt(batch, include_abstracts=True)
 
-        prompt = RANKING_PROMPT.format(
-            interests="\n".join(f"- {t}" for t in config.interests.topics),
-            key_figures=", ".join(config.interests.key_figures),
+        interests_str = "\n".join(f"- {t}" for t in config.interests.topics)
+        figures_str = ", ".join(config.interests.key_figures)
+        prompt = _get_ranking_prompt(
+            interests=interests_str,
+            key_figures=figures_str,
             items_json=json.dumps(items_for_prompt, indent=2),
         )
 
@@ -211,9 +200,9 @@ def rank_with_llm(
             # First attempt failed — retry with titles-only (shorter prompt)
             logger.info(f"Retrying batch {batch_num} with titles-only prompt")
             items_for_prompt_short = _prepare_items_for_prompt(batch, include_abstracts=False)
-            short_prompt = RANKING_PROMPT.format(
-                interests="\n".join(f"- {t}" for t in config.interests.topics),
-                key_figures=", ".join(config.interests.key_figures),
+            short_prompt = _get_ranking_prompt(
+                interests=interests_str,
+                key_figures=figures_str,
                 items_json=json.dumps(items_for_prompt_short, indent=2),
             )
 
@@ -380,25 +369,6 @@ def _keyword_score_batch(
     return items
 
 
-OPPORTUNITY_PROMPT = """You are a strategic AI research analyst for an independent research lab called Hidden Layer. Given today's top-ranked research highlights, identify ONE compelling opportunity — either a business opportunity or a promising direction for further research — that emerges from the convergence of these items.
-
-## User's Research Interests
-{interests}
-
-## Today's Top Highlights
-{highlights}
-
-## Instructions
-Write a 2-3 paragraph analysis that:
-1. Identifies a specific opportunity (business venture, research direction, tool/product, or collaboration) that connects two or more of today's highlights
-2. Explains WHY this opportunity exists now — what convergence of advances makes it timely
-3. Outlines a concrete first step someone could take to pursue it
-
-Be specific and sophisticated. Avoid generic advice like "stay informed" or "consider AI safety." Instead, identify non-obvious connections between the day's highlights and articulate an actionable opportunity that a technically sophisticated reader would find genuinely insightful.
-
-Write in a direct, analytical tone. No bullet points — use flowing prose. Do not include a title or heading; just the analysis text."""
-
-
 def generate_opportunity_analysis(
     digest_sections: list,
     config: "AggregatorConfig",
@@ -434,7 +404,7 @@ def generate_opportunity_analysis(
     if not highlights:
         return ""
 
-    prompt = OPPORTUNITY_PROMPT.format(
+    prompt = _get_opportunity_prompt(
         interests="\n".join(f"- {t}" for t in config.interests.topics),
         highlights=json.dumps(highlights, indent=2),
     )
@@ -462,6 +432,239 @@ def generate_opportunity_analysis(
         if tracker:
             tracker.record_failure()
         return ""
+
+
+# --- Pass 2: Editorial summaries, section intros, headline ---
+
+def generate_editorial_summaries(
+    items: List[ContentItem],
+    all_top_items: List[ContentItem],
+    config: "AggregatorConfig",
+) -> List[ContentItem]:
+    """
+    Second-pass LLM: generate richer editorial summaries for top items.
+
+    Each item gets a 3-4 sentence summary that cross-references other items
+    in today's briefing and uses the editorial persona.
+
+    Args:
+        items: The top items to generate editorial summaries for.
+        all_top_items: All top items across sections (for cross-referencing).
+        config: Aggregator config.
+
+    Returns:
+        The same items with updated summary and relevance_reason fields.
+    """
+    try:
+        from harness import llm_call
+    except ImportError:
+        return items
+
+    if not check_api_key(config.llm.provider):
+        return items
+
+    from ai_research_aggregator.prompts import get_prompt
+
+    tracker = _cost_tracker
+
+    # Build cross-reference context (other items)
+    other_items_json = json.dumps([
+        {"title": it.title, "source": it.source.value, "summary": it.summary or ""}
+        for it in all_top_items
+    ], indent=2)
+
+    interests_str = "\n".join(f"- {t}" for t in config.interests.topics)
+
+    for i, item in enumerate(items):
+        item_json = json.dumps({
+            "title": item.title,
+            "source": item.source.value,
+            "type": item.content_type.value,
+            "abstract": item.abstract[:500] if item.abstract else "",
+            "authors": item.authors[:5],
+            "tags": item.tags[:10],
+            "current_summary": item.summary,
+        }, indent=2)
+
+        try:
+            prompt = get_prompt(
+                "editorial_summary",
+                interests=interests_str,
+                other_items=other_items_json,
+                item_json=item_json,
+            )
+
+            response = llm_call(
+                prompt=prompt,
+                provider=config.llm.provider,
+                model=config.llm.model,
+                temperature=0.4,
+                max_tokens=512,
+            )
+
+            if tracker:
+                input_tokens = getattr(response, "input_tokens", 0) or 0
+                output_tokens = getattr(response, "output_tokens", 0) or 0
+                tracker.record_call(input_tokens, output_tokens,
+                                    purpose=f"editorial summary {i+1}/{len(items)}")
+
+            parsed = _parse_json_object(response.text)
+            if parsed:
+                if parsed.get("summary"):
+                    item.summary = parsed["summary"]
+                if parsed.get("relevance_reason"):
+                    item.relevance_reason = parsed["relevance_reason"]
+
+        except Exception as e:
+            logger.warning(f"Editorial summary failed for '{item.title[:50]}': {e}")
+            if tracker:
+                tracker.record_failure()
+            # Keep existing pass-1 summary
+
+    return items
+
+
+def generate_section_intro(
+    section_title: str,
+    items: List[ContentItem],
+    config: "AggregatorConfig",
+) -> str:
+    """
+    Generate a 2-3 sentence editorial intro for a digest section.
+
+    Returns the intro text, or empty string on failure.
+    """
+    try:
+        from harness import llm_call
+    except ImportError:
+        return ""
+
+    if not check_api_key(config.llm.provider):
+        return ""
+
+    from ai_research_aggregator.prompts import get_prompt
+
+    items_summary = json.dumps([
+        {"title": it.title, "source": it.source.value}
+        for it in items
+    ], indent=2)
+
+    try:
+        prompt = get_prompt(
+            "section_intro",
+            section_title=section_title,
+            items_summary=items_summary,
+        )
+
+        response = llm_call(
+            prompt=prompt,
+            provider=config.llm.provider,
+            model=config.llm.model,
+            temperature=0.6,
+            max_tokens=256,
+        )
+
+        tracker = _cost_tracker
+        if tracker:
+            input_tokens = getattr(response, "input_tokens", 0) or 0
+            output_tokens = getattr(response, "output_tokens", 0) or 0
+            tracker.record_call(input_tokens, output_tokens,
+                                purpose=f"section intro: {section_title}")
+
+        return response.text.strip().strip('"')
+
+    except Exception as e:
+        logger.warning(f"Section intro failed for '{section_title}': {e}")
+        if _cost_tracker:
+            _cost_tracker.record_failure()
+        return ""
+
+
+def generate_headline(
+    top_items: List[ContentItem],
+    date_str: str,
+    config: "AggregatorConfig",
+) -> str:
+    """
+    Generate a compelling newsletter subject line from today's top items.
+
+    Returns the headline text, or empty string on failure.
+    """
+    try:
+        from harness import llm_call
+    except ImportError:
+        return ""
+
+    if not check_api_key(config.llm.provider):
+        return ""
+
+    from ai_research_aggregator.prompts import get_prompt
+
+    top_items_json = json.dumps([
+        {"title": it.title, "summary": it.summary or it.abstract[:150]}
+        for it in top_items[:3]
+    ], indent=2)
+
+    try:
+        prompt = get_prompt(
+            "headline",
+            top_items=top_items_json,
+            date=date_str,
+        )
+
+        response = llm_call(
+            prompt=prompt,
+            provider=config.llm.provider,
+            model=config.llm.model,
+            temperature=0.7,
+            max_tokens=100,
+        )
+
+        tracker = _cost_tracker
+        if tracker:
+            input_tokens = getattr(response, "input_tokens", 0) or 0
+            output_tokens = getattr(response, "output_tokens", 0) or 0
+            tracker.record_call(input_tokens, output_tokens, purpose="headline")
+
+        headline = response.text.strip().strip('"').strip("'")
+        # Enforce max length
+        if len(headline) > 70:
+            headline = headline[:67] + "..."
+        return headline
+
+    except Exception as e:
+        logger.warning(f"Headline generation failed: {e}")
+        if _cost_tracker:
+            _cost_tracker.record_failure()
+        return ""
+
+
+def _parse_json_object(text: str) -> Optional[Dict]:
+    """Parse a single JSON object from LLM response text."""
+    text = text.strip()
+    # Remove markdown code blocks
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```\s*$", "", text)
+
+    try:
+        result = json.loads(text)
+        if isinstance(result, dict):
+            return result
+    except json.JSONDecodeError:
+        pass
+
+    # Try to extract object from surrounding text
+    match = re.search(r'\{[\s\S]*\}', text)
+    if match:
+        try:
+            result = json.loads(match.group())
+            if isinstance(result, dict):
+                return result
+        except json.JSONDecodeError:
+            pass
+
+    return None
 
 
 def _parse_ranking_response(text: str, expected_count: int = 0) -> List[Dict]:

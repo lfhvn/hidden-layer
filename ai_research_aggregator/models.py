@@ -78,6 +78,7 @@ class DigestSection:
     title: str
     description: str
     items: List[ContentItem] = field(default_factory=list)
+    editorial_intro: str = ""
 
 
 @dataclass
@@ -98,6 +99,9 @@ class DailyDigest:
     sections: List[DigestSection] = field(default_factory=list)
     total_items_scanned: int = 0
     generation_time_s: float = 0.0
+
+    # LLM-generated newsletter headline
+    headline: str = ""
 
     # LLM-generated synthesis identifying a business or research opportunity
     # that emerges from the day's highlights
@@ -126,7 +130,10 @@ class DailyDigest:
         for section in self.sections:
             lines.append(f"## {section.title}")
             lines.append("")
-            if section.description:
+            if section.editorial_intro:
+                lines.append(f"*{section.editorial_intro}*")
+                lines.append("")
+            elif section.description:
                 lines.append(f"*{section.description}*")
                 lines.append("")
 

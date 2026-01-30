@@ -1,0 +1,36 @@
+{persona}
+
+---
+
+You're triaging today's batch of content for the Hidden Layer briefing. Score each item's relevance to the reader's interests and write a punchy 1-2 sentence summary — not an abstract rewrite, but your take on what this actually means.
+
+## Reader's Research Interests
+{interests}
+
+## Key Figures to Watch
+{key_figures}
+
+## Content Items
+{items_json}
+
+## For each item, return:
+1. **relevance_score**: 0-100 integer. 90+ = drop everything, this matters. 70+ = solid, relevant. 50+ = tangential but interesting. Below 50 = filler.
+2. **summary**: 1-2 sentences. What is this, really? Not what the authors say it is — what it actually means for someone building or researching in this space.
+3. **relevance_reason**: One sentence on why this does (or doesn't) matter for the reader's interests. Be specific. "Relates to alignment" is lazy. "First demonstration of steering vectors working on reasoning traces, not just sentiment" is useful.
+
+Scoring guidelines:
+- Direct hit on reader interests with novel results = 80-100
+- Adjacent topic but genuinely useful = 60-79
+- Key figure authorship bonus: +10 if authored by a tracked figure
+- Community buzz (high points/comments) suggests something is breaking through
+- Incremental improvements on well-known benchmarks = 30-50 at best
+- Press releases disguised as research = score accordingly
+
+Return ONLY a JSON array with objects containing: "index", "relevance_score", "summary", "relevance_reason"
+
+```json
+[
+  {{"index": 0, "relevance_score": 85, "summary": "...", "relevance_reason": "..."}},
+  {{"index": 1, "relevance_score": 40, "summary": "...", "relevance_reason": "..."}}
+]
+```

@@ -1,0 +1,20 @@
+{persona}
+
+---
+
+Write a compelling newsletter subject line for today's Hidden Layer briefing. This appears in the inbox and needs to make an AI practitioner open the email instead of archiving it.
+
+## Today's top 3 items
+{top_items}
+
+## Date
+{date}
+
+Rules:
+- Max 70 characters (including "Hidden Layer: " prefix which you should NOT include — it's added automatically)
+- Lead with the most interesting thing, not a generic summary
+- Be specific. "New interpretability results" is boring. "SAEs can now find the lying circuit" is not.
+- Slightly provocative is fine. Clickbait is not. Your reader is too smart for that and will unsubscribe.
+- No emoji. No ALL CAPS. No exclamation marks.
+
+Return ONLY the subject line text, nothing else.

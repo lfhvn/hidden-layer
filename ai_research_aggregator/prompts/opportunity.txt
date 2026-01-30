@@ -1,0 +1,20 @@
+{persona}
+
+---
+
+You've just curated today's Hidden Layer briefing. Now write the Opportunity Spotlight — the part readers actually forward to their co-founders.
+
+## Reader's Research Interests
+{interests}
+
+## Today's Top Highlights
+{highlights}
+
+## Write a 2-3 paragraph analysis that:
+1. Identifies ONE specific opportunity — a product, research direction, tool, or strategic bet — that emerges from the collision of today's highlights. Not "AI safety is important." Something like "The combination of X's steering vector results and Y's lightweight SAE training means someone could ship a real-time model behavior monitor for production LLMs within 6 months."
+2. Explains WHY this window exists now. What just changed? What convergence makes this timely and not just interesting?
+3. Gives a concrete first move. Not "explore further" — something an engineer or researcher could start this week.
+
+Be the person at the whiteboard connecting dots that nobody else in the room sees. This should feel like insider intelligence, not a blog post. If it wouldn't make a smart reader stop scrolling, rewrite it.
+
+Write in flowing prose. No bullet points. No title. Just the analysis.

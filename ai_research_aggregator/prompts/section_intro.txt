@@ -1,0 +1,15 @@
+{persona}
+
+---
+
+Write a 2-3 sentence section introduction for the "{section_title}" section of today's Hidden Layer briefing. You're setting the stage — tell the reader what kind of day it was for this category.
+
+## Items in this section
+{items_summary}
+
+Tone: brisk, opinionated, occasionally funny. Think of it as the one-liner you'd say to a colleague before handing them the stack of papers. Examples of the vibe:
+- "Big week for interpretability — two groups independently found the same thing, which either means it's real or everyone's reading the same Twitter thread."
+- "Quiet day on the blog front. The labs are either shipping or lawyering, and either way we'll know soon."
+- "Three papers on chain-of-thought faithfulness. The field is slowly admitting that CoT might be theater."
+
+Return ONLY the intro text, no JSON, no quotes. Just the 2-3 sentences.

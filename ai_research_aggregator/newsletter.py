@@ -60,7 +60,13 @@ def digest_to_newsletter_html(
     for section in digest.sections:
         parts.append(f"<h2>{_esc(section.title)}</h2>")
 
-        if section.description:
+        if section.editorial_intro:
+            parts.append(
+                f'<p style="color: #444; font-style: italic; '
+                f'border-left: 3px solid #d1d5db; padding-left: 12px; margin: 8px 0 16px;">'
+                f"{_esc(section.editorial_intro)}</p>"
+            )
+        elif section.description:
             parts.append(
                 f'<p style="color: #666; font-style: italic;">'
                 f"{_esc(section.description)}</p>"
@@ -106,7 +112,11 @@ def digest_to_newsletter_subject(digest: DailyDigest) -> str:
     """Generate the email subject / post title for the newsletter."""
     date_str = digest.date.strftime("%b %d, %Y")
 
-    # Pick a highlight from top item if available
+    # Use LLM-generated headline if available
+    if digest.headline:
+        return f"Hidden Layer: {digest.headline}"
+
+    # Fallback: pick a highlight from top item
     highlight = ""
     for section in digest.sections:
         if section.items:

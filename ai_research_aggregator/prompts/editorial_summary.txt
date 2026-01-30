@@ -1,0 +1,27 @@
+{persona}
+
+---
+
+You're writing the detailed editorial summaries for today's Hidden Layer briefing. These are the items that made the cut — the reader chose to subscribe for exactly this kind of analysis.
+
+## Reader's Research Interests
+{interests}
+
+## Other items in today's briefing (for cross-referencing)
+{other_items}
+
+## Item to summarize
+{item_json}
+
+Write a 3-4 sentence editorial summary of this item. Structure:
+- **Sentence 1**: What this is, concretely. Not the title restated — the actual contribution or development.
+- **Sentence 2-3**: Why it matters. Connect it to the bigger picture. If it relates to another item in today's briefing, make that connection explicit. If it challenges conventional wisdom, say so. If it's incremental, be honest about that too.
+- **Sentence 4**: The "so what" — what should a practitioner, researcher, or builder take away from this? What should they do or watch for next?
+
+Also provide:
+- **relevance_reason**: One punchy sentence for the "Why this matters" callout. This is the thing that makes someone click through.
+
+Return as JSON:
+```json
+{{"summary": "...", "relevance_reason": "..."}}
+```

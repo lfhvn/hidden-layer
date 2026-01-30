@@ -21,7 +21,10 @@ from ai_research_aggregator.models import (
 )
 from ai_research_aggregator.ranking import (
     check_api_key,
+    generate_editorial_summaries,
+    generate_headline,
     generate_opportunity_analysis,
+    generate_section_intro,
     get_cost_tracker,
     rank_with_keywords,
     rank_with_llm,
@@ -158,6 +161,38 @@ def generate_digest(
             items=events[:config.llm.top_events],
         ))
 
+    # --- Pass 2: Editorial enrichment (summaries, section intros, headline) ---
+    headline = ""
+    if use_llm and sections:
+        # Collect all top items for cross-referencing
+        all_top_items = []
+        for section in sections:
+            all_top_items.extend(section.items)
+
+        # Editorial summaries for top items in each non-event section
+        for section in sections:
+            if section.title == "Upcoming SF Bay Area AI Events":
+                continue  # Events don't need editorial summaries
+            if section.items:
+                print(f"Writing editorial summaries for {section.title}...")
+                generate_editorial_summaries(section.items, all_top_items, config)
+
+        # Section intros
+        for section in sections:
+            if section.items:
+                print(f"Writing intro for {section.title}...")
+                intro = generate_section_intro(section.title, section.items, config)
+                if intro:
+                    section.editorial_intro = intro
+
+        # Headline
+        print("Generating headline...")
+        headline = generate_headline(
+            all_top_items[:3],
+            datetime.now().strftime("%b %d, %Y"),
+            config,
+        )
+
     # --- Opportunity analysis ---
     opportunity = ""
     if use_llm and sections:
@@ -190,6 +225,7 @@ def generate_digest(
         sections=sections,
         total_items_scanned=total_items,
         generation_time_s=elapsed,
+        headline=headline,
         opportunity_analysis=opportunity,
         source_health=health_reports,
         llm_cost_estimate=llm_cost,
@@ -309,7 +345,10 @@ def print_digest_terminal(digest: DailyDigest):
     for section in digest.sections:
         print("")
         print(f"  {section.title.upper()}")
-        print(f"  {section.description}")
+        if section.editorial_intro:
+            print(f"  {section.editorial_intro}")
+        else:
+            print(f"  {section.description}")
         print("-" * 70)
 
         if not section.items:
