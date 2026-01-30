@@ -92,3 +92,32 @@ output:
   output_dir: digests
   markdown: true
   terminal: true
+
+# Substack newsletter publishing
+# Set your publication slug to enable newsletter features
+substack:
+  # Your Substack URL slug (e.g., "myresearch" for myresearch.substack.com)
+  publication: ""
+
+  # Login email (password is entered interactively or via token)
+  email: ""
+
+  # If true, ai-digest newsletter publish will go live immediately
+  # If false, creates a draft you can review first (recommended)
+  auto_publish: false
+
+  # Send email to subscribers when publishing
+  send_email: true
+
+  # Optional section/category ID (0 = no section)
+  section_id: 0
+
+  # Text shown at the top of every newsletter issue
+  intro_text: >
+    Your daily briefing on the most important AI research,
+    lab updates, community discussions, and Bay Area AI events.
+
+  # Text shown at the bottom of every newsletter issue
+  footer_text: >
+    Found this useful? Share it with a friend who's interested in AI research.
+    Hit reply to send feedback or suggest sources.

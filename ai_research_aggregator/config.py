@@ -154,6 +154,39 @@ class OutputSettings:
 
 
 @dataclass
+class SubstackSettings:
+    """Settings for Substack newsletter publishing."""
+
+    # Your Substack publication URL slug (e.g., "myresearch" for myresearch.substack.com)
+    publication: str = ""
+
+    # Authentication (email/password or token)
+    email: str = ""
+    password: str = ""
+
+    # Publish immediately or create as draft
+    auto_publish: bool = False
+
+    # Send email to subscribers when publishing
+    send_email: bool = True
+
+    # Optional section/category ID for the post
+    section_id: int = 0
+
+    # Newsletter intro text (appears at top of every issue)
+    intro_text: str = (
+        "Your daily briefing on the most important AI research, "
+        "lab updates, community discussions, and Bay Area AI events."
+    )
+
+    # Newsletter footer text
+    footer_text: str = (
+        "Found this useful? Share it with a friend who's interested in AI research. "
+        "Hit reply to send feedback or suggest sources."
+    )
+
+
+@dataclass
 class AggregatorConfig:
     """Full aggregator configuration."""
 
@@ -161,6 +194,7 @@ class AggregatorConfig:
     sources: SourceSettings = field(default_factory=SourceSettings)
     llm: LLMSettings = field(default_factory=LLMSettings)
     output: OutputSettings = field(default_factory=OutputSettings)
+    substack: SubstackSettings = field(default_factory=SubstackSettings)
 
     @classmethod
     def load(cls, path: Optional[str] = None) -> "AggregatorConfig":
@@ -227,6 +261,16 @@ class AggregatorConfig:
                 if attr in out:
                     setattr(config.output, attr, out[attr])
 
+        if "substack" in data:
+            sub = data["substack"]
+            for attr in (
+                "publication", "email", "password",
+                "auto_publish", "send_email", "section_id",
+                "intro_text", "footer_text",
+            ):
+                if attr in sub:
+                    setattr(config.substack, attr, sub[attr])
+
         return config
 
     def to_dict(self) -> Dict[str, Any]:
@@ -265,6 +309,15 @@ class AggregatorConfig:
                 "output_dir": self.output.output_dir,
                 "markdown": self.output.markdown,
                 "terminal": self.output.terminal,
+            },
+            "substack": {
+                "publication": self.substack.publication,
+                "email": self.substack.email,
+                "auto_publish": self.substack.auto_publish,
+                "send_email": self.substack.send_email,
+                "section_id": self.substack.section_id,
+                "intro_text": self.substack.intro_text,
+                "footer_text": self.substack.footer_text,
             },
         }
 
