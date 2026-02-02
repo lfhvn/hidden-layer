@@ -1,0 +1,27 @@
+# Evaluation configuration for test-time learning (TTL) and test-time training (TTT).
+task: ttl
+datasets:
+  - name: domain_shift_news_2025q3
+  - name: legal_contracts_holdout
+  - name: coding_stackexchange_recent
+adapter: lora
+ttl:
+  objective: input_perplexity_min
+  steps_per_batch: 1
+  max_tokens_update: 2000
+  sample_strategy:
+    type: high_perplexity
+    top_p: 0.2
+  replay_anchor: 200
+metrics:
+  - accuracy
+  - loss
+  - forgetting_rate
+  - latency
+  - throughput
+  - replay_regret
+gates:
+  promote_if:
+    delta_accuracy: ">= 0.10"
+    forgetting_rate: "<= 0.01"
+    temporal_correctness_delta: ">= 0.00"

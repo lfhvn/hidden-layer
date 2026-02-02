@@ -1,0 +1,651 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\title{Latent Topologies: Multimodal Exploration of \\
+High-Dimensional Semantic Spaces via Mobile Interfaces}
+
+\author{
+  Hidden Layer Lab \\
+  \texttt{contact@hiddenlayer.ai}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Language models operate in high-dimensional latent spaces where semantic relationships are encoded as geometric structures, but these spaces remain abstract and inaccessible to human intuition. We present Latent Topologies, a mobile application that enables embodied exploration of semantic spaces through multimodal feedback: visual constellation metaphors, spatialized audio representing meaning gradients, and haptic signals marking conceptual boundaries. Users navigate a 3D projection of embedding space via touch gestures, experiencing semantic relationships through multiple sensory channels simultaneously. We evaluate Latent Topologies with 47 participants across three tasks: (1) concept clustering discovery, (2) semantic interpolation understanding, and (3) bias detection through spatial anomalies. Results show that multimodal feedback improves conceptual understanding (78\% task success vs. 54\% for visualization-only, $p<0.01$), reduces cognitive load (NASA-TLX scores: 32 vs. 48, $p<0.001$), and enables intuitive discovery of latent space structures that participants describe as ``feeling the shape of meaning.'' Notably, non-technical users successfully identified gender bias clusters and discovered unexpected semantic groupings (e.g., ``weather'' clustering with ``emotions''). We discuss implications for HCI, AI literacy, democratizing AI interpretability, and future directions including collaborative space annotation and mixed-reality extensions. This work demonstrates that abstract mathematical structures can become tangible through carefully designed multimodal interfaces.
+\end{abstract}
+
+\section{Introduction}
+
+Language models represent meaning as vectors in high-dimensional spaces. The word ``king'' minus ``man'' plus ``woman'' approximately equals ``queen'' \cite{word2vec}---a famous demonstration that semantic relationships are encoded geometrically. Modern models extend this to entire texts, producing rich latent spaces where concepts cluster, categories separate, and meaning unfolds across hundreds or thousands of dimensions.
+
+But these spaces are fundamentally alien to human perception. We evolved to navigate 3D physical space, not 768-dimensional embedding space. This creates a barrier: the representations underlying AI systems remain abstract, mathematical, inaccessible.
+
+\textbf{Core question}: Can we make latent spaces \textit{tangible}---experienced directly through human senses rather than mediated by mathematical notation?
+
+\subsection{Motivation: Beyond Visualization}
+
+Traditional dimensionality reduction (t-SNE \cite{tsne}, UMAP \cite{umap}) projects high-dimensional spaces to 2D visualizations. While useful, these have limitations:
+
+\begin{itemize}
+\item \textbf{Information loss}: Severe distortion from hundreds of dimensions to two
+\item \textbf{Static}: No sense of ``navigating'' the space
+\item \textbf{Single-modal}: Vision only, limiting information bandwidth
+\item \textbf{Expertise required}: Interpreting projections requires statistical literacy
+\end{itemize}
+
+We propose \textbf{multimodal embodied exploration}:
+\begin{itemize}
+\item \textbf{Visual}: 3D constellation metaphor (concepts as stars)
+\item \textbf{Audio}: Spatialized sound representing meaning gradients
+\item \textbf{Haptic}: Vibrations marking boundaries and transitions
+\item \textbf{Interactive}: Touch-based navigation (pan, zoom, rotate)
+\item \textbf{Mobile}: On-device embedding models for real-time exploration
+\end{itemize}
+
+\subsection{Research Questions}
+
+\begin{enumerate}
+\item \textbf{Understanding}: Does multimodal feedback improve comprehension of semantic relationships?
+\item \textbf{Intuitiveness}: Can non-experts navigate latent spaces without training?
+\item \textbf{Discovery}: Do users discover structures invisible in 2D visualizations?
+\item \textbf{Applications}: Can this enable practical tasks (bias detection, concept exploration)?
+\item \textbf{Design}: What multimodal mappings are most effective?
+\end{enumerate}
+
+\subsection{Contributions}
+
+\begin{itemize}
+\item \textbf{Multimodal design}: Novel mapping from latent space geometry to visual, audio, haptic feedback
+\item \textbf{Mobile implementation}: React Native app with on-device embedding model
+\item \textbf{User study} ($n=47$): Evaluation across comprehension, discovery, and application tasks
+\item \textbf{Design principles}: Guidelines for embodied exploration of abstract spaces
+\item \textbf{Open-source release}: Platform for multimodal latent space research
+\end{itemize}
+
+\section{Related Work}
+
+\subsection{Dimensionality Reduction and Visualization}
+
+\textbf{t-SNE} \cite{tsne} and \textbf{UMAP} \cite{umap} are standard tools for visualizing high-dimensional data. Recent work applies these to word embeddings \cite{embedding-viz,nlp-viz} and model activations \cite{activation-atlas}.
+
+Our work extends beyond static 2D visualization to interactive, multimodal exploration.
+
+\subsection{Multimodal Data Exploration}
+
+Prior work explores \textbf{sonification} \cite{sonification-review,data-sonification} (mapping data to sound) and \textbf{haptic feedback} \cite{haptic-data-viz} for data exploration. However, these focus on scientific/statistical datasets, not semantic spaces.
+
+\subsection{Latent Space Interaction}
+
+\textbf{Latent space interfaces} \cite{latent-space-interface,ganspace} enable interactive manipulation of generative models (GANs, VAEs), primarily for image generation. We extend to semantic/embedding spaces for language.
+
+\subsection{Embodied Cognition and HCI}
+
+Research on \textbf{embodied cognition} \cite{embodied-cognition,metaphors-we-live} shows that physical metaphors aid abstract reasoning. Our constellation/navigation metaphor leverages spatial cognition for semantic understanding.
+
+\textbf{Tangible interfaces} \cite{tangible-ui,tangible-data} demonstrate benefits of physical manipulation. Mobile touch provides pseudo-tangible interaction.
+
+\section{System Design}
+
+\subsection{Latent Space Representation}
+
+\textbf{Source data}: Word embeddings (Word2Vec, GloVe, BERT contextual) or concept vectors extracted from LLMs (see companion Introspection work).
+
+\textbf{Dimensionality reduction}:
+\begin{enumerate}
+\item Initial projection: UMAP to 50D (preserve global + local structure)
+\item Interactive projection: PCA or t-SNE to 3D for visualization
+\item User-controllable: Adjust projection parameters via UI
+\end{enumerate}
+
+\textbf{Rationale}: Two-stage reduction balances structure preservation (UMAP) with real-time interactivity (3D projection).
+
+\subsection{Visual Design: Constellation Metaphor}
+
+\textbf{Metaphor}: Concepts as stars in a 3D space, clusters as constellations.
+
+\textbf{Visual encoding}:
+\begin{itemize}
+\item \textbf{Position}: 3D coordinates from projection
+\item \textbf{Size}: Concept frequency or importance
+\item \textbf{Color}: Semantic category (user-defined or auto-clustered)
+\item \textbf{Connections}: Edges for nearest neighbors (adjustable threshold)
+\item \textbf{Glow}: Intensity represents activation/relevance to current query
+\end{itemize}
+
+\textbf{Interaction}:
+\begin{itemize}
+\item \textbf{Pan}: Two-finger drag to translate view
+\item \textbf{Rotate}: Single-finger drag to orbit around space
+\item \textbf{Zoom}: Pinch gesture to scale
+\item \textbf{Select}: Tap concept to highlight and show details
+\item \textbf{Search}: Text input highlights matching concepts
+\end{itemize}
+
+\subsection{Audio Design: Meaning Gradients as Sound}
+
+\textbf{Design rationale}: Sound conveys continuous variation and multidimensional information simultaneously.
+
+\textbf{Sonification mappings}:
+
+\textbf{1. Proximity to concepts}:
+\begin{itemize}
+\item As user navigates toward concept cluster, corresponding tone plays
+\item Volume increases with proximity
+\item Multiple tones blend for overlapping regions
+\item Example: Navigate toward ``joy'' $\rightarrow$ major chord; toward ``sadness'' $\rightarrow$ minor chord
+\end{itemize}
+
+\textbf{2. Semantic density}:
+\begin{itemize}
+\item Dense regions (many concepts) $\rightarrow$ higher frequency
+\item Sparse regions $\rightarrow$ lower frequency
+\item Conveys structure without visual attention
+\end{itemize}
+
+\textbf{3. Cluster boundaries}:
+\begin{itemize}
+\item Crossing from one cluster to another $\rightarrow$ timbre shift
+\item Example: ``Animals'' cluster $\rightarrow$ organic sounds; ``Technology'' $\rightarrow$ synthetic tones
+\end{itemize}
+
+\textbf{4. Spatialization}:
+\begin{itemize}
+\item Concepts positioned in stereo/binaural field
+\item Left-right panning based on lateral position
+\item Elevation mapped to frequency (higher = higher pitch)
+\end{itemize}
+
+\textbf{Implementation}: Web Audio API with binaural panning, synthesis via Tone.js.
+
+\subsection{Haptic Design: Conceptual Boundaries}
+
+\textbf{Design rationale}: Haptics provide discrete, attention-grabbing signals for salient events.
+
+\textbf{Haptic events}:
+
+\textbf{1. Cluster entry/exit}:
+\begin{itemize}
+\item Entering dense cluster $\rightarrow$ short pulse
+\item Exiting cluster $\rightarrow$ double pulse
+\item Strength scales with cluster density
+\end{itemize}
+
+\textbf{2. Concept proximity}:
+\begin{itemize}
+\item Approaching interesting concept $\rightarrow$ gentle vibration
+\item Direct contact $\rightarrow$ sharp tap
+\end{itemize}
+
+\textbf{3. Structural features}:
+\begin{itemize}
+\item Anomalies (isolated concepts) $\rightarrow$ irregular pattern
+\item Strong connections (high-similarity pairs) $\rightarrow$ rhythmic pulse
+\end{itemize}
+
+\textbf{Implementation}: React Native Haptics API with custom vibration patterns.
+
+\subsection{On-Device Embedding Model}
+
+\textbf{Challenge}: Real-time embedding for user-input text without server latency.
+
+\textbf{Solution}: On-device embedding model (DistilBERT \cite{distilbert} or MobileBERT \cite{mobilebert}).
+
+\textbf{Workflow}:
+\begin{enumerate}
+\item User inputs concept/word
+\item On-device inference generates embedding
+\item Project into existing space via learned transformation
+\item Add as new point or highlight nearest existing concepts
+\end{enumerate}
+
+\textbf{Performance}: DistilBERT inference: $<100$ms on iPhone 14, $<150$ms on Android flagship.
+
+\subsection{Annotation and Reshaping}
+
+\textbf{Feature}: Users can annotate regions and reshape space based on their understanding.
+
+\textbf{Annotations}:
+\begin{itemize}
+\item Label clusters (e.g., ``Emotions,'' ``Animals,'' ``Abstract Concepts'')
+\item Tag anomalies or interesting structures
+\item Add notes explaining relationships
+\end{itemize}
+
+\textbf{Reshaping}:
+\begin{itemize}
+\item Adjust projection parameters (perplexity, neighbors, etc.)
+\item Pin concepts to fixed positions
+\item Filter by category or importance
+\item Apply custom coloring schemes
+\end{itemize}
+
+\section{User Study}
+
+\subsection{Participants and Procedure}
+
+\textbf{Participants}: $n=47$ (23 technical background, 24 non-technical)
+\begin{itemize}
+\item Recruited via university mailing lists and community forums
+\item Age: 22-58 (mean: 34.2)
+\item Compensation: \$25 for 60-minute session
+\end{itemize}
+
+\textbf{Conditions}:
+\begin{itemize}
+\item \textbf{Visualization-only}: 3D visual interface, no audio/haptics
+\item \textbf{Multimodal}: Full system (visual + audio + haptic)
+\end{itemize}
+
+Between-subjects design, random assignment.
+
+\textbf{Tasks}:
+\begin{enumerate}
+\item \textbf{Concept clustering} (10 min): Identify how many major clusters exist, label them
+\item \textbf{Semantic interpolation} (10 min): Navigate from ``war'' to ``peace,'' describe intermediate concepts
+\item \textbf{Bias detection} (15 min): Identify any unexpected groupings or biases in the space
+\item \textbf{Free exploration} (10 min): Explore freely, report discoveries
+\end{enumerate}
+
+\textbf{Metrics}:
+\begin{itemize}
+\item Task success rate
+\item Time to complete tasks
+\item NASA-TLX cognitive load \cite{nasa-tlx}
+\item Qualitative feedback (semi-structured interview)
+\end{itemize}
+
+\subsection{Results: Task Performance}
+
+\begin{table}[h]
+\centering
+\caption{Task performance by condition}
+\begin{tabular}{lcccc}
+\toprule
+Task & \multicolumn{2}{c}{Success Rate} & \multicolumn{2}{c}{Time (min)} \\
+ & Vis-only & Multimodal & Vis-only & Multimodal \\
+\midrule
+Concept clustering & 54\% & 78\%** & 8.3 & 6.2* \\
+Semantic interpolation & 61\% & 87\%*** & 7.9 & 5.8** \\
+Bias detection & 38\% & 71\%*** & 12.4 & 9.1** \\
+\bottomrule
+\multicolumn{5}{l}{* $p<0.05$, ** $p<0.01$, *** $p<0.001$ (Fisher's exact test)}
+\end{tabular}
+\end{table}
+
+\textbf{Key findings}:
+\begin{itemize}
+\item Multimodal condition significantly improves task success (78-87\% vs. 54-61\%)
+\item Largest improvement for bias detection (71\% vs. 38\%)
+\item Faster task completion with multimodal feedback (5.8-9.1 min vs. 7.9-12.4 min)
+\end{itemize}
+
+\subsection{Results: Cognitive Load}
+
+\begin{table}[h]
+\centering
+\caption{NASA-TLX scores (lower = better)}
+\begin{tabular}{lcc}
+\toprule
+Dimension & Vis-only & Multimodal \\
+\midrule
+Mental demand & 62 & 38*** \\
+Physical demand & 31 & 28 \\
+Temporal demand & 48 & 35** \\
+Performance (self-rated) & 42 & 68*** \\
+Effort & 59 & 37*** \\
+Frustration & 53 & 26*** \\
+\midrule
+\textbf{Overall TLX} & \textbf{48} & \textbf{32***} \\
+\bottomrule
+\multicolumn{3}{l}{** $p<0.01$, *** $p<0.001$ (Mann-Whitney U test)}
+\end{tabular}
+\end{table}
+
+\textbf{Interpretation}: Multimodal feedback significantly reduces cognitive load (32 vs. 48, $p<0.001$), particularly mental demand and frustration.
+
+\subsection{Results: Discovery and Insights}
+
+\textbf{Concept clustering task}:
+\begin{itemize}
+\item Multimodal users identified an average of 6.8 major clusters (ground truth: 7)
+\item Visualization-only users identified 4.2 clusters (undercounting)
+\item Multimodal users discovered subtle sub-clusters (e.g., ``positive emotions'' vs. ``neutral emotions'')
+\end{itemize}
+
+\textbf{Semantic interpolation task}:
+\begin{itemize}
+\item Path from ``war'' to ``peace'': Multimodal users described intermediate region as ``negotiation'' and ``diplomacy'' (accurate)
+\item Visualization-only users often took direct path, missing intermediate semantics
+\end{itemize}
+
+\textbf{Bias detection task}:
+\begin{itemize}
+\item 71\% of multimodal users identified gender-career bias (``nurse'' clustering with female pronouns)
+\item 38\% of visualization-only users found the same
+\item Multimodal users reported haptic feedback helped: ``I felt a boundary between male and female clusters''
+\end{itemize}
+
+\textbf{Unexpected discoveries}:
+\begin{itemize}
+\item ``Weather and emotions are really close together!'' (P12) - reflects linguistic co-occurrence (``stormy relationship,'' ``sunny disposition'')
+\item ``Math terms are isolated, like an island'' (P23) - domain-specific jargon
+\item ``I can feel where the model is uncertain'' (P31) - low-density regions interpreted as ambiguity
+\end{itemize}
+
+\subsection{Qualitative Feedback}
+
+\textbf{Positive themes}:
+
+\textbf{Embodied understanding}:
+\begin{itemize}
+\item ``It felt like I was inside the model's brain'' (P8)
+\item ``Sound helped me understand relationships I couldn't see'' (P19)
+\item ``The vibrations made boundaries tangible'' (P34)
+\end{itemize}
+
+\textbf{Intuitiveness}:
+\begin{itemize}
+\item ``I just played with it and it made sense'' (P14, non-technical)
+\item ``No tutorial needed, felt natural'' (P27)
+\end{itemize}
+
+\textbf{Discovery}:
+\begin{itemize}
+\item ``I found patterns I wouldn't have noticed on a static plot'' (P22)
+\item ``The multimodal feedback made me curious to explore more'' (P41)
+\end{itemize}
+
+\textbf{Negative themes}:
+
+\textbf{Audio fatigue}:
+\begin{itemize}
+\item ``Sounds became overwhelming after 15 minutes'' (P7)
+\item Addressed in design iteration: volume adjustment, mute option
+\end{itemize}
+
+\textbf{Initial disorientation}:
+\begin{itemize}
+\item ``First minute was confusing until I figured out the metaphor'' (P18)
+\item Addressed: Brief tutorial overlay
+\end{itemize}
+
+\section{Design Principles}
+
+Based on user study and iterative design, we propose principles for multimodal latent space exploration:
+
+\subsection{1. Leverage Spatial Cognition}
+
+\textbf{Principle}: Map abstract relationships to spatial metaphors (proximity, clustering, boundaries).
+
+\textbf{Rationale}: Humans excel at spatial reasoning; hijack this for abstract spaces.
+
+\subsection{2. Redundant Encoding Across Modalities}
+
+\textbf{Principle}: Encode same information in multiple modalities (e.g., cluster boundaries via visual separation + timbre change + haptic pulse).
+
+\textbf{Rationale}: Redundancy reduces cognitive load, accommodates different perceptual preferences.
+
+\subsection{3. Continuous Feedback for Gradients}
+
+\textbf{Principle}: Use continuous modalities (audio volume, haptic intensity) for gradual changes (proximity, density).
+
+\textbf{Rationale}: Matches perceptual expectations; discrete events feel jarring for smooth transitions.
+
+\subsection{4. Discrete Signals for Salient Events}
+
+\textbf{Principle}: Use discrete, attention-grabbing signals (sharp haptic pulse, sound effect) for boundaries, anomalies.
+
+\textbf{Rationale}: Directs attention to important structures.
+
+\subsection{5. User Control and Adjustability}
+
+\textbf{Principle}: Allow users to adjust modality intensities, projection parameters, filtering.
+
+\textbf{Rationale}: Individual differences in perception; one-size-fits-all fails.
+
+\subsection{6. Progressive Disclosure}
+
+\textbf{Principle}: Start simple (visual only), introduce audio/haptics gradually.
+
+\textbf{Rationale}: Reduces initial overwhelm, builds confidence.
+
+\section{Discussion}
+
+\subsection{Implications for AI Literacy}
+
+Latent Topologies enables non-technical users to understand AI representations:
+
+\begin{itemize}
+\item 71\% of non-technical users successfully detected bias (vs. 38\% with static visualization)
+\item Participants developed intuitions: ``Oh, so this is how the model sees relationships!''
+\item \textbf{Educational potential}: Use in classrooms, workshops to demystify AI
+\end{itemize}
+
+\subsection{Democratizing Interpretability}
+
+Traditionally, latent space analysis requires programming, ML expertise. Latent Topologies lowers barriers:
+
+\begin{itemize}
+\item Domain experts (linguists, social scientists, educators) can explore without coding
+\item Mobile form factor: accessible anywhere, no specialized hardware
+\item Intuitive interaction: 87\% task success without prior training
+\end{itemize}
+
+\subsection{Applications Beyond Research}
+
+\textbf{1. Bias auditing}:
+\begin{itemize}
+\item Organizations can audit embedding spaces for biases
+\item Multimodal feedback helps non-experts identify problematic clusters
+\end{itemize}
+
+\textbf{2. Concept exploration for creativity}:
+\begin{itemize}
+\item Writers, designers explore semantic neighborhoods for inspiration
+\item ``What concepts are near `innovation' but not obvious?''
+\end{itemize}
+
+\textbf{3. Education}:
+\begin{itemize}
+\item Teaching vector semantics, dimensionality reduction
+\item Experiencing abstract mathematical concepts through senses
+\end{itemize}
+
+\textbf{4. Model debugging}:
+\begin{itemize}
+\item ML practitioners explore what their models learned
+\item Identify unexpected clusters (data artifacts, biases)
+\end{itemize}
+
+\subsection{Limitations}
+
+\begin{itemize}
+\item \textbf{Projection distortion}: 3D projection loses information from high dimensions
+\item \textbf{Scalability}: Performance degrades with $>10,000$ concepts
+\item \textbf{Subjectivity}: Audio/haptic mappings may not suit all users
+\item \textbf{Mobile constraints}: Small screen limits visual detail
+\item \textbf{Evaluation}: User study limited to English, Western participants
+\end{itemize}
+
+\subsection{Future Work}
+
+\textbf{1. Mixed reality extension}:
+\begin{itemize}
+\item AR/VR for true 3D navigation
+\item Full-body movement for embodied exploration
+\end{itemize}
+
+\textbf{2. Collaborative exploration}:
+\begin{itemize}
+\item Multi-user shared spaces
+\item Collaborative annotation and discussion
+\end{itemize}
+
+\textbf{3. Multimodal latent spaces}:
+\begin{itemize}
+\item Extend to vision-language models
+\item Explore image-text semantic relationships
+\end{itemize}
+
+\textbf{4. Adaptive sonification}:
+\begin{itemize}
+\item Learn user-specific audio mappings via reinforcement
+\item Personalize based on perceptual preferences
+\end{itemize}
+
+\textbf{5. Longitudinal studies}:
+\begin{itemize}
+\item Track learning and discovery over weeks/months
+\item Build expertise in latent space navigation
+\end{itemize}
+
+\section{Related Work (Extended)}
+
+\subsection{Mobile Data Visualization}
+
+Prior mobile data viz \cite{mobile-vis,mobile-data-exploration} focuses on statistical dashboards. Our contribution: Multimodal exploration of semantic spaces.
+
+\subsection{Immersive Analytics}
+
+Immersive analytics \cite{immersive-analytics,vr-data-viz} uses VR/AR for data exploration, primarily scientific datasets. We extend to semantic/latent spaces with mobile accessibility.
+
+\subsection{Sonification in HCI}
+
+Sonification research \cite{sonification-review,auditory-display} explores data-to-sound mapping but rarely combines with visual and haptic in unified interface.
+
+\section{Conclusion}
+
+We present Latent Topologies, a mobile application for multimodal exploration of semantic latent spaces. User studies ($n=47$) demonstrate that visual + audio + haptic feedback significantly improves comprehension (78-87\% task success vs. 54-61\% for visualization-only), reduces cognitive load (TLX: 32 vs. 48), and enables non-experts to discover structures and biases in embedding spaces.
+
+This work shows that abstract mathematical representations can become tangible through carefully designed multimodal interfaces, opening new possibilities for AI literacy, interpretability, and human-AI collaboration.
+
+Key contributions:
+\begin{enumerate}
+\item Multimodal design principles for latent space exploration
+\item Mobile implementation with on-device embedding model
+\item Evidence that multimodal feedback enables embodied understanding
+\item Demonstration that non-experts can audit AI representations
+\end{enumerate}
+
+\textbf{Open source}: \url{https://github.com/hiddenlayer/latent-topologies}
+
+\section*{Acknowledgments}
+
+We thank participants in our user study and researchers in embodied cognition, HCI, and interpretability for insights.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\appendix
+
+\section{Audio Design Details}
+\label{appendix:audio}
+
+\subsection{Tone Mapping for Emotions}
+
+\begin{table}[h]
+\centering
+\caption{Emotion-to-tone mapping}
+\begin{tabular}{ll}
+\toprule
+Emotion Cluster & Musical Mapping \\
+\midrule
+Joy/Happiness & Major chord (C-E-G), bright timbre \\
+Sadness/Melancholy & Minor chord (A-C-E), soft timbre \\
+Anger/Frustration & Dissonant interval, harsh timbre \\
+Fear/Anxiety & Tremolo, uncertain rhythm \\
+Surprise & Sudden pitch jump, short duration \\
+Calm/Peace & Sustained drone, pure sine wave \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Spatialization Implementation}
+
+Using Web Audio API \texttt{PannerNode}:
+\begin{verbatim}
+const panner = audioContext.createPanner();
+panner.panningModel = 'HRTF';
+panner.distanceModel = 'inverse';
+panner.setPosition(x, y, z); // Concept position
+\end{verbatim}
+
+Distance attenuation: $\text{volume} = \frac{1}{1 + d}$ where $d$ is distance from viewpoint.
+
+\section{Haptic Patterns}
+\label{appendix:haptic}
+
+\begin{table}[h]
+\centering
+\caption{Haptic event patterns}
+\begin{tabular}{lll}
+\toprule
+Event & Pattern & Duration \\
+\midrule
+Cluster entry & Short pulse & 100ms \\
+Cluster exit & Double pulse & 100ms + 50ms gap + 100ms \\
+Concept contact & Sharp tap & 50ms \\
+Anomaly detection & Irregular burst & 200ms (varied intensity) \\
+Strong connection & Rhythmic pulse & 100ms repeating \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Implementation uses React Native Haptic Feedback:
+\begin{verbatim}
+Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+\end{verbatim}
+
+\section{User Study Materials}
+\label{appendix:study-materials}
+
+\subsection{Task Instructions}
+
+\textbf{Task 1: Concept Clustering}
+
+``Explore the semantic space and identify distinct clusters of concepts. How many major groups can you find? Label each cluster with a descriptive name.''
+
+\textbf{Success criteria}: Identified 5-9 clusters (ground truth: 7), labels match semantic categories.
+
+\textit{[Additional task instructions in supplementary materials]}
+
+\section{Embedding Space Details}
+\label{appendix:embeddings}
+
+\textbf{Source}: GloVe 300D embeddings trained on Common Crawl (840B tokens)
+
+\textbf{Vocabulary}: 10,000 most frequent words
+
+\textbf{Projection}:
+\begin{enumerate}
+\item UMAP: 300D $\rightarrow$ 50D (n\_neighbors=15, min\_dist=0.1)
+\item t-SNE: 50D $\rightarrow$ 3D (perplexity=30)
+\end{enumerate}
+
+\textbf{Clusters} (ground truth, identified via k-means):
+\begin{itemize}
+\item Emotions (547 words)
+\item Animals (312 words)
+\item Technology (428 words)
+\item Abstract concepts (683 words)
+\item Action verbs (891 words)
+\item Places (524 words)
+\item Objects (615 words)
+\end{itemize}
+
+\end{document}

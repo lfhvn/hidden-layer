@@ -61,3 +61,9 @@ huggingface/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Node.js / Next.js
+node_modules/
+.next/
+next-env.d.ts
+.vercel

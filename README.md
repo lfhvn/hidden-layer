@@ -39,6 +39,12 @@ Building controllable, honest, aligned AI systems.
 - **[SELPHI](theory-of-mind/selphi/)** - Deception detection
 - **[Introspection](theory-of-mind/introspection/)** - Honest self-reporting
 
+### 5. Memory & Personalization
+Understanding long-horizon memory, lifelog retrieval, and preference-aware adaptation.
+
+**Projects**:
+- **[Lifelog Personalization Gatekeeper](memory/lifelog-personalization/)** - Evaluation harness for lifelog retrieval, TTL/TTT adapters, and personalization gates
+
 ---
 
 ## Projects
@@ -87,6 +93,13 @@ Non-linguistic communication between LLMs via latent representations.
 
 **Focus**: Efficient agent communication through internal states
 
+### [Lifelog Personalization Gatekeeper](memory/lifelog-personalization/)
+Evaluation gatekeeper for lifelog retrieval, long-context memory, personalization, TTL/TTT adapters, and model editing promotion gates.
+
+**Status**: Active | **Stack**: Python, Pandas, Jupyter
+
+**Features**: Dataset loaders, configurable runners, promotion gate policies, notebook workflows
+
 ### [Steerability](alignment/steerability/)
 Real-time steering with adherence metrics.
 
@@ -133,6 +146,7 @@ response = llm_call("Question?", provider="anthropic", model="claude-3-5-sonnet-
 ---
 
 ## Quick Start
+<<<<<<< HEAD
  
  **The Fast Way:**
  ```bash
@@ -156,6 +170,31 @@ response = llm_call("Question?", provider="anthropic", model="claude-3-5-sonnet-
  cd communication/multi-agent    # Or theory-of-mind/selphi, representations/latent-space, etc.
  cat README.md
  ```
+=======
+
+**New to Hidden Layer?** → See **[QUICKSTART.md](QUICKSTART.md)** for complete setup guide
+
+**Looking for a specific project?** → See **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** for all projects and how to get started
+
+```bash
+# Clone
+git clone https://github.com/yourusername/hidden-layer
+cd hidden-layer
+
+# Setup environment
+make setup
+source venv/bin/activate
+
+# Verify setup
+python check_setup.py
+
+# Pick a project (see PROJECT_GUIDE.md for all options)
+cd communication/multi-agent    # Or theory-of-mind/selphi, representations/latent-space, etc.
+
+# See project README for specific instructions
+cat README.md
+```
+>>>>>>> 6a690060b86baa6e2d82273b3c829b0cfb8eb6ae
 
 ### Example: Multi-Agent Debate
 

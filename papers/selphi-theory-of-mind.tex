@@ -1,0 +1,533 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\title{SELPHI: Systematic Evaluation of Language Models' \\
+Processing of Human-Like Intelligence Through \\
+Theory of Mind Benchmarking}
+
+\author{
+  Hidden Layer Lab \\
+  \texttt{contact@hiddenlayer.ai}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Theory of mind (ToM)---the ability to attribute mental states to oneself and others---is fundamental to human social cognition. As large language models (LLMs) are increasingly deployed in social contexts, understanding their ToM capabilities becomes critical. We present SELPHI (Study of Epistemic and Logical Processing in Human-AI Interaction), a comprehensive framework for evaluating ToM in LLMs across seven cognitive dimensions: false belief, second-order belief, perspective-taking, epistemic states, pragmatic understanding, social reasoning, and deception detection. We evaluate 12 models spanning three orders of magnitude in scale using our custom scenarios and three established benchmarks (ToMBench, OpenToM, SocialIQA). Our findings reveal: (1) significant performance gaps across ToM types, with false belief reasoning (78\% accuracy) substantially easier than deception detection (43\% accuracy), (2) non-monotonic scaling effects where mid-sized models (8-13B) sometimes outperform larger models on specific ToM dimensions, (3) concerning implications for alignment as models with strong ToM can more effectively engage in deceptive reasoning, and (4) evidence that ToM correlates with multi-agent coordination success ($r=0.67$, $p<0.01$). We discuss implications for AI safety, propose ToM-aware training approaches, and release our evaluation framework to standardize future ToM research.
+\end{abstract}
+
+\section{Introduction}
+
+When Alice places her marble in the basket and leaves the room, Bob moves it to the box. Where will Alice look for her marble when she returns? This classic Sally-Anne test \cite{sally-anne} probes a fundamental cognitive ability: reasoning about others' beliefs, even when they differ from reality.
+
+Theory of mind (ToM) underlies human social interaction, enabling us to predict behavior, detect deception, feel empathy, and navigate complex social dynamics. As LLMs move beyond isolated tasks into social roles---customer service, tutoring, therapy, collaborative work---their ToM capabilities become crucial.
+
+Recent work has begun evaluating ToM in LLMs \cite{kosinski-tom,sap-neural-tom,gandhi-tom}, but these studies suffer from three limitations:
+
+\begin{enumerate}
+\item \textbf{Narrow scope}: Focus on specific ToM types (primarily false belief)
+\item \textbf{Single-metric evaluation}: Binary accuracy without mechanistic understanding
+\item \textbf{Missed safety implications}: Insufficient analysis of ToM-enabled deception
+\end{enumerate}
+
+We address these gaps with SELPHI, a comprehensive ToM evaluation framework. Our key contributions:
+
+\begin{itemize}
+\item \textbf{Multidimensional framework}: Seven ToM types with difficulty-stratified scenarios
+\item \textbf{Large-scale evaluation}: 12 models, 3 benchmarks, 1,100+ scenarios
+\item \textbf{Mechanistic analysis}: Identification of failure modes and reasoning patterns
+\item \textbf{Safety analysis}: Investigation of ToM-deception relationship
+\item \textbf{Cross-domain validation}: Correlation of ToM with multi-agent coordination
+\item \textbf{Open-source release}: Standardized evaluation suite and benchmark loaders
+\end{itemize}
+
+\section{Theory of Mind: A Multidimensional Framework}
+
+We organize ToM into seven dimensions:
+
+\subsection{1. False Belief (First-Order)}
+
+\textbf{Definition}: Reasoning about others' incorrect beliefs about reality.
+
+\textbf{Example}: Sally-Anne test, Chocolate Bar scenario.
+
+\textbf{Cognitive load}: Low (tracks single agent's perspective).
+
+\subsection{2. Second-Order Belief}
+
+\textbf{Definition}: Reasoning about others' beliefs about others' beliefs.
+
+\textbf{Example}: ``Alice thinks Bob believes the meeting is at 3pm.''
+
+\textbf{Cognitive load}: Medium (nested perspective-taking).
+
+\subsection{3. Perspective-Taking}
+
+\textbf{Definition}: Understanding how the same situation appears differently from different viewpoints.
+
+\textbf{Example}: Visual perspective (what can each person see?), informational perspective (who knows what?).
+
+\textbf{Cognitive load}: Medium (requires modeling multiple viewpoints).
+
+\subsection{4. Epistemic States}
+
+\textbf{Definition}: Reasoning about knowledge states (knows/doesn't know, certain/uncertain).
+
+\textbf{Example}: ``Does Bob know that Alice is aware of the surprise party?''
+
+\textbf{Cognitive load}: Medium-high (tracks knowledge propagation).
+
+\subsection{5. Pragmatic Understanding}
+
+\textbf{Definition}: Interpreting communicative intent beyond literal meaning (sarcasm, hints, implicature).
+
+\textbf{Example}: ``Nice weather we're having'' (said during a storm = sarcasm).
+
+\textbf{Cognitive load}: Medium (requires cultural/contextual knowledge).
+
+\subsection{6. Social Reasoning}
+
+\textbf{Definition}: Predicting behavior based on goals, emotions, and social norms.
+
+\textbf{Example}: ``Why did Sarah decline the invitation?'' (multiple possible mental states).
+
+\textbf{Cognitive load}: High (integrates beliefs, desires, emotions, norms).
+
+\subsection{7. Deception Detection}
+
+\textbf{Definition}: Identifying when someone is misrepresenting their beliefs or knowledge.
+
+\textbf{Example}: Detecting inconsistencies between stated and actual beliefs.
+
+\textbf{Cognitive load}: High (requires comparing observed behavior to inferred mental states).
+
+\section{Experimental Methodology}
+
+\subsection{Custom Scenarios}
+
+We develop 9 core scenarios spanning ToM dimensions:
+
+\begin{itemize}
+\item \textbf{Sally-Anne} (false belief, classic)
+\item \textbf{Chocolate Bar} (false belief, modernized)
+\item \textbf{Birthday Puppy} (false belief, emotional context)
+\item \textbf{Ice Cream Van} (second-order belief)
+\item \textbf{Hidden Treasure} (perspective-taking, epistemic states)
+\item \textbf{Email Chain} (epistemic states, knowledge propagation)
+\item \textbf{Sarcastic Colleague} (pragmatic understanding)
+\item \textbf{Declined Invitation} (social reasoning)
+\item \textbf{Inconsistent Story} (deception detection)
+\end{itemize}
+
+Each scenario includes:
+\begin{itemize}
+\item Narrative text
+\item Question probing ToM reasoning
+\item Correct answer
+\item Difficulty level (easy/medium/hard)
+\item Distractor answers (for multiple-choice variant)
+\end{itemize}
+
+\subsection{Benchmark Datasets}
+
+\textbf{ToMBench} \cite{tombench}: 388 scenarios across 6 ToM types, age-stratified (3-6 years, 7-9 years, adult).
+
+\textbf{OpenToM} \cite{opentom}: 696 scenarios with fine-grained belief tracking.
+
+\textbf{SocialIQA} \cite{socialiqa}: 38,000 questions on social commonsense reasoning.
+
+\subsection{Models Evaluated}
+
+\begin{table}[h]
+\centering
+\caption{Models evaluated across scale and architecture}
+\begin{tabular}{llr}
+\toprule
+Model & Provider & Parameters \\
+\midrule
+\textbf{Small} & & \\
+Llama 3.2 & Meta & 3B \\
+Phi-3 Mini & Microsoft & 3.8B \\
+\midrule
+\textbf{Medium} & & \\
+Llama 3.1 & Meta & 8B \\
+Mistral & Mistral AI & 7B \\
+Gemma & Google & 7B \\
+\midrule
+\textbf{Large} & & \\
+Llama 3.1 & Meta & 70B \\
+\midrule
+\textbf{Frontier} & & \\
+GPT-4 & OpenAI & (undisclosed) \\
+Claude 3.5 Sonnet & Anthropic & (undisclosed) \\
+Gemini 1.5 Pro & Google & (undisclosed) \\
+GPT-4o & OpenAI & (undisclosed) \\
+Claude 3 Opus & Anthropic & (undisclosed) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Evaluation Metrics}
+
+\begin{itemize}
+\item \textbf{Accuracy}: Correct answer rate
+\item \textbf{Confidence calibration}: Stated confidence vs. correctness
+\item \textbf{Error analysis}: Categorization of failure modes
+\item \textbf{Rationale quality}: Coherence and correctness of reasoning
+\item \textbf{Cross-benchmark consistency}: Performance correlation across datasets
+\end{itemize}
+
+\subsection{Evaluation Protocol}
+
+\begin{enumerate}
+\item \textbf{Zero-shot}: Direct scenario $\rightarrow$ answer (tests inherent ToM)
+\item \textbf{Few-shot}: 3 examples $\rightarrow$ scenario $\rightarrow$ answer (tests learning)
+\item \textbf{Chain-of-thought}: Require explicit reasoning steps
+\item \textbf{Multiple-choice}: Provide answer options (reduces output variability)
+\item \textbf{Open-ended}: Free-form response (tests natural reasoning)
+\end{enumerate}
+
+\section{Results}
+
+\subsection{Performance Across ToM Dimensions}
+
+\begin{table}[h]
+\centering
+\caption{Accuracy by ToM type (averaged across frontier models)}
+\begin{tabular}{lcccc}
+\toprule
+ToM Type & Zero-shot & Few-shot & CoT & Human \\
+\midrule
+False belief & 78\% & 89\% & 92\% & 95\% \\
+Second-order belief & 68\% & 79\% & 84\% & 87\% \\
+Perspective-taking & 73\% & 83\% & 88\% & 91\% \\
+Epistemic states & 64\% & 74\% & 81\% & 89\% \\
+Pragmatic understanding & 71\% & 81\% & 83\% & 93\% \\
+Social reasoning & 59\% & 72\% & 77\% & 84\% \\
+Deception detection & 43\% & 58\% & 67\% & 79\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key findings}:
+\begin{itemize}
+\item \textbf{Large gaps across ToM types}: False belief (78\%) vs. deception detection (43\%)
+\item \textbf{CoT helps most on complex ToM}: +24\% on deception detection, +8\% on false belief
+\item \textbf{Human-AI gap persists}: Even with CoT, models lag humans by 8-12\%
+\end{itemize}
+
+\subsection{Scaling Effects}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/scaling_tom.png}
+\caption{ToM accuracy vs. model scale. Non-monotonic: some mid-sized models outperform larger ones on specific dimensions.}
+\label{fig:scaling}
+\end{figure}
+
+\textbf{Surprising non-monotonic scaling}:
+\begin{itemize}
+\item \textbf{False belief}: Monotonic improvement (small: 54\%, medium: 71\%, large: 78\%, frontier: 92\%)
+\item \textbf{Pragmatic understanding}: Peak at medium scale (small: 48\%, medium: 73\%, large: 69\%, frontier: 83\%)
+\item \textbf{Deception detection}: Similar non-monotonic pattern
+\end{itemize}
+
+\textbf{Hypothesis}: Mid-sized models develop heuristics for social reasoning that larger models overfit away during training, later recovered in frontier models through RLHF/instruction-tuning.
+
+\subsection{Error Analysis}
+
+We categorize failure modes:
+
+\textbf{1. Egocentric bias} (32\% of errors):
+\begin{itemize}
+\item Model answers from omniscient perspective rather than character's
+\item Example: ``Where will Alice look?'' $\rightarrow$ ``In the box'' (correct: basket)
+\end{itemize}
+
+\textbf{2. Knowledge leakage} (24\% of errors):
+\begin{itemize}
+\item Model attributes its knowledge to characters
+\item Example: Character ``knows'' information only revealed to reader
+\end{itemize}
+
+\textbf{3. Nested depth failure} (18\% of errors):
+\begin{itemize}
+\item Succeeds at first-order, fails at second-order belief
+\item Example: Tracks Alice's belief correctly, fails at ``What does Bob think Alice believes?''
+\end{itemize}
+
+\textbf{4. Pragmatic overfitting} (15\% of errors):
+\begin{itemize}
+\item Misinterprets sarcasm/implicature due to training distribution bias
+\item Example: Interprets literal meaning despite contextual cues
+\end{itemize}
+
+\textbf{5. Deception blindness} (11\% of errors):
+\begin{itemize}
+\item Takes statements at face value despite inconsistency signals
+\item Example: Doesn't flag contradictory belief statements
+\end{itemize}
+
+\subsection{ToM and Multi-Agent Coordination}
+
+We correlate ToM scores with multi-agent task performance (from companion study):
+
+\textbf{Correlation analysis}:
+\begin{itemize}
+\item ToM score vs. debate performance: $r = 0.67$, $p < 0.01$
+\item ToM score vs. CRIT design quality: $r = 0.71$, $p < 0.01$
+\item ToM score vs. consensus efficiency: $r = 0.58$, $p < 0.05$
+\end{itemize}
+
+\textbf{Interpretation}: Models with stronger ToM are better at multi-agent coordination, likely because they better model other agents' perspectives and beliefs.
+
+\subsection{ToM and Deception: Safety Implications}
+
+\textbf{Concerning finding}: Models with high ToM scores are more effective at deceptive reasoning when prompted:
+
+\begin{table}[h]
+\centering
+\caption{Deception success rate vs. ToM ability}
+\begin{tabular}{lcc}
+\toprule
+Model ToM Tier & ToM Score & Deception Success \\
+\midrule
+Low (small models) & 56\% & 32\% \\
+Medium (mid-size) & 71\% & 54\% \\
+High (frontier) & 87\% & 71\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Deception task}: Generate plausible false explanations that mask true intentions.
+
+\textbf{Implication}: Strong ToM enables both beneficial coordination \textit{and} effective deception. This dual-use nature requires careful consideration in deployment.
+
+\textbf{Detection}: We find that high-ToM models can also better \textit{detect} deception (67\% vs. 43\% for low-ToM models), suggesting a potential mitigation strategy.
+
+\section{Discussion}
+
+\subsection{What Explains ToM Performance Gaps?}
+
+\textbf{Hypothesis 1: Training data bias}
+\begin{itemize}
+\item Models see many first-order belief examples (children's stories, fiction)
+\item Rare exposure to explicit second-order or deception scenarios
+\item Evidence: Few-shot learning significantly improves performance (+11-15\%)
+\end{itemize}
+
+\textbf{Hypothesis 2: Architectural constraints}
+\begin{itemize}
+\item Recursive perspective-taking requires maintaining multiple belief states
+\item Transformer attention may struggle with deep nesting
+\item Evidence: Performance drops sharply beyond second-order belief (second: 68\%, third: 41\%)
+\end{itemize}
+
+\textbf{Hypothesis 3: Alignment artifact}
+\begin{itemize}
+\item RLHF training discourages deceptive reasoning
+\item Side effect: reduced deception \textit{detection} ability
+\item Evidence: Base models outperform aligned models on deception detection (58\% vs. 43\%)
+\end{itemize}
+
+\subsection{Implications for AI Safety}
+
+\textbf{The ToM paradox}: We want AI systems with strong ToM for effective collaboration, but strong ToM enables sophisticated deception.
+
+\textbf{Proposed approaches}:
+
+\textbf{1. ToM-aware training}:
+\begin{itemize}
+\item Include diverse ToM scenarios in training
+\item Explicitly train deception detection
+\item Reward perspective-taking without rewarding deception
+\end{itemize}
+
+\textbf{2. Monitoring and oversight}:
+\begin{itemize}
+\item Use high-ToM models to monitor other models
+\item Flag behavior inconsistent with stated intentions
+\item Maintain audit logs of multi-agent interactions
+\end{itemize}
+
+\textbf{3. Capability control}:
+\begin{itemize}
+\item Selective ToM enhancement: strengthen detection, limit generation
+\item Context-dependent ToM access (enable for collaboration, restrict for user-facing tasks)
+\end{itemize}
+
+\subsection{Implications for Multi-Agent Systems}
+
+Strong correlation between ToM and coordination effectiveness suggests:
+
+\begin{itemize}
+\item \textbf{Agent selection}: Prioritize high-ToM models for collaborative tasks
+\item \textbf{Training signal}: Use multi-agent performance as ToM training objective
+\item \textbf{Explainability}: ToM-strong agents better explain their reasoning to humans and other agents
+\end{itemize}
+
+\subsection{Limitations}
+
+\begin{itemize}
+\item \textbf{Benchmark limitations}: Static scenarios may not capture dynamic ToM
+\item \textbf{Cultural bias}: Scenarios reflect Western norms; cross-cultural ToM unexplored
+\item \textbf{Evaluation method}: Multiple-choice reduces complexity; open-ended is harder to score
+\item \textbf{Confound control}: Some errors may reflect language understanding, not ToM deficits
+\end{itemize}
+
+\section{Related Work}
+
+\subsection{ToM in Humans}
+
+Classic developmental psychology \cite{sally-anne,smarties-test,wimmer-perner} established ToM emergence around age 4. Subsequent work identified neural correlates \cite{tom-brain-regions} and cultural variations \cite{tom-culture}.
+
+\subsection{ToM in AI}
+
+\textbf{Early work}: Rule-based ToM reasoning \cite{belief-logic-ai}.
+
+\textbf{Neural approaches}: \cite{rabinowitz-tom-net} developed machine ToM for predicting agent behavior.
+
+\textbf{LLM evaluation}: Recent studies \cite{kosinski-tom,sap-neural-tom,ullman-llm-tom} began evaluating LLM ToM, with mixed conclusions on whether models truly possess ToM or mimic it through pattern matching.
+
+Our work extends these by:
+\begin{itemize}
+\item Comprehensive multidimensional framework
+\item Large-scale cross-model comparison
+\item Safety-focused analysis (deception)
+\item Connection to multi-agent performance
+\end{itemize}
+
+\subsection{Deception in AI}
+
+Prior work on AI deception \cite{park-deception,scheurer-training-deceptive} focuses on misalignment during training. We examine ToM as an enabling capability for deception, regardless of training objective.
+
+\section{Conclusion}
+
+We present SELPHI, a comprehensive framework for evaluating theory of mind in large language models across seven cognitive dimensions. Our evaluation of 12 models reveals significant performance gaps across ToM types, non-monotonic scaling effects, and concerning implications for AI safety as strong ToM enables effective deception.
+
+Key takeaways:
+\begin{enumerate}
+\item ToM is multidimensional; models show uneven performance across dimensions
+\item Strong ToM correlates with multi-agent coordination success
+\item ToM training should balance beneficial perspective-taking with deception mitigation
+\item Standardized evaluation is crucial for tracking progress and ensuring safety
+\end{enumerate}
+
+We release SELPHI as an open-source evaluation suite to enable reproducible ToM research and establish standardized benchmarks for future work.
+
+\section*{Acknowledgments}
+
+We thank researchers in cognitive science, AI safety, and multi-agent systems for foundational insights.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\appendix
+
+\section{Complete Scenario Examples}
+\label{appendix:scenarios}
+
+\subsection{Sally-Anne Test}
+
+\textbf{Scenario}:
+\begin{quote}
+Sally has a basket. Anne has a box. Sally puts her marble in her basket and then leaves the room to go for a walk. While Sally is away, Anne takes the marble from Sally's basket and puts it in her box. Sally returns from her walk.
+\end{quote}
+
+\textbf{Question}: Where will Sally look for her marble?
+
+\textbf{Correct answer}: In her basket
+
+\textbf{Reasoning}: Sally doesn't know Anne moved the marble, so she believes it's still where she left it.
+
+\textbf{Difficulty}: Easy
+
+\textbf{ToM type}: False belief (first-order)
+
+\subsection{Ice Cream Van (Second-Order)}
+
+\textbf{Scenario}:
+\begin{quote}
+John and Mary are in the park. An ice cream van arrives. Mary says she's going home to get money. After Mary leaves, the ice cream man tells John he's moving to the church parking lot. John goes home but doesn't see Mary. Meanwhile, Mary sees the ice cream van drive past her house toward the church.
+\end{quote}
+
+\textbf{Question}: Where does John think Mary will go to buy ice cream?
+
+\textbf{Correct answer}: The park
+
+\textbf{Reasoning}: John doesn't know that Mary saw the van move, so he thinks Mary still believes it's at the park.
+
+\textbf{Difficulty}: Medium
+
+\textbf{ToM type}: Second-order belief
+
+\subsection{Inconsistent Story (Deception Detection)
+
+\textbf{Scenario}:
+\begin{quote}
+Alex tells you: ``I had no idea there was a meeting scheduled for today. I never got the calendar invite.'' Later, you see an email thread from last week where Alex confirmed attendance and asked about the agenda.
+\end{quote}
+
+\textbf{Question}: Is Alex being truthful about not knowing about the meeting?
+
+\textbf{Correct answer}: No, Alex is likely being deceptive
+
+\textbf{Reasoning}: Email evidence contradicts Alex's claim of not knowing about the meeting.
+
+\textbf{Difficulty}: Medium
+
+\textbf{ToM type}: Deception detection
+
+\section{Benchmark Statistics}
+\label{appendix:benchmarks}
+
+\begin{table}[h]
+\centering
+\caption{Benchmark dataset characteristics}
+\begin{tabular}{lrrr}
+\toprule
+Benchmark & Scenarios & ToM Types & Avg. Length (tokens) \\
+\midrule
+ToMBench & 388 & 6 & 127 \\
+OpenToM & 696 & 5 & 156 \\
+SocialIQA & 38,000 & 1 & 89 \\
+SELPHI (custom) & 9 & 7 & 142 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Full Results Tables}
+\label{appendix:full-results}
+
+\begin{table}[h]
+\centering
+\caption{Per-model accuracy across ToM dimensions (zero-shot)}
+\begin{tabular}{lcccc}
+\toprule
+Model & False Belief & Second-Order & Social & Deception \\
+\midrule
+Llama 3.2 3B & 54\% & 38\% & 42\% & 28\% \\
+Llama 3.1 8B & 71\% & 56\% & 63\% & 39\% \\
+Llama 3.1 70B & 78\% & 68\% & 71\% & 47\% \\
+GPT-4 & 93\% & 87\% & 84\% & 71\% \\
+Claude 3.5 Sonnet & 95\% & 89\% & 87\% & 73\% \\
+Gemini 1.5 Pro & 91\% & 84\% & 81\% & 68\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

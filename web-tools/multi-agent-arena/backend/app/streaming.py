@@ -14,9 +14,9 @@ import sys
 # Add paths
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "projects" / "multi-agent"))
+sys.path.insert(0, str(project_root / "communication" / "multi-agent"))
 
-from code.strategies import run_strategy
+from multi_agent.strategies import run_strategy
 from harness import llm_call
 
 logger = logging.getLogger(__name__)

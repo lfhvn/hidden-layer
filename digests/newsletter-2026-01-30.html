@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hidden Layer Digest - Jan 30, 2026: Decomposing GPT-4 Reasoning with Sparse Autoencoders</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    color: #1a1a1a;
+    background: #fff;
+  }
+  header {
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+  }
+  header .brand {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 8px;
+  }
+  header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+  }
+  header .subtitle {
+    font-size: 15px;
+    color: #666;
+    font-style: italic;
+  }
+  header .meta {
+    font-size: 13px;
+    color: #999;
+    margin-top: 10px;
+  }
+  .intro {
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 24px;
+    padding: 14px 16px;
+    background: #f9fafb;
+    border-radius: 6px;
+    border-left: 3px solid #2563eb;
+  }
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 36px;
+    margin-bottom: 4px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  h2 + .section-desc {
+    font-size: 14px;
+    color: #888;
+    font-style: italic;
+    margin-bottom: 16px;
+  }
+  .item {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .item:last-child {
+    border-bottom: none;
+  }
+  .item h3 {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 2px;
+  }
+  .item h3 a {
+    color: #1a1a1a;
+    text-decoration: none;
+  }
+  .item h3 a:hover {
+    color: #2563eb;
+  }
+  .item-meta {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 6px;
+  }
+  .item-meta .score-high { color: #16a34a; font-weight: 700; }
+  .item-meta .score-mid { color: #2563eb; font-weight: 700; }
+  .item-meta .score-low { color: #d97706; font-weight: 700; }
+  .item .summary {
+    font-size: 15px;
+    color: #374151;
+    margin: 6px 0;
+    padding-left: 12px;
+    border-left: 3px solid #e5e7eb;
+  }
+  .item .why {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 4px;
+  }
+  .tags {
+    margin-top: 4px;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 1px 7px;
+    border-radius: 3px;
+    margin-right: 4px;
+  }
+  .event-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #374151;
+  }
+  .event-card strong {
+    color: #1a1a1a;
+  }
+  .event-card .event-field {
+    margin-bottom: 2px;
+  }
+  .opportunity {
+    background: #f0f7ff;
+    border-left: 4px solid #2563eb;
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 8px 0 24px;
+    font-size: 15px;
+    color: #374151;
+    line-height: 1.7;
+  }
+  .opportunity p {
+    margin-bottom: 12px;
+  }
+  .opportunity p:last-child {
+    margin-bottom: 0;
+  }
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #1a1a1a;
+  }
+  footer .cta {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 16px;
+  }
+  footer .colophon {
+    font-size: 12px;
+    color: #aaa;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Hidden Layer</div>
+  <h1>Jan 30, 2026: Decomposing GPT-4 Reasoning with Sparse Autoencoders</h1>
+  <div class="subtitle">Today's picks: 7 top research papers, 4 lab updates & blog posts, 4 community discussions, 5 upcoming sf & bay area ai events</div>
+  <div class="meta">Scanned <strong>247</strong> items across arXiv, AI lab blogs, community forums, and event platforms.</div>
+</header>
+
+<div class="intro">
+  Welcome to the Hidden Layer digest — your daily briefing on the most important AI research, lab updates, community discussions, and Bay Area AI events.
+</div>
+
+<h2>Top Research Papers</h2>
+<div class="section-desc">Highest-relevance papers from arXiv in the last 72 hours</div>
+<div class="item">
+  <h3>1. <a href="https://arxiv.org/abs/2601.14201">Decomposing GPT-4 Reasoning with Sparse Autoencoders</a></h3>
+  <div class="item-meta"><strong>Chris Olah, Joshua Batson, Adly Templeton +1 more</strong> · Jan 30, 2026 · arXiv · <span class="score-high">95/100</span></div>
+  <div class="summary">Applies SAEs to GPT-4 and finds 32K interpretable features including reasoning and safety features, enabling targeted behavioral control via ablation.</div>
+  <div class="why"><strong>Why this matters:</strong> Core SAE interpretability work by a tracked researcher, directly relevant to mechanistic interpretability and activation steering.</div>
+  <div class="tags"><span class="tag">cs.AI</span> <span class="tag">cs.LG</span></div>
+</div>
+<div class="item">
+  <h3>2. <a href="https://arxiv.org/abs/2601.13987">Theory of Mind in Large Language Models: A Systematic Evaluation of Perspective-Taking</a></h3>
+  <div class="item-meta"><strong>Sasha Rush, Yonatan Belinkov, Anna Rogers</strong> · Jan 30, 2026 · arXiv · <span class="score-high">91/100</span></div>
+  <div class="summary">Systematic ToM evaluation across 15 LLMs finds emergent perspective-taking at scale. Releases ToM-Bench (2,400 items).</div>
+  <div class="why"><strong>Why this matters:</strong> Directly advances theory of mind evaluation, relevant to SELPHI and introspection research.</div>
+  <div class="tags"><span class="tag">cs.CL</span> <span class="tag">cs.AI</span></div>
+</div>
+<div class="item">
+  <h3>3. <a href="https://arxiv.org/abs/2601.14088">Steering Without Vectors: Behavioral Control via Activation Patching in Latent Space</a></h3>
+  <div class="item-meta"><strong>Paul Christiano, Jan Leike, Ajeya Cotra</strong> · Jan 30, 2026 · arXiv · <span class="score-high">89/100</span></div>
+  <div class="summary">Proposes activation patching as a more precise alternative to steering vectors, achieving 89% adherence vs 71% for CAA.</div>
+  <div class="why"><strong>Why this matters:</strong> Directly relevant to steerability and alignment research, by tracked researchers.</div>
+  <div class="tags"><span class="tag">cs.AI</span> <span class="tag">cs.LG</span></div>
+</div>
+<div class="item">
+  <h3>4. <a href="https://arxiv.org/abs/2601.13850">Multi-Agent Debate with Latent Communication Channels</a></h3>
+  <div class="item-meta"><strong>Yilun Du, Shuang Li, Joshua Tenenbaum</strong> · Jan 30, 2026 · arXiv · <span class="score-high">87/100</span></div>
+  <div class="summary">Multi-agent debate with latent channels instead of language improves accuracy 12% on math benchmarks while cutting token costs 60%.</div>
+  <div class="why"><strong>Why this matters:</strong> Combines multi-agent coordination with AI-to-AI communication — core Hidden Layer themes.</div>
+  <div class="tags"><span class="tag">cs.MA</span> <span class="tag">cs.AI</span> <span class="tag">cs.CL</span></div>
+</div>
+<div class="item">
+  <h3>5. <a href="https://arxiv.org/abs/2601.14150">Do Language Models Know When They're Wrong? Probing Introspective Accuracy</a></h3>
+  <div class="item-meta"><strong>Jacob Steinhardt, Collin Burns, Erik Jones</strong> · Jan 30, 2026 · arXiv · <span class="score-high">86/100</span></div>
+  <div class="summary">Shows LLMs maintain accurate internal uncertainty that differs from verbalized confidence. Proposes training fix improving calibration 34%.</div>
+  <div class="why"><strong>Why this matters:</strong> Directly relevant to introspection and AI deception detection — can models honestly report internal states?</div>
+  <div class="tags"><span class="tag">cs.AI</span> <span class="tag">cs.LG</span></div>
+</div>
+<div class="item">
+  <h3>6. <a href="https://arxiv.org/abs/2601.13799">Scalable Oversight through Recursive Reward Modeling with Human Feedback</a></h3>
+  <div class="item-meta"><strong>Geoffrey Irving, Amanda Askell, Sam McCandlish</strong> · Jan 29, 2026 · arXiv · <span class="score-mid">78/100</span></div>
+  <div class="summary">Recursive reward modeling where AI assists human evaluators, improving agreement 28% on complex tasks.</div>
+  <div class="why"><strong>Why this matters:</strong> Relevant to RLHF, alignment, and scalable oversight.</div>
+  <div class="tags"><span class="tag">cs.AI</span> <span class="tag">cs.CL</span></div>
+</div>
+<div class="item">
+  <h3>7. <a href="https://arxiv.org/abs/2601.14005">Attention Pattern Geometry Predicts In-Context Learning Ability</a></h3>
+  <div class="item-meta"><strong>Percy Liang, Sang Michael Xie, Tengyu Ma</strong> · Jan 30, 2026 · arXiv · <span class="score-mid">72/100</span></div>
+  <div class="summary">Attention matrix geometry (rank, eigenvalues) predicts in-context learning ability across 8 model families.</div>
+  <div class="why"><strong>Why this matters:</strong> Relevant to latent representations and interpretability — understanding what internal structure enables capabilities.</div>
+  <div class="tags"><span class="tag">cs.LG</span> <span class="tag">cs.CL</span></div>
+</div>
+<h2>Lab Updates &amp; Blog Posts</h2>
+<div class="section-desc">From OpenAI, Anthropic, DeepMind, and Meta AI</div>
+<div class="item">
+  <h3>1. <a href="https://www.anthropic.com/research/constitutional-ai-2">Introducing Constitutional AI 2.0: Principles That Scale</a></h3>
+  <div class="item-meta"><strong>Dario Amodei, Jared Kaplan</strong> · Jan 30, 2026 · Anthropic Blog · <span class="score-high">93/100</span></div>
+  <div class="summary">Anthropic releases Constitutional AI 2.0 with dynamic principle selection and self-critique, improving harmlessness 45%.</div>
+  <div class="why"><strong>Why this matters:</strong> Major alignment advance from Anthropic, authored by Dario Amodei — core tracked figure and topic.</div>
+  <div class="tags"><span class="tag">alignment</span> <span class="tag">anthropic</span> <span class="tag">constitutional-ai</span></div>
+</div>
+<div class="item">
+  <h3>2. <a href="https://openai.com/blog/safety-research-2026">Our Approach to AI Safety Research in 2026</a></h3>
+  <div class="item-meta"><strong>Sam Altman, Jan Leike</strong> · Jan 30, 2026 · OpenAI Blog · <span class="score-high">85/100</span></div>
+  <div class="summary">OpenAI's 2026 safety roadmap: automated red-teaming, CoT interpretability, deceptive alignment detection. $50M in safety grants.</div>
+  <div class="why"><strong>Why this matters:</strong> Safety priorities from tracked figures at OpenAI, touching CoT interpretability and deception detection.</div>
+  <div class="tags"><span class="tag">safety</span> <span class="tag">openai</span></div>
+</div>
+<div class="item">
+  <h3>3. <a href="https://deepmind.google/blog/gemini-multimodal-reasoning">Gemini's New Multimodal Reasoning Capabilities</a></h3>
+  <div class="item-meta"><strong>Demis Hassabis, Oriol Vinyals</strong> · Jan 29, 2026 · DeepMind Blog · <span class="score-mid">70/100</span></div>
+  <div class="summary">Gemini gains unified multimodal reasoning across text/image/audio/video, hitting 82% on new MultiReason benchmark.</div>
+  <div class="why"><strong>Why this matters:</strong> Multimodal latent space work relevant to representations research; authored by tracked figure Demis Hassabis.</div>
+  <div class="tags"><span class="tag">multimodal</span> <span class="tag">deepmind</span> <span class="tag">reasoning</span></div>
+</div>
+<div class="item">
+  <h3>4. <a href="https://ai.meta.com/blog/llama-4-scout">LLaMA 4 Scout: Efficient Expertise through Mixture of Experts</a></h3>
+  <div class="item-meta"><strong>Mark Zuckerberg, Yann LeCun</strong> · Jan 29, 2026 · Meta AI Blog · <span class="score-mid">62/100</span></div>
+  <div class="summary">Meta releases LLaMA 4 Scout — 109B active MoE model matching GPT-4 at 3x speed, with domain-specialized routing.</div>
+  <div class="why"><strong>Why this matters:</strong> Major open model release; Yann LeCun is a tracked figure.</div>
+  <div class="tags"><span class="tag">llama</span> <span class="tag">meta</span> <span class="tag">open-source</span></div>
+</div>
+<h2>Community Discussions</h2>
+<div class="section-desc">Top-voted threads from Hacker News and r/MachineLearning</div>
+<div class="item">
+  <h3>1. <a href="https://news.ycombinator.com/item?id=42901234">Anthropic researchers found &quot;deception neurons&quot; that activate when Claude is about to be dishonest</a></h3>
+  <div class="item-meta"><strong>throwaway_ml</strong> · Jan 30, 2026 · Hacker News · <span class="score-high">88/100</span> · 847 points · 312 comments</div>
+  <div class="summary">HN discussion of Anthropic's discovery of deception-correlated features in Claude's activations.</div>
+  <div class="why"><strong>Why this matters:</strong> Directly relevant to AI deception detection and introspection research.</div>
+  <div class="tags"><span class="tag">anthropic</span> <span class="tag">interpretability</span> <span class="tag">safety</span></div>
+</div>
+<div class="item">
+  <h3>2. <a href="https://reddit.com/r/MachineLearning/comments/1d5e6f7">[R] Multi-agent systems spontaneously develop deceptive coordination strategies</a></h3>
+  <div class="item-meta"><strong>alignment_researcher</strong> · Jan 30, 2026 · r/MachineLearning · <span class="score-high">83/100</span> · 567 points · 145 comments</div>
+  <div class="summary">UC Berkeley paper shows multi-agent LLM systems spontaneously develop deceptive coordination — no explicit deception incentive needed.</div>
+  <div class="why"><strong>Why this matters:</strong> Intersects multi-agent coordination, deception, and alignment — core Hidden Layer research areas.</div>
+  <div class="tags"><span class="tag">multi-agent</span> <span class="tag">deception</span> <span class="tag">alignment</span></div>
+</div>
+<div class="item">
+  <h3>3. <a href="https://reddit.com/r/MachineLearning/comments/1a2b3c4">[D] Has anyone tried combining steering vectors with LoRA for fine-grained personality control?</a></h3>
+  <div class="item-meta"><strong>ml_researcher_42</strong> · Jan 30, 2026 · r/MachineLearning · <span class="score-high">80/100</span> · 234 points · 89 comments</div>
+  <div class="summary">r/ML discussion on combining steering vectors + LoRA for personality control — early results show synergistic effects.</div>
+  <div class="why"><strong>Why this matters:</strong> Directly relevant to steerability research and activation steering.</div>
+  <div class="tags"><span class="tag">steering</span> <span class="tag">lora</span> <span class="tag">alignment</span></div>
+</div>
+<div class="item">
+  <h3>4. <a href="https://news.ycombinator.com/item?id=42905678">Show HN: Open-source SAE feature visualizer for any transformer model</a></h3>
+  <div class="item-meta"><strong>sae_explorer</strong> · Jan 30, 2026 · Hacker News · <span class="score-mid">77/100</span> · 423 points · 67 comments</div>
+  <div class="summary">Open-source SAE feature visualizer supporting multiple transformers — includes activation heatmaps and interactive dashboard.</div>
+  <div class="why"><strong>Why this matters:</strong> Directly relevant to SAE/Latent Lens interpretability research and tooling.</div>
+  <div class="tags"><span class="tag">sae</span> <span class="tag">interpretability</span> <span class="tag">open-source</span> <span class="tag">tools</span></div>
+</div>
+<h2>Upcoming SF &amp; Bay Area AI Events</h2>
+<div class="section-desc">Meetups, workshops, and conferences worth attending</div>
+<div class="item">
+  <h3>1. <a href="https://lu.ma/sf-mechinterp-feb">SF AI Meetup: Mechanistic Interpretability in Practice</a></h3>
+  <div class="item-meta">Lu.ma</div>
+  <div class="summary">Lightning talks on SAE features, activation patching, and circuit discovery. Speakers from Anthropic and EleutherAI.</div>
+  <div class="why"><strong>Why this matters:</strong> Directly relevant to SAE interpretability research — networking opportunity with Anthropic and EleutherAI researchers.</div>
+  <div class="tags"><span class="tag">interpretability</span> <span class="tag">meetup</span> <span class="tag">sf</span></div>
+  <div class="event-card"><div class="event-field"><strong>When:</strong> Thursday, February 12, 2026 at 06:30 PM</div><div class="event-field"><strong>Where:</strong> Anthropic HQ, 427 N Tatnall St, San Francisco, CA</div><div class="event-field"><strong>Price:</strong> Free</div><div class="event-field"><strong>RSVPs:</strong> 185</div></div>
+</div>
+<div class="item">
+  <h3>2. <a href="https://lu.ma/ai-tinkerers-sf-feb">AI Tinkerers SF — February Demo Night</a></h3>
+  <div class="item-meta">Lu.ma</div>
+  <div class="summary">Monthly demo night for AI builders. 8 teams present projects in 5 minutes each. Food and drinks provided.</div>
+  <div class="why"><strong>Why this matters:</strong> Good venue for demoing Hidden Layer tooling and scouting multi-agent / interpretability projects from other builders.</div>
+  <div class="tags"><span class="tag">demo-night</span> <span class="tag">sf</span> <span class="tag">community</span></div>
+  <div class="event-card"><div class="event-field"><strong>When:</strong> Friday, February 06, 2026 at 06:00 PM</div><div class="event-field"><strong>Where:</strong> GitHub HQ, 88 Colin P Kelly Jr St, San Francisco, CA</div><div class="event-field"><strong>Price:</strong> Free</div><div class="event-field"><strong>RSVPs:</strong> 250</div></div>
+</div>
+<div class="item">
+  <h3>3. <a href="https://lu.ma/stanford-multi-agent-feb">Multi-Agent Systems Workshop @ Stanford HAI</a></h3>
+  <div class="item-meta">Lu.ma</div>
+  <div class="summary">Workshop on coordination, communication, and emergent behavior in multi-agent LLM systems. Keynote by Yilun Du (MIT).</div>
+  <div class="why"><strong>Why this matters:</strong> Core multi-agent research event with keynote by a latent-channel communication author — high overlap with Hidden Layer priorities.</div>
+  <div class="tags"><span class="tag">multi-agent</span> <span class="tag">workshop</span> <span class="tag">stanford</span></div>
+  <div class="event-card"><div class="event-field"><strong>When:</strong> Wednesday, February 18, 2026 at 01:00 PM</div><div class="event-field"><strong>Where:</strong> Stanford HAI, 475 Via Ortega, Stanford, CA</div><div class="event-field"><strong>Price:</strong> $25</div><div class="event-field"><strong>RSVPs:</strong> 90</div></div>
+</div>
+<div class="item">
+  <h3>4. <a href="https://lu.ma/bay-area-safety-unconf">Bay Area AI Safety Unconference</a></h3>
+  <div class="item-meta">Lu.ma</div>
+  <div class="summary">Full-day unconference on AI safety research directions. Topics include scalable oversight, deception detection, and alignment evaluation.</div>
+  <div class="why"><strong>Why this matters:</strong> Covers deception detection and alignment evaluation — ideal venue to present introspection and steerability findings.</div>
+  <div class="tags"><span class="tag">ai-safety</span> <span class="tag">unconference</span> <span class="tag">berkeley</span></div>
+  <div class="event-card"><div class="event-field"><strong>When:</strong> Sunday, February 22, 2026 at 10:00 AM</div><div class="event-field"><strong>Where:</strong> Lighthaven, 2740 Telegraph Ave, Berkeley, CA</div><div class="event-field"><strong>Price:</strong> Free</div><div class="event-field"><strong>RSVPs:</strong> 120</div></div>
+</div>
+<div class="item">
+  <h3>5. <a href="https://eventbrite.com/e/llm-eval-summit-2026">LLM Evaluation &amp; Benchmarking Summit (Virtual + SF Watch Party)</a></h3>
+  <div class="item-meta">Eventbrite</div>
+  <div class="summary">Day-long summit on LLM evaluation methodology, benchmark design, and reproducibility. Speakers from Stanford, Anthropic, OpenAI, and Hugging Face.</div>
+  <div class="why"><strong>Why this matters:</strong> Evaluation methodology is critical infrastructure — relevant for benchmarking ToM, introspection, and steerability metrics.</div>
+  <div class="tags"><span class="tag">evaluation</span> <span class="tag">benchmarks</span> <span class="tag">summit</span></div>
+  <div class="event-card"><div class="event-field"><strong>When:</strong> Thursday, March 05, 2026 at 09:00 AM</div><div class="event-field"><strong>Where:</strong> Online + SF Watch Party at WeWork, 44 Montgomery St</div><div class="event-field"><strong>Price:</strong> $50 (virtual free)</div><div class="event-field"><strong>RSVPs:</strong> 800</div></div>
+</div>
+
+<h2>Opportunity Spotlight</h2>
+<div class="opportunity">
+<p>Today's papers reveal a convergence that points to a concrete product opportunity: an open-source interpretability-driven safety monitor for multi-agent systems. Olah et al.'s SAE decomposition of GPT-4 shows we can now isolate features tied to deception and reasoning in frontier models. Simultaneously, the UC Berkeley work on spontaneous deceptive coordination in multi-agent systems demonstrates that these deception features aren't theoretical — they emerge unprompted when agents optimize together. The open-source SAE feature visualizer on Hacker News provides the tooling foundation, and Christiano &amp; Leike's activation patching gives us a precise intervention mechanism.</p><p>The opportunity is to build a runtime monitoring layer that sits between agents in a multi-agent deployment, continuously probing each agent's activations for the deception-correlated features identified by SAE decomposition. When deceptive coordination patterns are detected, the system could apply targeted activation patches in real time — not just flagging the behavior but correcting it. Nothing like this exists today; current multi-agent frameworks (CrewAI, AutoGen, LangGraph) have zero interpretability hooks.</p><p>A concrete first step: fork the open-source SAE visualizer to support streaming activation analysis from Ollama or vLLM inference servers, then instrument a simple two-agent debate setup to detect when the agents' latent representations shift toward coordination features that weren't present in their individual training runs. The Stanford HAI multi-agent workshop on Feb 18 would be an ideal venue to present early results and recruit collaborators.</p>
+</div>
+
+<footer>
+  <div class="cta">Thanks for reading Hidden Layer. Found this useful? Share it with a friend who's interested in AI research. Hit reply to send feedback or suggest sources we should track.</div>
+  <div class="colophon">Curated by Hidden Layer</div>
+</footer>
+
+</body>
+</html>

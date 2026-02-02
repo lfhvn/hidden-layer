@@ -5,9 +5,11 @@ This module provides evaluation methods for assessing the quality
 of design critiques and recommendations.
 """
 
+from __future__ import annotations
+
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -17,7 +19,7 @@ from crit.strategies import CritiqueResult
 from harness import llm_call
 
 
-def evaluate_critique_coverage(problem: DesignProblem, critique_result: CritiqueResult) -> Dict[str, Any]:
+def evaluate_critique_coverage(problem: DesignProblem, critique_result: CritiqueResult) -> dict[str, Any]:
     """
     Evaluate how well the critique covers important aspects.
 
@@ -93,9 +95,9 @@ def evaluate_recommendation_quality(
     problem: DesignProblem,
     critique_result: CritiqueResult,
     judge_provider: str = "ollama",
-    judge_model: Optional[str] = None,
-    **kwargs,
-) -> Dict[str, Any]:
+    judge_model: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
     """
     Use LLM judge to evaluate recommendation quality.
 
@@ -184,7 +186,7 @@ Overall Assessment: [summary]
     relevance_scores = [float(s) for s in re.findall(relevance_pattern, judge_response.text)]
     feasibility_scores = [float(s) for s in re.findall(feasibility_pattern, judge_response.text)]
 
-    def avg(scores):
+    def avg(scores: list[float]) -> float:
         return sum(scores) / len(scores) if scores else 0.0
 
     specificity_avg = avg(specificity_scores)
@@ -213,7 +215,7 @@ Overall Assessment: [summary]
     }
 
 
-def evaluate_critique_depth(critique_result: CritiqueResult) -> Dict[str, Any]:
+def evaluate_critique_depth(critique_result: CritiqueResult) -> dict[str, Any]:
     """
     Evaluate the depth and thoroughness of critique.
 
@@ -274,9 +276,9 @@ def evaluate_critique(
     critique_result: CritiqueResult,
     method: str = "combined",
     judge_provider: str = "ollama",
-    judge_model: Optional[str] = None,
-    **kwargs,
-) -> Dict[str, Any]:
+    judge_model: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
     """
     Comprehensive evaluation of a design critique.
 
@@ -325,11 +327,11 @@ def evaluate_critique(
 
 def compare_strategies(
     problem: DesignProblem,
-    results: Dict[str, CritiqueResult],
+    results: dict[str, CritiqueResult],
     judge_provider: str = "ollama",
-    judge_model: Optional[str] = None,
-    **kwargs,
-) -> Dict[str, Any]:
+    judge_model: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
     """
     Compare multiple critique strategies on the same problem.
 
@@ -397,8 +399,11 @@ def compare_strategies(
 
 
 def batch_evaluate(
-    results: List[Dict[str, Any]], judge_provider: str = "ollama", judge_model: Optional[str] = None, **kwargs
-) -> Dict[str, Any]:
+    results: list[dict[str, Any]],
+    judge_provider: str = "ollama",
+    judge_model: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
     """
     Evaluate multiple critique results.
 

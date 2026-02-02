@@ -1,26 +1,35 @@
 [flake8]
 max-line-length = 120
 extend-ignore = E203
-exclude = 
+exclude =
     venv,
     __pycache__,
     .git,
     *.egg-info,
     .pytest_cache,
-    .mypy_cache
+    .mypy_cache,
+    .venv,
+    build,
+    dist
 
 # Ignore unused imports in __init__.py files (they're for re-exporting)
 per-file-ignores =
+    # Re-exports in __init__.py are intentional
     __init__.py:F401
+    # Test files need flexible import order
     tests/test_imports.py:F401,E402
     tests/test_core.py:E402,F401
-    code/cli.py:E402
-    code/crit/benchmarks.py:E402
-    code/crit/evals.py:E402
-    code/crit/strategies.py:E402,E501
-    code/selphi/benchmarks.py:E402
-    code/selphi/evals.py:E402,F541
-    code/selphi/tasks.py:E402
-    code/selphi/scenarios.py:E501
-    code/harness/rationale.py:E501
-    code/harness/strategies.py:E501
+    # Multi-agent project
+    communication/multi-agent/multi_agent/cli.py:E402
+    communication/multi-agent/multi_agent/crit/benchmarks.py:E402
+    communication/multi-agent/multi_agent/crit/evals.py:E402
+    communication/multi-agent/multi_agent/crit/strategies.py:E402,E501
+    communication/multi-agent/multi_agent/strategies.py:E501
+    communication/multi-agent/multi_agent/rationale.py:E501
+    # Theory of mind - SELPHI
+    theory-of-mind/selphi/code/benchmarks.py:E402
+    theory-of-mind/selphi/code/evals.py:E402,F541
+    theory-of-mind/selphi/code/tasks.py:E402
+    theory-of-mind/selphi/code/scenarios.py:E501
+    # MLX Lab
+    mlx_lab/cli.py:E402

@@ -8,6 +8,30 @@ Non-linguistic communication between LLMs via latent representations, starting w
 
 Can LLMs communicate more efficiently through latent representations instead of natural language?
 
+## Prerequisites
+
+- Python 3.10+ with Hidden Layer repository set up
+- PyTorch and HuggingFace Transformers
+- GPU recommended (CPU works but slower)
+- 8GB+ RAM for small models, 16GB+ for larger models
+
+**New to Hidden Layer?** See [/QUICKSTART.md](../../QUICKSTART.md) for initial setup.
+
+## Installation
+
+This project uses the shared harness infrastructure plus additional dependencies:
+
+```bash
+# From repository root
+pip install -r requirements.txt
+
+# Additional dependencies for C2C
+pip install transformers torch
+
+# Verify setup
+python check_setup.py
+```
+
 ## Implemented: Cache-to-Cache (C2C)
 
 We've reproduced the C2C paper which enables direct semantic communication between LLMs through KV-Cache projection:
@@ -18,6 +42,8 @@ We've reproduced the C2C paper which enables direct semantic communication betwe
 - **2× speedup** in latency
 
 ### Quick Start
+
+#### Python API
 
 ```python
 from communication.ai_to_ai_comm import RosettaModel, create_c2c_projector, generate_kv_cache_index
@@ -39,6 +65,17 @@ for i in range(base_model.config.num_hidden_layers):
 cache_idx = generate_kv_cache_index(10, 1)
 output = rosetta.generate(cache_idx, input_ids, max_new_tokens=50)
 ```
+
+#### Jupyter Notebooks
+
+```bash
+# From repository root
+jupyter lab communication/ai-to-ai-comm/notebooks/01_c2c_quickstart.ipynb
+```
+
+Available notebooks:
+- `01_c2c_quickstart.ipynb` - Basic C2C usage and examples
+- `02_efficiency_evaluation.ipynb` - Performance benchmarks
 
 See **[C2C_README.md](C2C_README.md)** for complete documentation.
 
