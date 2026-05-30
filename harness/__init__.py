@@ -95,4 +95,31 @@ __all__ = [
     "get_system_prompt_info",
     "show_prompt",
     "SystemPromptMetadata",
+    # Multi-agent strategies (lazily re-exported; see __getattr__ below)
+    "run_strategy",
+    "run_strategy_with_rationale",
 ]
+
+
+# Lazily re-export multi-agent strategy entry points from the research package.
+#
+# `run_strategy` lives in `communication.multi_agent`, not in the harness itself.
+# The harness is meant to be standalone-importable, so we do NOT import the
+# research package at module load time. Instead, PEP 562 module __getattr__
+# resolves these names on first access, keeping `import harness` dependency-free
+# while making the documented `from harness import run_strategy` work, and
+# letting downstream consumers (e.g. agentmesh) treat the harness as the single
+# entry point for strategies.
+_LAZY_STRATEGY_EXPORTS = {"run_strategy", "run_strategy_with_rationale"}
+
+
+def __getattr__(name: str):
+    if name in _LAZY_STRATEGY_EXPORTS:
+        try:
+            from communication import multi_agent
+        except ImportError as exc:  # pragma: no cover - only if research pkg absent
+            raise AttributeError(
+                f"harness.{name} requires the 'communication.multi_agent' package, " f"which is not importable: {exc}"
+            ) from exc
+        return getattr(multi_agent, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

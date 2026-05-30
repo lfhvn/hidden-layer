@@ -2,6 +2,14 @@
 
 **Multi-agent workflow orchestration built on Hidden Layer research**
 
+> **Status (integration):** Strategy nodes call `harness.run_strategy`, which lazily
+> re-exports from `communication.multi_agent`. The `single`, `debate`, `consensus`,
+> `manager_worker`, and `self_consistency` nodes run end-to-end (verified offline via
+> the `sim` provider in `agentmesh/tests/`). **Known gap:** the `crit` node is not yet
+> wired — CRIT is a separate subsystem and isn't in `run_strategy`'s registry, so that
+> node currently raises (covered by a regression test). DB/API/web layers exist but are
+> not covered by these tests.
+
 ---
 
 ## Overview
