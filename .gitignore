@@ -42,8 +42,9 @@ env/
 *~
 .DS_Store
 
-# Experiment outputs
-experiments/
+# Experiment outputs (the tracker writes to ./experiments at the repo root).
+# Anchored so it does NOT match committed specs under config/experiments/.
+/experiments/
 *.log
 
 # Metacognition demo artifacts (generated)

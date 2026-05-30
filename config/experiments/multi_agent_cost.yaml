@@ -1,0 +1,43 @@
+# Coordination-cost benchmark — runs fully offline via the `sim` provider.
+#   python -m harness.experiment run config/experiments/multi_agent_cost.yaml --format markdown
+#
+# All five strategies get the SAME canned answer, so accuracy ties at 1.0 and the only
+# thing that differs is how much work each coordination structure does (tokens). This is
+# the reproducible "cost axis" behind papers/multi-agent-coordination-cost.tex.
+name: multi_agent_cost
+hypothesis: "Coordination strategies cost more tokens than a single call for the same task."
+task_type: qa
+eval_type: keyword
+
+dataset:
+  tasks:
+    - input: "What is 2 + 2?"
+      expected: "4"
+    - input: "What is the capital of France?"
+      expected: paris
+    - input: "What is the chemical symbol for gold?"
+      expected: au
+    - input: "How many continents are there?"
+      expected: seven
+
+arms:
+  - name: single
+    provider: sim
+    strategy: single
+    params: { sim_response: "4 paris au seven" }
+  - name: self_consistency
+    provider: sim
+    strategy: self_consistency
+    params: { sim_response: "4 paris au seven" }
+  - name: consensus
+    provider: sim
+    strategy: consensus
+    params: { sim_response: "4 paris au seven" }
+  - name: debate
+    provider: sim
+    strategy: debate
+    params: { sim_response: "4 paris au seven" }
+  - name: manager_worker
+    provider: sim
+    strategy: manager_worker
+    params: { sim_response: "4 paris au seven" }
