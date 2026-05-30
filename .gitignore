@@ -46,6 +46,9 @@ env/
 experiments/
 *.log
 
+# Metacognition demo artifacts (generated)
+theory-of-mind/metacognition/output/
+
 # Model caches
 .cache/
 *.gguf

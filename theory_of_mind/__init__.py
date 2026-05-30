@@ -2,4 +2,4 @@
 
 from __future__ import annotations
 
-__all__ = ["selphi", "introspection"]
+__all__ = ["selphi", "introspection", "metacognition"]

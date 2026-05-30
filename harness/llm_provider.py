@@ -2,6 +2,7 @@
 LLM Provider Layer - supports local MLX models, Ollama, and API providers
 """
 
+import hashlib
 import os
 import time
 from dataclasses import dataclass
@@ -79,6 +80,8 @@ class LLMProvider:
             response = self._call_anthropic(prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs)
         elif provider == "openai":
             response = self._call_openai(prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs)
+        elif provider == "sim":
+            response = self._call_sim(prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs)
         else:
             raise ValueError(f"Unknown provider: {provider}")
 
@@ -144,9 +147,10 @@ class LLMProvider:
     ) -> LLMResponse:
         """Call MLX local model"""
         try:
-            from mlx_lm import generate, load
-            from pathlib import Path
             import os
+            from pathlib import Path
+
+            from mlx_lm import generate, load
 
             # Lazy load model
             if self.mlx_model is None or kwargs.get("reload_model"):
@@ -192,6 +196,54 @@ class LLMProvider:
             return LLMResponse(
                 text="[MLX not installed. Run: pip install mlx mlx-lm]", model=model, provider="mlx", latency_s=0.0
             )
+
+    def _call_sim(
+        self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
+    ) -> LLMResponse:
+        """
+        Deterministic simulated provider - a test double / offline stand-in for a real LLM.
+
+        This provider makes NO network calls and requires no API keys, so it can run
+        anywhere (CI, ephemeral containers, air-gapped machines). Given the same inputs
+        it always returns the same output, which makes experiments and tests reproducible.
+
+        Behavior (in priority order):
+          1. ``sim_response`` kwarg -> return that exact text (inject a canned answer).
+          2. ``sim_responses`` kwarg (list) -> deterministically pick one by hashing the
+             prompt, so a fixed prompt maps to a fixed response.
+          3. otherwise -> return a stable hash-derived placeholder string.
+
+        Args (via **kwargs):
+            sim_response: Exact text to return.
+            sim_responses: List of candidate responses; one is chosen deterministically.
+            sim_seed: Integer seed mixed into the hash (default 0). Lets callers get a
+                different-but-reproducible stream without changing the prompt.
+        """
+        seed = int(kwargs.get("sim_seed", 0))
+        salt = "" if system_prompt is None else system_prompt
+
+        if "sim_response" in kwargs:
+            text = str(kwargs["sim_response"])
+        elif "sim_responses" in kwargs:
+            responses = list(kwargs["sim_responses"])
+            if not responses:
+                text = ""
+            else:
+                idx = _deterministic_int(prompt, salt, seed) % len(responses)
+                text = str(responses[idx])
+        else:
+            text = "[sim] " + _deterministic_token(prompt, salt, seed)
+
+        return LLMResponse(
+            text=text,
+            model=model or "sim",
+            provider="sim",
+            latency_s=0.0,  # Will be set by caller
+            tokens_in=len(prompt.split()),
+            tokens_out=len(text.split()),
+            cost_usd=0.0,
+            metadata={"deterministic": True, "sim_seed": seed},
+        )
 
     def _call_ollama(
         self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
@@ -529,6 +581,22 @@ class LLMProvider:
             if key in model:
                 return (tokens_in * input_price + tokens_out * output_price) / 1_000_000
         return 0.0
+
+
+def _deterministic_int(*parts: Any) -> int:
+    """Stable, cross-process hash of the given parts as a non-negative int.
+
+    Python's builtin hash() is randomized per-process (PYTHONHASHSEED), so it is
+    unsuitable for reproducible behavior. We use SHA-256 over the joined parts.
+    """
+    joined = "\x00".join(str(p) for p in parts)
+    digest = hashlib.sha256(joined.encode("utf-8")).hexdigest()
+    return int(digest, 16)
+
+
+def _deterministic_token(*parts: Any) -> str:
+    """Short stable hex token derived from the inputs (for placeholder responses)."""
+    return hashlib.sha256("\x00".join(str(p) for p in parts).encode("utf-8")).hexdigest()[:12]
 
 
 # Singleton instance

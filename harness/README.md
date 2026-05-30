@@ -52,6 +52,28 @@ tracker.finish_experiment()
 - **MLX**: Apple Silicon optimized (MLX framework)
 - **Anthropic**: Claude models via API
 - **OpenAI**: GPT models via API
+- **Sim**: Deterministic offline stand-in (no network, no API key) for tests, CI, and
+  reproducible experiments. See below.
+
+### The `sim` provider (offline / deterministic)
+
+`provider="sim"` returns reproducible output with no network access — ideal for unit
+tests, CI, and ephemeral containers:
+
+```python
+from harness import llm_call
+
+# Inject a canned response (exercises your parsing/scoring pipeline):
+llm_call("Q?", provider="sim", sim_response="Answer: Paris\nConfidence: 90%")
+
+# Deterministically pick from candidates by hashing the prompt:
+llm_call("Q?", provider="sim", sim_responses=["A", "B", "C"])
+
+# No hint -> stable hash-derived placeholder; sim_seed perturbs it reproducibly:
+llm_call("Q?", provider="sim", sim_seed=1)
+```
+
+Responses report `cost_usd=0.0` and `metadata={"deterministic": True, ...}`.
 
 ## Installation
 

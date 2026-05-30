@@ -50,6 +50,11 @@ How do AI systems understand mental states (self and others)?
   - Concept vectors, activation steering
   - Research Q: Can models accurately report their internal states?
 
+- **Metacognition** → `theory-of-mind/metacognition/CLAUDE.md`
+  - Confidence calibration (Brier, ECE, MCE, AUROC) and introspective self-prediction
+  - Offline-first via the harness `sim` provider; works with any real provider too
+  - Research Q: Do models know what they know, and is confidence a trustworthy signal?
+
 ### 3. Representations (`representations/`)
 What are internal representations and how can we make them interpretable?
 

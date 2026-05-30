@@ -1,0 +1,32 @@
+{
+  "name": "factual_qa",
+  "description": "Small set of short-answer general-knowledge questions with deterministic accepted answers. Used for offline calibration experiments; correctness is decided by normalized keyword match so no LLM judge or network is required.",
+  "license": "CC0 (public-domain facts)",
+  "questions": [
+    {"id": "q01", "question": "What is the capital of France?", "answers": ["paris"], "difficulty": "easy"},
+    {"id": "q02", "question": "What is the capital of Australia?", "answers": ["canberra"], "difficulty": "medium"},
+    {"id": "q03", "question": "How many continents are there on Earth?", "answers": ["7", "seven"], "difficulty": "easy"},
+    {"id": "q04", "question": "What is the chemical symbol for gold?", "answers": ["au"], "difficulty": "medium"},
+    {"id": "q05", "question": "Who wrote the play 'Romeo and Juliet'?", "answers": ["shakespeare", "william shakespeare"], "difficulty": "easy"},
+    {"id": "q06", "question": "What is the largest planet in our solar system?", "answers": ["jupiter"], "difficulty": "easy"},
+    {"id": "q07", "question": "In what year did the first human land on the Moon?", "answers": ["1969"], "difficulty": "medium"},
+    {"id": "q08", "question": "What is the square root of 144?", "answers": ["12", "twelve"], "difficulty": "easy"},
+    {"id": "q09", "question": "What gas do plants primarily absorb from the atmosphere?", "answers": ["carbon dioxide", "co2"], "difficulty": "easy"},
+    {"id": "q10", "question": "What is the smallest prime number?", "answers": ["2", "two"], "difficulty": "medium"},
+    {"id": "q11", "question": "Which element has the atomic number 1?", "answers": ["hydrogen"], "difficulty": "medium"},
+    {"id": "q12", "question": "What is the longest river in the world?", "answers": ["nile", "amazon"], "difficulty": "hard"},
+    {"id": "q13", "question": "Who painted the Mona Lisa?", "answers": ["da vinci", "leonardo da vinci", "leonardo"], "difficulty": "easy"},
+    {"id": "q14", "question": "What is the freezing point of water in degrees Celsius?", "answers": ["0", "zero"], "difficulty": "easy"},
+    {"id": "q15", "question": "What is the currency of Japan?", "answers": ["yen"], "difficulty": "medium"},
+    {"id": "q16", "question": "How many sides does a hexagon have?", "answers": ["6", "six"], "difficulty": "easy"},
+    {"id": "q17", "question": "What is the hardest known natural material?", "answers": ["diamond"], "difficulty": "medium"},
+    {"id": "q18", "question": "Which planet is known as the Red Planet?", "answers": ["mars"], "difficulty": "easy"},
+    {"id": "q19", "question": "What is the powerhouse of the cell?", "answers": ["mitochondria", "mitochondrion"], "difficulty": "medium"},
+    {"id": "q20", "question": "In which country would you find the Great Pyramid of Giza?", "answers": ["egypt"], "difficulty": "easy"},
+    {"id": "q21", "question": "What is the speed of light in a vacuum, in kilometers per second (approx)?", "answers": ["300000", "299792", "300,000"], "difficulty": "hard"},
+    {"id": "q22", "question": "Who developed the theory of general relativity?", "answers": ["einstein", "albert einstein"], "difficulty": "medium"},
+    {"id": "q23", "question": "What is the largest ocean on Earth?", "answers": ["pacific", "pacific ocean"], "difficulty": "easy"},
+    {"id": "q24", "question": "How many bones are in the adult human body?", "answers": ["206"], "difficulty": "hard"},
+    {"id": "q25", "question": "What language has the most native speakers worldwide?", "answers": ["mandarin", "chinese", "mandarin chinese"], "difficulty": "hard"}
+  ]
+}
