@@ -19,7 +19,13 @@ Zero-to-notebook instructions for every supported workflow. Choose the path that
 
 Pick one of the following:
 
-### Option A – Repo-managed virtualenv (simple)
+### Option A – One-line setup script (simplest)
+```bash
+./setup.sh        # creates venv/, installs requirements, runs a sanity check
+source venv/bin/activate
+```
+
+### Option A′ – Repo-managed virtualenv (Make)
 ```bash
 make setup        # creates venv/, upgrades pip, installs requirements.txt
 source venv/bin/activate
@@ -127,8 +133,9 @@ Each subsystem reuses the same configuration files in `config/` and the harness 
 
 ---
 
-## 6. Switching Providers Inside a Notebook
+## 6. Provider Configuration (Notebooks & Scripts)
 
+### Switching providers per call
 ```python
 from harness import llm_call, run_strategy
 
@@ -143,6 +150,39 @@ resp = llm_call("MLX call", provider="mlx", model="mlx-community/Llama-3.2-3B-In
 
 # Anthropic (requires API key)
 resp = llm_call("API call", provider="anthropic", model="claude-3-5-haiku-20241022")
+```
+
+### Offline / no API key: the `sim` provider
+For tests, CI, or working with no models installed, use the deterministic `sim`
+provider — it needs no network and no keys and always returns the same output:
+```python
+resp = llm_call("Q?", provider="sim", sim_response="Answer: Paris\nConfidence: 90%")
+```
+See `harness/README.md` for `sim_response` / `sim_responses` / `sim_seed`.
+
+### Setting a default provider for every notebook
+Edit `harness/defaults.py` once:
+```python
+DEFAULT_PROVIDER = "ollama"          # or "mlx", "anthropic", "openai", "sim"
+DEFAULT_MODEL = "llama3.2:latest"    # or None to use the provider's default
+```
+
+### Per-notebook override (auto-detect pattern)
+Most notebooks detect available providers and let you override after imports:
+```python
+import os, shutil
+PROVIDER, MODEL = None, None
+try:
+    import mlx.core; PROVIDER = "mlx"
+except ImportError:
+    if shutil.which("ollama"):            PROVIDER = "ollama"
+    elif os.getenv("ANTHROPIC_API_KEY"):  PROVIDER = "anthropic"
+    elif os.getenv("OPENAI_API_KEY"):     PROVIDER = "openai"
+    else:                                 PROVIDER = "sim"   # offline fallback
+print(f"Using provider: {PROVIDER}")
+
+# Then pass PROVIDER/MODEL into calls:
+resp = llm_call("Your prompt", provider=PROVIDER, model=MODEL)
 ```
 
 ---
@@ -164,4 +204,6 @@ resp = llm_call("API call", provider="anthropic", model="claude-3-5-haiku-202410
 3. Branch into CRIT/SELPHI/Latent Lens/Steerability using the shared harness.
 4. Customize `config/models.yaml` for your favorite models or system prompts.
 
-Refer to `README.md` for a deeper system overview and `SETUP.md` for hardware-specific tuning.
+Refer to `README.md` for a deeper system overview and `docs/hardware/local-setup.md`
+for hardware-specific tuning. (This guide consolidates the former `SETUP.md` and
+`NOTEBOOK_SETUP.md`, which now live in `docs/archive/`.)

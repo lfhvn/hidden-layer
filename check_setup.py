@@ -354,7 +354,7 @@ def main():
         print("  3. Run: 01_baseline_experiments.ipynb")
     else:
         print("✗ Some checks failed. Please fix the issues above.")
-        print("\nRefer to SETUP.md for detailed installation instructions.")
+        print("\nRefer to QUICKSTART.md for detailed installation instructions.")
     print("="*60)
 
 

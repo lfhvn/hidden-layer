@@ -28,7 +28,7 @@ Exploring how AI systems understand mental states (their own and others').
 Making sense of high-dimensional latent spaces and learned features.
 
 **Projects**:
-- **[Latent Space](representations/latent-space/)** - SAE interpretability (Lens) + Mobile exploration (Topologies)
+- **[Latent Space](representations/latent-space/)** - SAE interpretability (Lens)
 - **[Introspection](theory-of-mind/introspection/)** - Concept vectors and activation steering
 
 ### 4. Alignment, Steerability & Deception
@@ -72,12 +72,8 @@ Interactive web app for training Sparse Autoencoders and discovering features.
 
 **Features**: SAE training, feature gallery, activation lens, labeling
 
-#### Topologies (Mobile Exploration)
-Mobile app for experiencing latent spaces through vision, sound, and haptics.
-
-**Status**: Concept | **Stack**: React Native, Expo
-
-**Features**: Visual constellation navigation, audio mapping, haptic feedback
+> _Topologies_ (mobile multi-sensory exploration) is now in `incubator/` — see
+> `incubator/README.md`.
 
 ### [Introspection](theory-of-mind/introspection/)
 Model introspection experiments (Anthropic-style).
@@ -300,15 +296,17 @@ hidden-layer/
 │
 ├── theory-of-mind/             # Research Area: Theory of Mind & Self-Knowledge
 │   ├── selphi/                # Theory of mind evaluation
-│   └── introspection/         # Model introspection
+│   ├── introspection/         # Model introspection
+│   └── metacognition/         # Calibration & self-prediction
 │
 ├── representations/            # Research Area: Internal Representations
 │   └── latent-space/
-│       ├── lens/              # SAE interpretability
-│       └── topologies/        # Mobile latent exploration
+│       └── lens/              # SAE interpretability (active)
 │
 ├── alignment/                  # Research Area: Alignment & Steerability
 │   └── steerability/          # Steering vectors & metrics
+│
+├── incubator/                  # Paused / early-stage projects (topologies, state-explorer)
 │
 └── docs/                       # Lab-wide documentation
     ├── infrastructure/

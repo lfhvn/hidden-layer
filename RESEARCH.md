@@ -58,7 +58,7 @@ Hidden Layer is an independent research lab investigating fundamental questions 
 **Projects**:
 - **Latent Space** (`representations/latent-space/`)
   - **Lens**: SAE interpretability (web app)
-  - **Topologies**: Mobile latent space exploration (visual/audio/haptic)
+  - _(Topologies — multi-sensory exploration — is paused in `incubator/`.)_
 
 - **Introspection** (`theory-of-mind/introspection/`)
   - Concept vectors and activation steering

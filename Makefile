@@ -149,13 +149,13 @@ clean:
 docs:
 	@echo "Verifying documentation files..."
 	@test -f README.md && echo "  ✓ README.md"
-	@test -f ARCHITECTURE.md && echo "  ✓ ARCHITECTURE.md"
 	@test -f QUICKSTART.md && echo "  ✓ QUICKSTART.md"
-	@test -f SETUP.md && echo "  ✓ SETUP.md"
 	@test -f CLAUDE.md && echo "  ✓ CLAUDE.md"
-	@test -f code/crit/README.md && echo "  ✓ code/crit/README.md"
-	@test -f code/selphi/README.md && echo "  ✓ code/selphi/README.md"
+	@test -f RESEARCH.md && echo "  ✓ RESEARCH.md"
+	@test -f FAQ.md && echo "  ✓ FAQ.md"
+	@test -f harness/README.md && echo "  ✓ harness/README.md"
 	@test -f config/README.md && echo "  ✓ config/README.md"
+	@test -f docs/ARCHITECTURE.md && echo "  ✓ docs/ARCHITECTURE.md"
 	@echo "✓ All documentation files present"
 
 # Quick integration test

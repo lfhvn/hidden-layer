@@ -85,16 +85,16 @@ jobs:
     - name: Check documentation files exist
       run: |
         test -f README.md
-        test -f ARCHITECTURE.md
         test -f QUICKSTART.md
-        test -f SETUP.md
         test -f CLAUDE.md
+        test -f RESEARCH.md
+        test -f FAQ.md
 
     - name: Check subsystem documentation
       run: |
-        test -f code/crit/README.md
-        test -f code/selphi/README.md
+        test -f harness/README.md
         test -f config/README.md
+        test -f docs/ARCHITECTURE.md
 
     - name: Verify markdown links (if needed)
       run: |

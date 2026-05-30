@@ -38,28 +38,11 @@ make dev  # Starts Docker services
 
 **See**: `lens/README.md` for detailed setup
 
-### Latent Topologies (`topologies/`)
+### Latent Topologies — moved to `incubator/topologies/`
 
-**Purpose**: Mobile app for experiencing latent spaces
-
-**Stack**: React Native + Expo
-
-**Features**:
-- Visual constellation navigation
-- Audio representation of meaning gradients
-- Haptic feedback for boundary transitions
-- On-device embedding model
-- Annotation and reshaping
-
-**Status**: Concept/early development
-
-**Quick Start**:
-```bash
-cd projects/latent-space/topologies
-npx expo start
-```
-
-**See**: `topologies/README.md` and `topologies/PRD.md`
+The multi-sensory mobile latent-exploration project (React Native + Expo; visual /
+audio / haptic) is **design and data-prep stage with no committed app**, so it has been
+moved to the lab incubator. See `incubator/topologies/` and `incubator/README.md`.
 
 ---
 

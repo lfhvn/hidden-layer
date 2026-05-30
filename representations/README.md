@@ -21,17 +21,11 @@ SAE (Sparse Autoencoder) interpretability web application for exploring learned 
 
 **See**: `latent-space/lens/README.md` for details
 
-#### topologies/
-Mobile latent space exploration using visual, audio, and haptic feedback.
-
-**Approach**: Navigate high-dimensional embeddings through multi-sensory experience
-
-**Research Questions**:
-- How can humans experience high-dimensional spaces?
-- What is the geometry of latent space for different concepts?
-- Can embodied exploration reveal structure invisible to visualization alone?
-
-**See**: `latent-space/topologies/README.md` for details
+> **Moved to the incubator.** Two earlier representations efforts —
+> **topologies/** (multi-sensory mobile latent exploration) and
+> **state-explorer/** (real-time activation visualization) — have been moved to
+> `incubator/` because they are design/stub stage and not yet runnable. See
+> `incubator/README.md` for status and what each needs to graduate back here.
 
 ---
 
@@ -73,11 +67,8 @@ What features/activations correspond to:
 3. **Label**: Human annotation of features
 4. **Analyze**: What concepts cluster together?
 
-### Topologies (Embodied Exploration)
-1. **Embed**: Corpus of concepts → latent space
-2. **Navigate**: Physical movement through space
-3. **Experience**: Multi-sensory feedback (visual/audio/haptic)
-4. **Discover**: What structure emerges through exploration?
+_(Topologies' embodied-exploration methodology now lives with the project in
+`incubator/topologies/`.)_
 
 ---
 

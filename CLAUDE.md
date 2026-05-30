@@ -60,13 +60,12 @@ What are internal representations and how can we make them interpretable?
 
 **Projects**:
 - **Latent Space** → `representations/latent-space/CLAUDE.md`
-  - **Lens**: SAE interpretability (web app)
-  - **Topologies**: Mobile latent space exploration (visual/audio/haptic)
+  - **Lens**: SAE interpretability (web app) — the active, runnable project
   - Research Q: How can we understand and experience latent representations?
 
-- **State Explorer** → `representations/state-explorer/`
-  - LLM internal state visualization and exploration
-  - Research Q: How can we visualize and navigate model states?
+> **Incubator**: *Topologies* (mobile multi-sensory exploration) and *State Explorer*
+> (activation visualization) are design/stub stage and have moved to `incubator/`.
+> See `incubator/README.md`.
 
 ### 4. Alignment (`alignment/`)
 How can we reliably steer AI systems and detect deception?
@@ -314,7 +313,7 @@ When working across projects, consider:
 
 **Representations**:
 - What features activate during ToM tasks? (latent-lens + selphi)
-- Can we navigate latent space to steer behavior? (representations/latent-space/topologies + steerability)
+- Can we navigate latent space to steer behavior? (latent-lens + steerability)
 
 **Alignment**:
 - Can we steer ToM behavior? (steerability + selphi)
@@ -338,15 +337,14 @@ hidden-layer/
 │
 ├── theory-of-mind/             # Research Area: Theory of Mind & Self-Knowledge
 │   ├── selphi/                # Theory of mind evaluation
-│   └── introspection/         # Model introspection
+│   ├── introspection/         # Model introspection
+│   └── metacognition/         # Calibration & introspective self-prediction
 │
 ├── theory_of_mind/             # Python package wrapper for theory-of-mind
 │
 ├── representations/            # Research Area: Internal Representations
-│   ├── latent-space/
-│   │   ├── lens/              # SAE interpretability
-│   │   └── topologies/        # Mobile latent exploration
-│   └── state-explorer/        # LLM state visualization
+│   └── latent-space/
+│       └── lens/              # SAE interpretability (active)
 │
 ├── alignment/                  # Research Area: Alignment & Steerability
 │   └── steerability/          # Steering vectors & metrics
@@ -354,11 +352,16 @@ hidden-layer/
 ├── memory/                     # Research Area: Long-term Memory
 │   └── lifelog-personalization/  # Lifelog retrieval & preference
 │
-├── agentmesh/                  # Platform: Workflow orchestration
+├── incubator/                  # Paused / early-stage projects (not in active loop)
+│   ├── topologies/            # Multi-sensory latent exploration (design stage)
+│   └── state-explorer/        # Activation visualization (stub)
+│
+├── agentmesh/                  # Platform: Workflow orchestration (product spinoff)
 ├── mlx_lab/                    # Tool: MLX model management CLI
+├── ai_research_aggregator/     # Tool: daily AI-research digest
 ├── papers/                     # Academic paper sources (.tex)
 │
-├── docs/                       # Lab-wide documentation
+├── docs/                       # Lab-wide documentation (archive/ holds historical notes)
 ├── tests/                      # Lab-wide tests
 ├── config/                     # Lab-wide configuration
 ├── scripts/                    # Utility scripts
@@ -366,8 +369,8 @@ hidden-layer/
 ├── README.md                   # Lab overview
 ├── RESEARCH.md                 # Research themes & connections
 ├── CLAUDE.md                   # This file (development guide)
-├── QUICKSTART.md               # Quick start guide
-└── SETUP.md                    # Setup instructions
+├── QUICKSTART.md               # Setup + quick start (single source of truth)
+└── FAQ.md                      # Troubleshooting
 ```
 
 ---

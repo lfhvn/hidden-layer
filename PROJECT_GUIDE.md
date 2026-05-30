@@ -62,23 +62,15 @@ This guide provides a complete overview of all research projects in Hidden Layer
 - **Use When**: Discovering features in activations, training SAEs, analyzing model internals
 - **Documentation**: [README](representations/latent-space/lens/README.md) | [CLAUDE.md](representations/latent-space/CLAUDE.md)
 
-#### [Latent Topologies - Mobile Exploration](representations/latent-space/topologies/)
-- **What**: Mobile app for exploring latent space with visual, audio, and haptic feedback
-- **Quick Start**: See [README](representations/latent-space/topologies/README.md) for setup
-- **Use When**: Experiencing latent space navigation, phenomenological research
-- **Documentation**: [README](representations/latent-space/topologies/README.md) | [PRD](representations/latent-space/topologies/PRD.md)
-
 #### [CALM - Continuous Language Models](representations/latent-space/calm/)
 - **What**: Vector-by-vector generation (replaces token-by-token)
 - **Quick Start**: See [README](representations/latent-space/calm/README.md) for training
 - **Use When**: Exploring efficient generation, continuous representations
 - **Documentation**: [README](representations/latent-space/calm/README.md) | [CLAUDE.md](representations/latent-space/calm/CLAUDE.md)
 
-#### [LLM State Explorer](representations/state-explorer/)
-- **What**: Real-time visualization of LLM internal activations
-- **Quick Start**: `cd representations/state-explorer/backend && uvicorn app.main:app --reload`
-- **Use When**: Visualizing activations, exploring layer dynamics, debugging model behavior
-- **Documentation**: [README](representations/state-explorer/README.md)
+> **In the incubator** (design/stub stage, not runnable yet): *Latent Topologies*
+> (`incubator/topologies/`) and *LLM State Explorer* (`incubator/state-explorer/`).
+> See [`incubator/README.md`](incubator/README.md).
 
 ---
 
@@ -161,7 +153,7 @@ project-name/
 - **[QUICKSTART.md](QUICKSTART.md)** - Zero-to-notebook setup (start here!)
 - **[CLAUDE.md](CLAUDE.md)** - Development guide for contributors
 - **[RESEARCH.md](RESEARCH.md)** - Research themes and cross-connections
-- **[SETUP.md](SETUP.md)** - Detailed setup instructions
+- **[FAQ.md](FAQ.md)** - Troubleshooting
 - **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** - This file
 
 ---
@@ -174,7 +166,7 @@ project-name/
 → Start with [Multi-Agent](communication/multi-agent/) or [AgentMesh](agentmesh/)
 
 ### I want to understand model internals
-→ Try [Latent Lens](representations/latent-space/lens/) or [State Explorer](representations/state-explorer/)
+→ Try [Latent Lens](representations/latent-space/lens/)
 
 ### I want to steer model behavior
 → Use [Steerability](alignment/steerability/) or [Introspection](theory-of-mind/introspection/)
@@ -219,7 +211,7 @@ See [RESEARCH.md](RESEARCH.md) for detailed cross-project connections.
 ### Documentation
 - Project-specific: Check project's `README.md` and `CLAUDE.md`
 - Infrastructure: See `harness/README.md` and `docs/`
-- Setup issues: See `SETUP.md` and run `python check_setup.py`
+- Setup issues: See `QUICKSTART.md` and run `python check_setup.py`
 
 ### Common Issues
 
@@ -238,11 +230,12 @@ See [RESEARCH.md](RESEARCH.md) for detailed cross-project connections.
 | SELPHI | ✅ Active | 2 | ❌ | Optional |
 | Introspection | ✅ Active | 2 | ❌ | Optional |
 | Latent Lens | ✅ Active | 1 | ✅ | No |
-| Latent Topologies | 🔄 Early Dev | 1 | 📱 Mobile | No |
 | CALM | ✅ Active | 0 | ❌ | No |
-| State Explorer | 🔄 MVP | 0 | ✅ | No |
+| Metacognition | ✅ Active | 0 | ❌ | No (offline `sim`) |
 | Steerability | ✅ Active | 1 | ✅ | No |
 | Lifelog | ✅ Active | 1 | ❌ | Optional |
+| Latent Topologies | 🌱 Incubator | 1 | 📱 Mobile | No |
+| State Explorer | 🌱 Incubator | 0 | — | No |
 | AgentMesh | ✅ Active | 0 | ✅ | Optional |
 | MLX Lab | ✅ Active | 0 | CLI | No |
 
@@ -261,7 +254,7 @@ See [RESEARCH.md](RESEARCH.md) for detailed cross-project connections.
 1. Complete [QUICKSTART.md](QUICKSTART.md)
 2. Run [Multi-Agent](communication/multi-agent/) `00_quickstart.ipynb`
 3. Explore [SELPHI](theory-of-mind/selphi/) ToM scenarios
-4. Try [State Explorer](representations/state-explorer/) visualization
+4. Run [Metacognition](theory-of-mind/metacognition/) `demo.py` (offline, no keys)
 
 **Intermediate**:
 1. Train SAE with [Latent Lens](representations/latent-space/lens/)
