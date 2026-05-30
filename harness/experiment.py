@@ -171,6 +171,8 @@ class ArmReport:
     scores: Dict[str, float]  # metric -> mean
     avg_latency_s: float
     total_cost_usd: float
+    avg_tokens_in: float = 0.0
+    avg_tokens_out: float = 0.0
     run_dir: Optional[str] = None
 
     def to_row(self) -> Dict[str, Any]:
@@ -182,6 +184,9 @@ class ArmReport:
             "n": self.n,
         }
         row.update({k: round(v, 4) for k, v in self.scores.items()})
+        if self.avg_tokens_in or self.avg_tokens_out:
+            row["tokens_in"] = round(self.avg_tokens_in, 1)
+            row["tokens_out"] = round(self.avg_tokens_out, 1)
         row["latency_s"] = round(self.avg_latency_s, 4)
         row["cost_usd"] = round(self.total_cost_usd, 6)
         return row
@@ -283,6 +288,8 @@ def run_experiment(
         per_task_scores: List[Dict[str, float]] = []
         latencies: List[float] = []
         costs: List[float] = []
+        tokens_in_list: List[int] = []
+        tokens_out_list: List[int] = []
         for idx, task in enumerate(spec.tasks):
             task_input = task["input"]
             try:
@@ -295,6 +302,10 @@ def run_experiment(
                 latencies.append(latency)
                 if cost:
                     costs.append(cost)
+                if t_in:
+                    tokens_in_list.append(t_in)
+                if t_out:
+                    tokens_out_list.append(t_out)
                 if tracker:
                     tracker.log_result(
                         ExperimentResult(
@@ -335,6 +346,8 @@ def run_experiment(
                 scores=_means(per_task_scores),
                 avg_latency_s=sum(latencies) / len(latencies) if latencies else 0.0,
                 total_cost_usd=sum(costs),
+                avg_tokens_in=sum(tokens_in_list) / len(tokens_in_list) if tokens_in_list else 0.0,
+                avg_tokens_out=sum(tokens_out_list) / len(tokens_out_list) if tokens_out_list else 0.0,
                 run_dir=run_dir,
             )
         )

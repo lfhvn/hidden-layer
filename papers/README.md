@@ -48,7 +48,8 @@ A shared bibliography lives in `references.bib` (papers reference it via
 | Paper | Bound to runs? |
 |---|---|
 | `metacognition-calibration.tex` | ✅ generated from `theory_of_mind.metacognition` |
-| `multi-agent-coordination.tex` | ✗ prose (candidate for binding via `harness.run_experiment`) |
+| `multi-agent-coordination-cost.tex` | ✅ generated via `harness.run_experiment` (coordination overhead) |
+| `multi-agent-coordination.tex` | ✗ prose (quality claims; needs a live provider to bind) |
 | `selphi-theory-of-mind.tex` | ✗ prose |
 | `model-introspection.tex` | ✗ prose (references `figures/`) |
 | `latent-lens-sae.tex` | ✗ prose |

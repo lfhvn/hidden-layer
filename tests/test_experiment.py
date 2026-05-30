@@ -84,6 +84,29 @@ def test_per_task_eval_override(tmp_path):
     assert report.arms[0].scores["accuracy"] == pytest.approx(1.0)
 
 
+def test_rows_surface_token_costs(tmp_path):
+    # A multi-call strategy should report more tokens than a single call (overhead).
+    spec = ExperimentSpec.from_dict(
+        {
+            "name": "tok",
+            "eval_type": "keyword",
+            "dataset": {"tasks": [{"input": "Capital of France?", "expected": "paris"}]},
+            "arms": [
+                {"name": "single", "provider": "sim", "strategy": "single", "params": {"sim_response": "paris"}},
+                {
+                    "name": "debate",
+                    "provider": "sim",
+                    "strategy": "debate",
+                    "params": {"n_debaters": 2, "n_rounds": 1, "sim_response": "paris"},
+                },
+            ],
+        }
+    )
+    rows = {r["arm"]: r for r in run_experiment(spec, base_dir=str(tmp_path), track=False).to_rows()}
+    assert "tokens_in" in rows["single"] and "tokens_in" in rows["debate"]
+    assert rows["debate"]["tokens_in"] > rows["single"]["tokens_in"]
+
+
 def test_strategy_arm_runs_offline(tmp_path):
     spec = ExperimentSpec.from_dict(
         {

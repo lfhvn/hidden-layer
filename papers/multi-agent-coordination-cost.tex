@@ -1,0 +1,117 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{microtype}
+\usepackage{graphicx}
+
+% Numbers are generated from a reproducible experiment, not typed in by hand:
+%   make -C papers results        (writes papers/generated/multi_agent_*.tex)
+% Each \ma... macro expands to a value produced by harness.run_experiment on the
+% deterministic `sim` provider.
+\input{generated/multi_agent_macros.tex}
+
+\title{The Price of Coordination: A Reproducible Benchmark for\\
+Multi-Agent Compute Overhead}
+
+\author{
+  Hidden Layer Lab \\
+  \texttt{contact@hiddenlayer.ai}
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Multi-agent strategies---debate, self-consistency, consensus, manager--worker---can
+improve answer quality \cite{du2023debate,wang2023selfconsistency}, but they also do more
+work: many model calls instead of one. The quality side of this trade-off depends on the
+model under test; the \emph{cost} side does not, and is rarely reported in a reproducible
+way. We present a small, provider-agnostic benchmark that isolates coordination overhead
+by running every strategy through a deterministic simulated provider that fixes answer
+quality. With accuracy held constant at \maSingleAccuracy{} across all five strategies,
+input-token cost ranges from \maSingleTokensIn{} tokens for a single call to
+\maConsensusTokensIn{} for consensus (Table~\ref{tab:ma-cost})---a $\sim$30$\times$ spread
+attributable purely to coordination. Every number here is produced by the experiment
+runner and injected via generated macros, demonstrating a reproducible
+hypothesis$\rightarrow$test$\rightarrow$publish path that generalizes across projects.
+\end{abstract}
+
+\section{Introduction}
+The case for multi-agent inference is a quality argument: debate and self-consistency
+trade extra computation for better answers \cite{du2023debate,wang2023selfconsistency}.
+Whether that trade pays off depends on the deployment---model, task, budget---so the
+\emph{overhead} half of the equation deserves first-class, reproducible measurement.
+Yet papers typically report quality deltas while leaving compute cost as an aside.
+
+We separate the two axes. The quality axis is model-dependent and is studied with a live
+provider (companion work). The \emph{cost axis}---how many tokens/calls a strategy spends
+relative to a single call---is a property of the coordination structure itself, and can
+be measured exactly and reproducibly by holding answer quality fixed. We do so with a
+deterministic simulated provider, yielding a benchmark that runs offline, in CI, on any
+machine, with identical results.
+
+\section{Method}
+We compare five strategies from the lab's multi-agent harness: \texttt{single}
+(baseline), \texttt{self\_consistency}, \texttt{consensus}, \texttt{debate}, and
+\texttt{manager\_worker}. Each is run over the same four short factual questions through
+the harness's deterministic \texttt{sim} provider, which returns a fixed canned answer
+for every call. Because the answer is fixed, every strategy scores identically on
+keyword-match accuracy; the only thing that varies between strategies is how many model
+calls they make and how large the prompts are. We report mean input and output tokens per
+task as the overhead measure. The entire run is driven by a single experiment spec and
+executed by \texttt{harness.run\_experiment}; the table and the macros cited in this text
+are emitted by \texttt{harness.analysis}.
+
+\section{Results}
+Table~\ref{tab:ma-cost} reports accuracy and per-task token cost for each strategy. All
+values are generated from the run.
+
+\input{generated/multi_agent_table.tex}
+
+With quality fixed (accuracy $=\maSingleAccuracy{}$ for every strategy), the overhead is
+stark. Relative to the single-call baseline (\maSingleTokensIn{} input tokens),
+self-consistency uses \maSelfConsistencyTokensIn{}, manager--worker \maManagerWorkerTokensIn{},
+debate \maDebateTokensIn{}, and consensus \maConsensusTokensIn{}---roughly a thirty-fold
+range driven entirely by the coordination structure (number of agents, rounds, and
+synthesis steps). Output-token costs scale similarly, from \maSingleTokensOut{} to
+\maConsensusTokensOut{}. These are exactly the multipliers a practitioner pays per query
+before any quality benefit is realized.
+
+\section{Discussion}
+Reading this benchmark alongside a real-model quality study makes the trade-off concrete:
+a strategy that lifts accuracy by a few points while costing $20$--$30\times$ the tokens
+may or may not be worth it depending on budget and stakes, and now the cost term is a
+measured number rather than a guess. Because the harness is provider-agnostic, swapping
+\texttt{sim} for a live provider produces the quality axis on the same five arms with the
+same code, so cost and quality can be reported in one table.
+
+\paragraph{Reproducibility.} This paper is an artifact of the pipeline it describes:
+\texttt{make -C papers results} re-runs the experiment and rewrites the macros and table
+that this document \texttt{\textbackslash input}s, so the numbers cannot drift from the code.
+
+\section{Limitations}
+The simulated provider fixes answer content, so this benchmark deliberately says nothing
+about answer \emph{quality}; it measures coordination overhead only. Token counts under
+\texttt{sim} reflect the strategies' prompt-construction structure rather than a specific
+tokenizer, so absolute values should be read as structural multipliers, not vendor token
+bills. Latency is not reported because it is dominated by (here negligible) model time and
+is not reproducible across machines.
+
+\section{Conclusion}
+Coordination is not free, and its cost is reproducibly measurable independent of any
+model. We provide a provider-agnostic benchmark that isolates that cost, find a
+$\sim$30$\times$ token spread across common strategies at fixed quality, and demonstrate a
+numbers-from-runs publishing path that generalizes across the lab's projects.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

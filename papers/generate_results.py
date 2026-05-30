@@ -102,8 +102,60 @@ def generate_metacognition() -> None:
         print("  (matplotlib absent -> skipped reliability figure; paper renders without it)")
 
 
+# --------------------------------------------------------------- multi-agent
+
+
+def generate_multi_agent() -> None:
+    """
+    Coordination-cost benchmark: run five strategies on the same tasks through the
+    deterministic ``sim`` provider, which fixes answer quality (accuracy ties) so the
+    measured differences isolate *computational overhead* (tokens) of coordination.
+    This proves the experiment->analysis->paper pipeline generalizes to a multi-arm
+    strategy comparison; it does not claim a quality win (that needs a real provider).
+    """
+    from harness import ExperimentSpec, analysis, run_experiment
+
+    tasks = [
+        {"input": "What is 2 + 2?", "expected": "4"},
+        {"input": "What is the capital of France?", "expected": "paris"},
+        {"input": "What is the chemical symbol for gold?", "expected": "au"},
+        {"input": "How many continents are there?", "expected": "seven"},
+    ]
+    # Same canned answer for every strategy -> identical accuracy; only cost differs.
+    canned = "4 paris au seven"
+    strategies = ["single", "self_consistency", "consensus", "debate", "manager_worker"]
+    arms = [{"name": s, "provider": "sim", "strategy": s, "params": {"sim_response": canned}} for s in strategies]
+
+    spec = ExperimentSpec.from_dict(
+        {
+            "name": "multi_agent_cost",
+            "hypothesis": "Coordination strategies cost more tokens than a single call for the same task.",
+            "eval_type": "keyword",
+            "dataset": {"tasks": tasks},
+            "arms": arms,
+        }
+    )
+    report = run_experiment(spec, track=False)
+    rows = report.to_rows()
+
+    metrics = ["accuracy", "tokens_in", "tokens_out"]
+    _write(GENERATED / "multi_agent_macros.tex", analysis.latex_macros(rows, metrics=metrics, prefix="ma"))
+    table = analysis.to_latex(
+        rows,
+        columns=["arm", "accuracy", "tokens_in", "tokens_out"],
+        caption="Five coordination strategies on four factual items through the deterministic "
+        "\\texttt{sim} provider. Answer quality is held fixed (accuracy ties at 1.0), so the "
+        "token counts isolate the \\emph{computational overhead} of coordination relative to a "
+        "single call. Real-model quality differences are out of scope here (they require a live "
+        "provider).",
+        label="tab:ma-cost",
+    )
+    _write(GENERATED / "multi_agent_table.tex", table)
+
+
 GENERATORS: Dict[str, Callable[[], None]] = {
     "metacognition": generate_metacognition,
+    "multi_agent": generate_multi_agent,
 }
 
 

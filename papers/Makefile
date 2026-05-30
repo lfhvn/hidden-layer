@@ -53,6 +53,8 @@ check: results
 	@test -f references.bib && echo "  ok references.bib"
 	@test -f generated/metacognition_macros.tex && echo "  ok generated/metacognition_macros.tex"
 	@test -f generated/metacognition_table.tex && echo "  ok generated/metacognition_table.tex"
+	@test -f generated/multi_agent_macros.tex && echo "  ok generated/multi_agent_macros.tex"
+	@test -f generated/multi_agent_table.tex && echo "  ok generated/multi_agent_table.tex"
 	@if [ -n "$(LATEXMK)" ]; then echo "  latexmk: $(LATEXMK)"; else echo "  latexmk: ABSENT (PDF build skipped)"; fi
 	@echo "OK"
 

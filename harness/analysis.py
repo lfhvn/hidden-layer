@@ -89,6 +89,10 @@ def runs_to_rows(runs: List[RunData]) -> List[Dict[str, Any]]:
         for metric, stats in (r.summary.get("eval_scores") or {}).items():
             if isinstance(stats, dict) and "mean" in stats:
                 row[metric] = round(stats["mean"], 4)
+        if r.summary.get("avg_tokens_in"):
+            row["tokens_in"] = round(r.summary["avg_tokens_in"], 1)
+        if r.summary.get("avg_tokens_out"):
+            row["tokens_out"] = round(r.summary["avg_tokens_out"], 1)
         if r.summary.get("avg_latency_s"):
             row["latency_s"] = round(r.summary["avg_latency_s"], 4)
         if r.summary.get("total_cost_usd"):
