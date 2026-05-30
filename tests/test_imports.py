@@ -5,8 +5,8 @@ theory_of_mind, etc.) can be imported successfully after the migration
 away from the legacy ``projects/`` layout.
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -186,11 +186,11 @@ class TestSELPHIImports:
     def test_import_scenario_functions(self):
         """Test scenario function imports."""
         from theory_of_mind.selphi import (
+            ToMTaskResult,
             get_scenarios_by_difficulty,
             get_scenarios_by_type,
             run_multiple_scenarios,
             run_scenario,
-            ToMTaskResult,
         )
 
         assert callable(run_scenario)
@@ -205,7 +205,12 @@ class TestSELPHIImports:
 
     def test_import_benchmarks(self):
         """Test SELPHI benchmark imports."""
-        from theory_of_mind.selphi.benchmarks import list_available_benchmarks, load_opentom, load_socialiqa, load_tombench
+        from theory_of_mind.selphi.benchmarks import (
+            list_available_benchmarks,
+            load_opentom,
+            load_socialiqa,
+            load_tombench,
+        )
 
         assert callable(load_tombench)
         assert callable(load_opentom)
@@ -218,8 +223,8 @@ class TestCrossSubsystemIntegration:
 
     def test_all_subsystems_importable(self):
         """Test that all three subsystems can be imported together."""
-        from communication.multi_agent import crit
         import harness
+        from communication.multi_agent import crit
         from theory_of_mind import selphi
 
         # All should have versions

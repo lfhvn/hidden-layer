@@ -7,12 +7,14 @@ To override, change DEFAULT_PROVIDER and DEFAULT_MODEL below.
 
 import shutil
 
+
 # Auto-detect best available provider (prioritize local models)
 def _detect_default_provider():
     """Detect and return best available provider."""
     # 1. Try MLX (Apple Silicon) first - best for local inference
     try:
-        import mlx.core
+        import mlx.core  # noqa: F401  (import is an availability probe)
+
         return "mlx", None  # None means use provider's default model
     except ImportError:
         pass
@@ -23,6 +25,7 @@ def _detect_default_provider():
 
     # 3. Fall back to ollama anyway (user can configure)
     return "ollama", "gpt-oss:20b"
+
 
 # Default model and provider (auto-detected or set manually)
 DEFAULT_PROVIDER, DEFAULT_MODEL = _detect_default_provider()

@@ -1,4 +1,14 @@
-.PHONY: help setup test lint format clean run-ollama install-dev docs notebook build-jupyter papers
+.PHONY: help setup test test-offline lint format format-check type-check test-cov clean run-ollama install-dev docs notebook build-jupyter papers ci pre-commit integration-test
+
+# Invoke pytest through the interpreter so it uses the env that has the deps
+# (a bare `pytest` console script may point at a different Python).
+PYTHON ?= python3
+
+# Offline, deterministic test suites (no API keys, no network) — used by CI.
+# Web backends (torch/fastapi) and the stale multi-agent suite are intentionally excluded.
+OFFLINE_TESTS := tests theory-of-mind/metacognition/tests agentmesh/tests
+# Dirs kept formatting-clean (black/isort/flake8 gate). Uses the repo .flake8 config.
+LINT_PATHS := harness tests theory-of-mind/metacognition agentmesh/tests papers/generate_results.py
 
 # Default target
 help:
@@ -21,6 +31,10 @@ help:
 	@echo "  make format-check - Check formatting without modifying files"
 	@echo "  make type-check   - Run mypy type checking"
 	@echo ""
+	@echo "CI & Papers (offline, no API keys):"
+	@echo "  make ci           - Full local CI (format-check, lint, test, papers, docs)"
+	@echo "  make papers       - Regenerate & verify bound-paper results"
+	@echo ""
 	@echo "Utilities:"
 	@echo "  make run-ollama   - Start Ollama server in background"
 	@echo "  make notebook     - Launch Jupyter Lab for interactive experiments"
@@ -30,8 +44,6 @@ help:
 	@echo ""
 	@echo "Quick Start:"
 	@echo "  make setup && make run-ollama && make test"
-
-PYTHON ?= python3.11
 
 # Setup virtual environment
 setup:
@@ -48,49 +60,52 @@ install-dev:
 
 # Run all tests
 test:
-	@echo "Running all tests..."
-	pytest tests/ -v
+	@echo "Running offline test suites..."
+	DEFAULT_PROVIDER=sim $(PYTHON) -m pytest $(OFFLINE_TESTS) -v
+
+test-offline: test
 
 # Run import tests only
 test-imports:
 	@echo "Running import tests..."
-	pytest tests/test_imports.py -v
+	$(PYTHON) -m pytest tests/test_imports.py -v
 
 # Run core tests only
 test-core:
 	@echo "Running core tests..."
-	pytest tests/test_core.py -v
+	$(PYTHON) -m pytest tests/test_core.py -v
 
 # Run tests with coverage
 test-cov:
-	@echo "Running tests with coverage..."
-	pytest tests/ --cov=code --cov-report=html --cov-report=term
-	@echo "✓ Coverage report generated in htmlcov/"
+	@echo "Running offline tests with coverage..."
+	DEFAULT_PROVIDER=sim $(PYTHON) -m pytest $(OFFLINE_TESTS) --cov=harness --cov-report=term
+	@echo "✓ Coverage report generated"
 
-# Lint code
+# Lint code (uses the repo .flake8 config)
 lint:
 	@echo "Running linters..."
-	flake8 code/ tests/ --max-line-length=120 --exclude=venv,__pycache__,.git --extend-ignore=E203
+	flake8 $(LINT_PATHS)
+	flake8 --select=E9,F63,F7,F82 --exclude=node_modules,.git,venv,build,dist .
 	@echo "✓ Linting complete"
 
 # Format code
 format:
 	@echo "Formatting code..."
-	black code/ tests/
-	isort code/ tests/
+	black --line-length 120 $(LINT_PATHS)
+	isort --profile black --line-length 120 $(LINT_PATHS)
 	@echo "✓ Code formatted"
 
 # Check formatting without modifying
 format-check:
 	@echo "Checking code formatting..."
-	black --check code/ tests/
-	isort --check-only code/ tests/
+	black --check --line-length 120 $(LINT_PATHS)
+	isort --check-only --profile black --line-length 120 $(LINT_PATHS)
 	@echo "✓ Format check complete"
 
 # Type checking
 type-check:
 	@echo "Running type checks..."
-	mypy code/ --ignore-missing-imports
+	mypy harness --ignore-missing-imports
 	@echo "✓ Type checking complete"
 
 # Start Ollama server
@@ -169,6 +184,6 @@ integration-test: run-ollama test
 pre-commit: format-check lint test
 	@echo "✓ Pre-commit checks passed"
 
-# Full CI pipeline (local)
-ci: clean format lint type-check test-cov docs
+# Full CI pipeline (local) — mirrors .github/workflows/ci.yml, fully offline.
+ci: format-check lint test papers docs
 	@echo "✓ Full CI pipeline complete"

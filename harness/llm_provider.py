@@ -147,7 +147,6 @@ class LLMProvider:
     ) -> LLMResponse:
         """Call MLX local model"""
         try:
-            import os
             from pathlib import Path
 
             from mlx_lm import generate, load
@@ -165,7 +164,7 @@ class LLMProvider:
                     print("   (This may take a few minutes - progress bars will appear below)")
 
                 self.mlx_model, self.mlx_tokenizer = load(model)
-                print(f"✓ Model loaded successfully")
+                print("✓ Model loaded successfully")
 
             # Combine system prompt with user prompt
             full_prompt = prompt
