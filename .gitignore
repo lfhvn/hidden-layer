@@ -49,6 +49,17 @@ experiments/
 # Metacognition demo artifacts (generated)
 theory-of-mind/metacognition/output/
 
+# LaTeX build artifacts (generated/*.tex IS committed; build outputs are not)
+papers/*.aux
+papers/*.bbl
+papers/*.blg
+papers/*.fls
+papers/*.fdb_latexmk
+papers/*.out
+papers/*.toc
+papers/*.pdf
+papers/figures/*.png
+
 # Model caches
 .cache/
 *.gguf

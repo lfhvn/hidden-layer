@@ -1,0 +1,137 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{microtype}
+\usepackage{graphicx}
+
+% Results are generated from a reproducible experiment, not typed in by hand:
+%   make -C papers results        (writes papers/generated/*.tex)
+% Every \mc... macro below expands to a number produced by that run.
+\input{generated/metacognition_macros.tex}
+
+\title{Knowing What You Know: A Reproducible Harness for\\
+Metacognitive Calibration and Introspective Self-Prediction}
+
+\author{
+  Hidden Layer Lab \\
+  \texttt{contact@hiddenlayer.ai}
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+A trustworthy model should know what it knows: its stated confidence should track
+whether it is actually correct, and---more sharply---it should be able to predict its
+own outputs. We present a small, provider-agnostic harness for measuring two facets of
+this self-knowledge: \emph{metacognitive calibration} (do confidences match
+correctness?) and \emph{introspective self-prediction} (can a model forecast its own
+answer?). The harness computes Brier score, Expected and Maximum Calibration Error
+(ECE/MCE), and a confidence-vs-correctness AUROC, and runs fully offline through a
+deterministic simulated subject so that results are reproducible on any machine without
+API access. As a validation, we sweep four calibration profiles and recover the expected
+ordering: a calibrated subject attains ECE $=\mcCalibratedEce$ while an overconfident
+variant inflates to ECE $=\mcOverconfidentEce$ at identical task accuracy, and a subject
+whose confidences carry no signal collapses to chance discrimination
+(AUROC $=\mcRandomAuroc$). Every number in this paper is generated directly from the
+experiment, illustrating a reproducible path from hypothesis to publication.
+\end{abstract}
+
+\section{Introduction}
+Calibration is a classical desideratum for probabilistic forecasts \cite{brier1950}, and
+has re-emerged as a central concern for modern neural networks, which are often
+miscalibrated despite high accuracy \cite{guo2017}. For language models the question is
+sharpened by \emph{introspection}: beyond reporting a well-calibrated confidence, can a
+model anticipate its own behavior \cite{anthropic2025}? These are distinct,
+independently measurable properties, and both are candidate alignment signals---a system
+that reliably flags ``I don't know'' is safer to defer to a human.
+
+We contribute a minimal harness that (i) elicits an answer and a verbalized confidence,
+(ii) scores correctness deterministically, and (iii) reports a standard battery of
+calibration and discrimination metrics. The harness is offline-first: a deterministic
+simulated subject with tunable accuracy and calibration lets us validate the metrics and
+run continuous-integration checks with no API keys.
+
+\section{Method}
+\paragraph{Metrics.} For predictions with stated confidence $c_i \in [0,1]$ and outcomes
+$o_i \in \{0,1\}$, we report the Brier score $\frac{1}{N}\sum_i (c_i - o_i)^2$; Expected
+Calibration Error, the count-weighted mean gap $\sum_b \frac{n_b}{N}\,|\,\text{conf}_b -
+\text{acc}_b|$ over confidence bins; Maximum Calibration Error, the worst such gap; and
+the area under the ROC curve using confidence to discriminate correct from incorrect
+answers. Calibration (ECE/MCE/Brier) and discrimination (AUROC) are orthogonal: a model
+can rank its right answers above its wrong ones yet still be systematically over- or
+under-confident.
+
+\paragraph{Simulated subjects.} To validate the metrics we use a deterministic subject
+that, per item, draws a latent correctness probability $p$ near a target accuracy, samples
+correctness $\sim\text{Bernoulli}(p)$, and emits a stated confidence as a function of $p$:
+\emph{calibrated} ($\text{conf}=p$), \emph{overconfident} (inflated toward $1$),
+\emph{underconfident} (deflated), or \emph{random} (independent of $p$). All randomness is
+seeded per item, so the experiment is bit-for-bit reproducible.
+
+\section{Results}
+We evaluate all four profiles at target accuracy $0.7$ on $1{,}500$ deterministic
+arithmetic items. Table~\ref{tab:mc-calibration} reports the full battery; all values are
+produced by the experiment and injected via generated macros.
+
+\input{generated/metacognition_table.tex}
+
+The recovered ordering matches theory. At identical accuracy ($\mcCalibratedAccuracy$),
+the calibrated subject is well-calibrated (ECE $=\mcCalibratedEce$), the overconfident
+subject inflates confidence (ECE $=\mcOverconfidentEce$, MCE $=\mcOverconfidentMce$), and
+the underconfident subject deflates it (ECE $=\mcUnderconfidentEce$). Crucially, the
+\emph{random} profile---whose confidences carry no signal---has chance discrimination
+(AUROC $=\mcRandomAuroc$) while the other three share near-identical AUROC
+($\approx \mcCalibratedAuroc$), empirically separating calibration from discrimination.
+
+\IfFileExists{figures/metacognition_reliability.png}{%
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.55\textwidth]{figures/metacognition_reliability.png}
+\caption{Reliability diagram for the overconfident subject: stated confidence sits
+systematically above empirical accuracy.}
+\label{fig:reliability}
+\end{figure}}{}
+
+\section{Discussion}
+The harness turns ``does the model know what it knows?'' into a small set of numbers that
+are cheap to compute and hard to game (Brier and the log-loss family are proper scoring
+rules). Because the same code path runs against any provider, a researcher can drop in a
+real model and obtain comparable metrics; the simulated subjects serve as analysis-time
+ground truth and as regression fixtures. The companion self-prediction task extends this
+to introspection proper: a subject first \emph{predicts} its answer and then produces it,
+and we report self-prediction accuracy separately from task accuracy, since genuine
+self-knowledge means forecasting one's own answer whether or not it is correct.
+
+\paragraph{Reproducibility.} This paper is itself an artifact of the pipeline it
+describes. The numbers above are not transcribed; running \texttt{make -C papers results}
+re-executes the experiment and rewrites the macros and table that this document
+\texttt{\textbackslash input}s.
+
+\section{Limitations}
+The validation uses simulated subjects, so it tests the \emph{measurement} apparatus, not
+any real model's metacognition. Verbalized confidence is only one elicitation method;
+token-probability and consistency-based confidences may behave differently. Calibration
+estimates are bin- and sample-size-sensitive, which is why we validate in the large-$N$
+regime.
+
+\section{Conclusion}
+We presented a compact, reproducible harness for metacognitive calibration and
+introspective self-prediction, validated it by recovering the expected behavior of four
+calibration profiles, and demonstrated a numbers-from-runs path to publication. The same
+infrastructure applies directly to frontier models as an alignment-relevant probe of
+self-knowledge.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

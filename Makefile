@@ -1,4 +1,4 @@
-.PHONY: help setup test lint format clean run-ollama install-dev docs notebook build-jupyter
+.PHONY: help setup test lint format clean run-ollama install-dev docs notebook build-jupyter papers
 
 # Default target
 help:
@@ -157,6 +157,9 @@ docs:
 	@test -f config/README.md && echo "  ✓ config/README.md"
 	@test -f docs/ARCHITECTURE.md && echo "  ✓ docs/ARCHITECTURE.md"
 	@echo "✓ All documentation files present"
+
+papers:
+	@$(MAKE) -C papers check
 
 # Quick integration test
 integration-test: run-ollama test
