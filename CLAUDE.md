@@ -396,10 +396,20 @@ from theory_of_mind.selphi import scenarios
 # cd communication/multi-agent/  # README, CLAUDE.md, notebooks here
 ```
 
-**For new projects**:
-1. Create dash-named directory for project files: `myarea/my-project/`
-2. Create underscore-named directory for Python code: `myarea/my_project/`
-3. Actual code can live in either location; the underscore package loads it
+**For new projects** — use the scaffold (bakes in all conventions: dual-dir layout,
+importable wrapper, offline `sim`-based smoke test, CI wiring, and a hypotheses index):
+
+```bash
+python scripts/new_project.py <area> <name> --question "Your research question?"
+# e.g. python scripts/new_project.py theory-of-mind working-memory
+python -m pytest <area>/<name>/tests -q   # green immediately, offline
+make ci                                    # the new project is already wired in
+```
+
+It creates `<area>/<name>/` (dash; README, CLAUDE, hypotheses, `code/`, `tests/`) plus
+the importable wrapper `<area_under>/<name_under>/`, and adds the test dir to the
+Makefile's `OFFLINE_TESTS`/`LINT_PATHS`. (To scaffold by hand instead: create the
+dash-named project dir and the underscore wrapper that loads its `code/`.)
 
 ---
 
