@@ -6,9 +6,9 @@ PYTHON ?= python3
 
 # Offline, deterministic test suites (no API keys, no network) — used by CI.
 # Web backends (torch/fastapi) and the stale multi-agent suite are intentionally excluded.
-OFFLINE_TESTS := tests theory-of-mind/metacognition/tests agentmesh/tests communication/multi-agent/tests
+OFFLINE_TESTS := tests theory-of-mind/metacognition/tests agentmesh/tests communication/multi-agent/tests theory-of-mind/selphi/tests memory/lifelog-personalization/tests ai_research_aggregator/tests mlx_lab/tests
 # Dirs kept formatting-clean (black/isort/flake8 gate). Uses the repo .flake8 config.
-LINT_PATHS := harness tests theory-of-mind/metacognition agentmesh/tests communication/multi-agent/tests papers/generate_results.py scripts/new_project.py
+LINT_PATHS := harness tests theory-of-mind/metacognition agentmesh/tests communication/multi-agent/tests theory-of-mind/selphi/tests memory/lifelog-personalization/tests ai_research_aggregator/tests mlx_lab/tests papers/generate_results.py scripts/new_project.py
 
 # Default target
 help:

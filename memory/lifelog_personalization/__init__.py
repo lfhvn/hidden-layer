@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import sys
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from types import ModuleType
-import sys
 
 __all__ = ["gatekeeper"]
 
@@ -27,7 +27,7 @@ def _load_package(name: str, directory: Path) -> ModuleType:
     return module
 
 
-_base_dir = Path(__file__).resolve().parent / "lifelog-personalization"
+_base_dir = Path(__file__).resolve().parents[1] / "lifelog-personalization"
 _gatekeeper_dir = _base_dir / "gatekeeper"
 
 _gatekeeper_module = _load_package(__name__ + ".gatekeeper", _gatekeeper_dir)
