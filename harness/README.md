@@ -8,6 +8,7 @@ A standalone library providing unified abstractions for working with language mo
 
 - **Unified LLM Provider**: Seamlessly switch between Ollama, MLX, Anthropic Claude, OpenAI GPT
 - **Experiment Tracking**: Automatic logging, metrics, reproducibility
+- **Config-driven Experiments**: Describe an experiment once, run the matrix, get paper-ready tables
 - **Evaluation Utilities**: Exact match, keyword match, LLM-as-judge, benchmarks
 - **Model Configuration**: Named presets, system prompts, hyperparameter management
 - **Benchmark Integration**: Load and evaluate on standard datasets
@@ -45,6 +46,37 @@ response = llm_call(
 tracker.log_result(response.text)
 tracker.finish_experiment()
 ```
+
+## Experiments: hypothesis → test → publish
+
+Describe an experiment once (a hypothesis, a dataset of tasks, an eval, and one or more
+*arms* to compare), then run the whole matrix and turn the logged runs into paper-ready
+tables — no numbers transcribed by hand.
+
+```bash
+# Run a spec; each arm becomes a reproducible tracked run under ./experiments/
+python -m harness.experiment run config/experiments/example_qa.yaml
+
+# Re-tabulate previously logged runs (markdown | latex | csv)
+python -m harness.experiment report "experiments/example_qa.*" --format latex
+```
+
+```python
+from harness import load_spec, run_experiment, analysis
+
+report = run_experiment(load_spec("config/experiments/example_qa.yaml"))
+rows = report.to_rows()
+
+print(analysis.to_markdown(rows))                 # comparison table
+print(analysis.to_latex(rows, caption="QA", label="tab:qa"))
+print(analysis.latex_macros(rows, metrics=["accuracy"]))   # \newcommand per (arm, metric)
+analysis.bar_plot(rows, "accuracy", "fig.png")    # optional (matplotlib); ASCII fallback
+```
+
+The `latex_macros` output lets a paper cite numbers that come *from runs* (e.g.
+`\resultOracleAccuracy`) instead of being typed in and going stale. See the spec schema
+in `harness/experiment.py` and the example in `config/experiments/example_qa.yaml`.
+Everything runs offline with `provider: sim`, so specs are CI-safe and reproducible.
 
 ## Supported Providers
 

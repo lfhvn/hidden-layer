@@ -12,7 +12,7 @@ This is the core infrastructure used by all Hidden Layer research projects.
 Can be used standalone or as part of the Hidden Layer research lab.
 """
 
-from . import defaults
+from . import analysis, defaults
 from .benchmarks import BENCHMARKS, get_baseline_scores, load_benchmark
 from .evals import (
     EVAL_FUNCTIONS,
@@ -22,6 +22,15 @@ from .evals import (
     llm_judge,
     numeric_match,
     win_rate_comparison,
+)
+from .experiment import (
+    Arm,
+    ArmReport,
+    ExperimentReport,
+    ExperimentSpec,
+    load_spec,
+    run_experiment,
+    run_experiment_file,
 )
 from .experiment_tracker import (
     ExperimentConfig,
@@ -95,6 +104,15 @@ __all__ = [
     "get_system_prompt_info",
     "show_prompt",
     "SystemPromptMetadata",
+    # Experiment runner & analysis (hypothesis -> test -> publish)
+    "run_experiment",
+    "run_experiment_file",
+    "load_spec",
+    "ExperimentSpec",
+    "ExperimentReport",
+    "ArmReport",
+    "Arm",
+    "analysis",
     # Multi-agent strategies (lazily re-exported; see __getattr__ below)
     "run_strategy",
     "run_strategy_with_rationale",
