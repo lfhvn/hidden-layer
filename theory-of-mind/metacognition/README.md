@@ -42,6 +42,17 @@ print(ascii_reliability_diagram(run.report))
 
 ### Measuring a real model
 
+One command (needs an API key, or use a local provider):
+
+```bash
+python theory-of-mind/metacognition/run_real.py --provider anthropic --model claude-3-5-sonnet-20241022
+python theory-of-mind/metacognition/run_real.py --provider ollama --model llama3.2:latest
+python theory-of-mind/metacognition/run_real.py --provider sim   # offline plumbing check
+```
+
+It prints calibration (ECE/MCE/Brier), discrimination (AUROC), and a reliability diagram,
+logs a tracked run, and saves JSON/PNG to `output/`. Or via the API:
+
 ```python
 from theory_of_mind.metacognition import ModelSubject, run_calibration
 

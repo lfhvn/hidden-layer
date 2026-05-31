@@ -197,6 +197,13 @@ llm_call("Hello", provider="anthropic", model="claude-3-5-sonnet-20241022")
 The runner, analysis, and paper-binding are identical — only the arm's provider changes.
 Provider capabilities/limits: [`docs/infrastructure/provider-limitations.md`](docs/infrastructure/provider-limitations.md).
 
+**A good first real run** — does a real model know what it knows?
+
+```bash
+python theory-of-mind/metacognition/run_real.py --provider anthropic --model claude-3-5-sonnet-20241022
+# -> calibration (ECE/MCE/Brier), AUROC, reliability diagram; logs a tracked run + JSON/PNG.
+```
+
 ---
 
 ## 6. Conventions that keep this working
