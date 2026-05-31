@@ -170,6 +170,9 @@ response = llm_call("Question?", provider="anthropic", model="claude-3-5-sonnet-
 
 **New to Hidden Layer?** → See **[QUICKSTART.md](QUICKSTART.md)** for complete setup guide
 
+**How do I actually run things?** → See **[RUNBOOK.md](RUNBOOK.md)** for the end-to-end
+loop (hypothesis → test → publish) and everyday commands
+
 **Looking for a specific project?** → See **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** for all projects and how to get started
 
 ```bash

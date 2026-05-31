@@ -165,6 +165,7 @@ docs:
 	@echo "Verifying documentation files..."
 	@test -f README.md && echo "  ✓ README.md"
 	@test -f QUICKSTART.md && echo "  ✓ QUICKSTART.md"
+	@test -f RUNBOOK.md && echo "  ✓ RUNBOOK.md"
 	@test -f CLAUDE.md && echo "  ✓ CLAUDE.md"
 	@test -f RESEARCH.md && echo "  ✓ RESEARCH.md"
 	@test -f FAQ.md && echo "  ✓ FAQ.md"
