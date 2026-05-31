@@ -37,6 +37,30 @@ class TestStrategies:
         with pytest.raises(ValueError):
             run_strategy("does_not_exist", task_input="x", provider="sim")
 
+    def test_crit_strategy_offline(self):
+        # CRIT is a first-class coordination strategy: it critiques the input as an
+        # artifact and returns a StrategyResult like the others.
+        from communication.multi_agent import STRATEGIES, StrategyResult, run_strategy
+
+        assert "crit" in STRATEGIES
+        result = run_strategy(
+            "crit",
+            "A login form with a single password field and no validation.",
+            provider="sim",
+            model="sim",
+            sim_response="Add input validation and rate limiting.",
+        )
+        assert isinstance(result, StrategyResult)
+        assert result.strategy_name == "crit"
+        assert isinstance(result.output, str) and result.output
+        assert result.metadata["sub_strategy"] == "multi_perspective"
+
+    def test_crit_strategy_rejects_bad_domain(self):
+        from communication.multi_agent import run_strategy
+
+        with pytest.raises(ValueError):
+            run_strategy("crit", "x", provider="sim", domain="NOT_A_DOMAIN", sim_response="y")
+
     def test_strategy_result_creation(self):
         from communication.multi_agent import StrategyResult
 

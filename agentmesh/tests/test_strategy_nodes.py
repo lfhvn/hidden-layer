@@ -56,18 +56,17 @@ def test_every_wired_strategy_runs():
         assert result.output is not None, f"{strategy_id} produced no output"
 
 
-def test_crit_node_is_not_yet_wired():
-    # KNOWN GAP: agentmesh exposes a CRITNode (strategy_id="crit"), but CRIT is a
-    # separate subsystem and is not in run_strategy's STRATEGIES registry, so the
-    # node currently raises. This test documents that gap; when CRIT is wired into
-    # run_strategy it will fail, prompting both this test and the product to update.
+def test_crit_node_executes_offline():
+    # CRIT is now a first-class coordination strategy in run_strategy's registry, so
+    # the agentmesh CRITNode runs like the others (treating the task as the artifact
+    # to critique).
     from communication.multi_agent import STRATEGIES
 
-    assert "crit" in NODE_REGISTRY
-    assert "crit" not in STRATEGIES
+    assert "crit" in NODE_REGISTRY and "crit" in STRATEGIES
     ctx = ExecutionContext(provider="sim", model="sim")
-    with pytest.raises(ValueError):
-        _run(get_strategy_node("crit", {}), "Critique this design.", ctx)
+    result = _run(get_strategy_node("crit", {}), "A checkout flow with 7 steps and no guest option.", ctx)
+    assert isinstance(result.output, str) and result.output
+    assert result.metadata["strategy"] == "crit"
 
 
 def test_unknown_strategy_raises():

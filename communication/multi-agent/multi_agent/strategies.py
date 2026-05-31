@@ -9,8 +9,8 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
-from harness.defaults import DEFAULT_MODEL, DEFAULT_N_DEBATERS, DEFAULT_N_ROUNDS, DEFAULT_PROVIDER
 from harness import LLMResponse, llm_call, llm_call_stream
+from harness.defaults import DEFAULT_MODEL, DEFAULT_N_DEBATERS, DEFAULT_N_ROUNDS, DEFAULT_PROVIDER
 
 
 def _extract_answer(text: str) -> str:
@@ -1105,6 +1105,69 @@ def _introspection_api(
     )
 
 
+def crit_strategy(
+    task_input: str,
+    provider: str = None,
+    model: str = None,
+    sub_strategy: str = "multi_perspective",
+    domain: str = None,
+    context: str = None,
+    success_criteria: List[str] = None,
+    **kwargs,
+) -> StrategyResult:
+    """
+    CRIT: multi-agent iterative critique of a design artifact.
+
+    CRIT is a coordination strategy (like debate/consensus), specialized for iteratively
+    improving an artifact via multiple expert perspectives. This adapter exposes it
+    through the unified ``run_strategy`` interface by treating ``task_input`` as the
+    artifact to critique --- the unstructured form of a CRIT ``DesignProblem``. For
+    structured problems (a specific domain, named perspectives, explicit success
+    criteria) use ``communication.multi_agent.crit`` directly.
+
+    Args:
+        task_input: the design artifact / text to critique.
+        sub_strategy: which CRIT strategy to run --- ``"multi_perspective"`` (default),
+            ``"single"``, ``"iterative"``, or ``"adversarial"``.
+        domain: optional ``DesignDomain`` name (e.g. ``"API"``, ``"UI_UX"``); defaults
+            to ``SYSTEM``.
+        context / success_criteria: optional extra structure for the ad-hoc problem.
+    """
+    from .crit import DesignDomain, DesignProblem, run_critique_strategy
+
+    try:
+        resolved_domain = DesignDomain[domain.upper()] if domain else DesignDomain.SYSTEM
+    except KeyError as exc:
+        valid = ", ".join(d.name for d in DesignDomain)
+        raise ValueError(f"Unknown CRIT domain {domain!r}. Valid: {valid}") from exc
+
+    problem = DesignProblem(
+        name=kwargs.pop("name", "adhoc-artifact"),
+        domain=resolved_domain,
+        description=kwargs.pop("description", "Artifact submitted for multi-agent critique."),
+        current_design=task_input,
+        context=context or "No additional context provided.",
+        success_criteria=success_criteria or ["Addresses the issues raised by the critique."],
+    )
+
+    result = run_critique_strategy(sub_strategy, problem, provider=provider, model=model, **kwargs)
+
+    output = result.synthesis or result.revised_design or "\n".join(result.recommendations or [])
+    return StrategyResult(
+        output=output,
+        strategy_name="crit",
+        latency_s=getattr(result, "latency_s", 0.0),
+        tokens_in=getattr(result, "total_tokens_in", None),
+        tokens_out=getattr(result, "total_tokens_out", None),
+        cost_usd=getattr(result, "total_cost_usd", None),
+        metadata={
+            "sub_strategy": sub_strategy,
+            "problem": result.problem_name,
+            "n_recommendations": len(result.recommendations or []),
+        },
+    )
+
+
 # Registry of strategies
 STRATEGIES = {
     "single": single_model_strategy,
@@ -1113,6 +1176,7 @@ STRATEGIES = {
     "manager_worker": manager_worker_strategy,
     "consensus": consensus_strategy,
     "introspection": introspection_strategy,
+    "crit": crit_strategy,
 }
 
 
