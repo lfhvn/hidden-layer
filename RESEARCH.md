@@ -104,6 +104,28 @@ Hidden Layer is an independent research lab investigating fundamental questions 
 
 ---
 
+### 5. Collective Intelligence
+
+**Core Question**: How does intelligence emerge from interactions among many heterogeneous entities — and what environment could continuously discover better forms of it?
+
+**Projects**:
+- **Guild** (`collective-intelligence/guild/`)
+  - Position paper: *Toward a Science of Collective Intelligence* (a third methodology: persistent interactive worlds jointly explored by humans and AI)
+  - Candidate interaction primitives (SIGNAL / TRANSFER / BIND / ACT / REINFORCE)
+  - Minimal emergence kernel: division of labor and stable partnerships from interaction-level rules alone
+
+**Open Questions**:
+- What are the primitive interactions from which organizations emerge?
+- Which interaction patterns produce robust collective intelligence, and which fail?
+- Can strategies discovered inside an environment transfer to real multi-agent systems?
+
+**Connections**:
+- Guild + Multi-Agent → hand-designed strategies (debate, CRIT, consensus) as baselines for emergent organizations
+- Guild + SELPHI → trust and deception as emergent, measurable phenomena once signaling exists
+- Guild + Steerability → incentive structures that keep emergent organizations aligned
+
+---
+
 ## Cross-Project Research Connections
 
 ### Understanding Communication

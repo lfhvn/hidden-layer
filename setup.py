@@ -38,6 +38,8 @@ setup(
             "representations.*",
             "memory",
             "memory.*",
+            "collective_intelligence",
+            "collective_intelligence.*",
             # Platform projects
             "agentmesh",
             "agentmesh.*",

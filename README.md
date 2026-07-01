@@ -45,6 +45,12 @@ Understanding long-horizon memory, lifelog retrieval, and preference-aware adapt
 **Projects**:
 - **[Lifelog Personalization Gatekeeper](memory/lifelog-personalization/)** - Evaluation harness for lifelog retrieval, TTL/TTT adapters, and personalization gates
 
+### 6. Collective Intelligence
+Discovering how intelligence emerges from interactions among many heterogeneous entities.
+
+**Projects**:
+- **[Guild](collective-intelligence/guild/)** - Interaction-first environments for collective intelligence: manifesto, interaction primitives, and a minimal emergence kernel
+
 ---
 
 ## Projects

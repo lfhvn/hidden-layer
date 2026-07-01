@@ -1,0 +1,101 @@
+\documentclass{article}
+
+% NeurIPS/ICML style packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\title{Toward a Science of Collective Intelligence: \\
+Persistent Interactive Worlds as a Third Methodology \\
+for Discovering the Interaction Laws of Intelligence}
+
+\author{
+  Hidden Layer Lab \\
+  \texttt{contact@hiddenlayer.ai}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Artificial intelligence research has historically focused on improving the capabilities of individual models. Recent advances increasingly rely on collections of interacting entities: foundation models, specialized agents, external tools, memory systems, humans, and institutional processes. While individual intelligence has improved dramatically, there remains no general science describing how heterogeneous intelligences should organize, communicate, adapt, and evolve. We argue that this represents a fundamental gap in AI research. Existing work approaches collective intelligence in two ways: by analyzing natural collective systems, or by engineering specific multi-agent architectures evaluated on static benchmarks. We propose a third methodology: designing persistent interactive worlds that continuously generate, evaluate, and evolve hypotheses about collective intelligence through the joint participation of humans and AI. Unlike static benchmarks or handcrafted architectures, such environments constitute an ongoing search process over interaction patterns, communication protocols, organizational structures, and emergent behaviors. As a first instrument we present a minimal interaction-first simulation in which division of labor and persistent partnerships emerge from three local plasticity rules, with no agents, roles, or organizations encoded anywhere in the system. Rather than searching for a single optimal architecture, we seek to build environments that continually discover better forms of collective intelligence.
+\end{abstract}
+
+\section{Introduction}
+
+For decades, AI has largely optimized individual minds. Scaling laws, larger models, improved training objectives, and reinforcement learning have all focused on increasing the capability of individual systems. This program has succeeded beyond most expectations, but its success has exposed a boundary: the frontier systems of the present are no longer individuals.
+
+Modern AI systems increasingly consist of interacting components: multi-agent reasoning systems, retrieval-augmented generation, tool-using agents, planning and decomposition systems, verifier and critic models, and human--AI teams embedded in institutional processes. In practice, state-of-the-art performance increasingly depends on how these components interact rather than on the capability of any single component. A weaker model in a well-structured verification loop can outperform a stronger model reasoning alone; a team of specialized agents can fail catastrophically under a communication topology that a trivial reorganization would fix. Research on multi-agent systems, hybrid human--AI intelligence, and agent orchestration reflects this transition, but there is still no unified theory describing how such systems should be designed.
+
+The situation resembles chemistry before the periodic table: an abundance of recipes, a shortage of laws. We argue that the next frontier of AI is \emph{organizational rather than individual}, and that treating it as such requires new scientific instruments, not just new architectures.
+
+\section{The Missing Science}
+
+Existing research asks: How should we train models? Which architecture performs best? Which prompting strategy works? These are questions about individuals. The more fundamental questions are questions about collectives:
+
+\begin{itemize}
+  \item How should intelligence divide labor?
+  \item What forms of communication maximize collective performance?
+  \item What kinds of specialization emerge, and under what pressures?
+  \item How should memory be distributed across a collective?
+  \item How should trust develop, and how should it decay?
+  \item How should computation be allocated across many minds?
+  \item Which interaction patterns produce resilience, and which produce fragility?
+  \item What entirely novel organizational forms exist that no human institution has ever instantiated?
+\end{itemize}
+
+Fragments of answers exist, scattered across organizational science, economics, distributed systems, evolutionary biology, and multi-agent reinforcement learning. But each field studies its own substrate with its own methods, and none can run controlled, repeatable, large-scale experiments on heterogeneous collectives of humans and machine intelligences---the very systems now being deployed. Today these questions are explored through small-scale manual experimentation: a paper proposes an agent topology, evaluates it on a handful of benchmarks, and reports a delta. This is progress, but it is inherently low-bandwidth relative to a combinatorially enormous design space.
+
+\section{Beyond Multi-Agent Systems}
+
+This paper does not propose another multi-agent framework. Current frameworks typically assume, as fixed primitives: agents as bounded persistent individuals; roles assigned in advance; communication protocols designed by the engineer; and hierarchies mirrored from human organizations. These assumptions may themselves be incorrect. They import the folk ontology of human institutions into a substrate with radically different properties: machine intelligences can be copied, merged, forked, paused, and specialized in ways no human employee can. There is no reason to expect that the org chart---a technology for coordinating creatures with one body and one lifetime---is the right abstraction for coordinating software minds.
+
+Instead we propose studying \emph{interaction itself}. Organizations, hierarchies, roles, markets, memories, and institutions should be treated as emergent hypotheses rather than fixed design primitives: structures that arise, persist, and dissolve within a field of repeated interactions, and that earn their place in the ontology only by recurring. This shifts the research objective from optimizing existing architectures to discovering new ontologies for collective intelligence.
+
+\section{Why Games?}
+
+Games are among humanity's most effective mechanisms for exploring large strategy spaces. They naturally produce optimization under pressure, adaptation, emergence of unplanned strategies, cooperation and competition in the same arena, and metagame formation. Players routinely discover strategies unforeseen by designers; every long-lived competitive game develops a community-scale search process over the space of viable strategies, complete with hypothesis generation, empirical testing, and publication.
+
+Citizen-science games such as Foldit and EteRNA have shown that well-designed interactive systems can contribute to genuine scientific discovery, outperform expert algorithms on specific instances, and generate datasets of lasting value. But these games aimed players at fixed problems. We argue that games should evolve from solving fixed scientific problems to exploring open-ended spaces of collective intelligence, where the object of play is the design of intelligent organization itself and every successful strategy is simultaneously a scientific hypothesis.
+
+\section{The Collective Intelligence Environment}
+
+Rather than proposing another benchmark, we propose a continuously evolving environment with the following properties: \emph{persistent} (the world outlives any session; consequences accumulate), \emph{multiplayer} (many humans and many AI systems simultaneously), \emph{partially observable} (information is a resource), \emph{cooperative and competitive}, \emph{adaptive} (the environment responds to the strategies discovered in it), and \emph{open-ended} (no terminal state).
+
+Participants do not micromanage characters; they shape relationships, interactions, constraints, and incentives, and are rewarded for the organizations that emerge. Every interaction is simultaneously gameplay and experiment: each session records interaction topology, communication patterns, information flow, coordination strategy, resource allocation, decision history, emergent structure, performance, and adaptation over time. The environment thereby functions at once as research platform, benchmark, reinforcement learning environment, simulation testbed, and hypothesis generator.
+
+\section{Research Questions}
+
+An environment of this kind makes previously untestable questions empirical: Can entirely novel organizational structures emerge? How does communication topology affect collective reasoning quality? Which interaction primitives consistently produce better outcomes across task distributions? Which organizations are robust to failure, defection, and deception? How does diversity of capability, information, and objective influence collective performance? Can organizations themselves be learned, as first-class objects? Can AI invent organizations humans never discovered---and can humans invent organizations AI fails to discover? The final pair is symmetric on purpose: a joint human--AI search process is most interesting where the two populations explore differently.
+
+\section{A New Kind of Benchmark}
+
+Benchmarks today are largely static: constructed once, saturated, retired. A static benchmark measures a fixed capability; it cannot measure the capacity to keep organizing well as the world changes, which is precisely the capability that matters for collectives. An evolving environment changes continuously. Its population of strategies is itself the difficulty: every solution published into the world becomes a condition that future solutions must survive. The benchmark becomes self-renewing, adversarial, adaptive, and increasingly difficult---a ratchet driven by the participants themselves. This resembles natural evolution and immune dynamics more than traditional evaluation. Saturation is not failure; it is a signal consumed by the environment to generate the next regime.
+
+\section{From Architectures to Ecologies}
+
+Most AI research assumes intelligence is a property of individual entities: an agent \emph{has} intelligence, and the research question is how to give it more. We propose a different working hypothesis: \textbf{intelligence may be better understood as a property of interactions within adaptive systems.} On this view, an ``agent'' is a slow-moving pattern in a field of interactions---as a whirlpool is a pattern in water---and organizational forms are the phases this field can take. The research object is not the entity but the ecology: which interaction patterns are stable, which are fertile, which laws govern their transitions. This connects naturally to work on complex adaptive systems, network science, and hybrid human--AI collective intelligence, and extends them by proposing an experimental platform specifically designed to discover new interaction laws rather than evaluate existing ones.
+
+\section{A First Instrument: The Minimal Kernel}
+
+As an existence proof for the methodology's cheapest end, we implemented the smallest simulation we could design that produces emergent coordination without encoding agents, roles, teams, or organizations anywhere. The ontology is: \emph{loci} (interaction endpoints carrying only a skill vector and bond weights), joint \emph{action events} (sets of loci attempt tasks whose success depends on composition, not headcount), and three local plasticity rules (exercised skills improve; unexercised competence decays; shared success strengthens pairwise bonds, which bias future recruitment).
+
+Across seeds, two classic ingredients of organization emerge and dissociate. Learning-by-doing plus local comparative advantage produces division of labor and roughly doubles collective success over a run; ablating it flattens both. Bond reinforcement produces persistent partnerships---the same participant sets re-form nearly an order of magnitude above the chance baseline---and contributes a further $\sim$23\% relative performance gain; ablating it returns recruitment to a structureless crowd. Notably, specialization emerges \emph{without} stable partnerships and vice versa: the two mechanisms are separable, with different generating conditions. The kernel also exhibits an emergent organizational failure mode: with bond reinforcement but frozen skills, interaction locks in around weak early winners---structure without competence. None of these phenomena exists as a data type in the system; all are detected from event logs. The kernel's role is not to be impressive but to establish the floor: everything richer (communication, economics, institutions) is now an addition whose marginal contribution can be measured.
+
+\section{Open Problems}
+
+We intentionally leave fundamental questions unresolved; they constitute the research agenda. \textbf{What is the correct primitive?} Not ``agent,'' not ``role,'' not ``organization.'' Perhaps interaction; perhaps information flow; perhaps commitment; perhaps something not yet named. \textbf{What should participants manipulate?} Individuals, relationships, communication rules, resource flows, incentives, institutions, entire civilizations---the right lever is itself an experimental variable. \textbf{What constitutes progress?} The objective function is a design variable, and the sensitivity of emergent organization to the objective is a central phenomenon to measure. \textbf{What data transfers?} Not all gameplay is science; a core responsibility of the platform is identifying which interaction patterns generalize beyond the game, validated by porting discovered strategies into real multi-agent systems and measuring the delta.
+
+\section{Conclusion}
+
+The central claim of this paper is simple. The next generation of AI progress may depend less on building increasingly capable individual models and more on understanding the principles governing systems of interacting intelligences. If that is true, then the scientific community lacks its most important tool: an environment capable of continuously discovering, testing, and evolving those principles. Analyzing natural collectives gives us observation without control. Engineering fixed architectures gives us control without search. The third methodology---persistent, evolving worlds explored jointly by humans and AI---offers both, at a bandwidth no manual research program can match. We propose that building such environments should become a central research agenda for the coming decade.
+
+\end{document}

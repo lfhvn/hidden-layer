@@ -80,6 +80,15 @@ How can AI systems maintain long-term memory and personalization?
   - Preference-aware personalization and adapter promotion gates
   - Research Q: How can systems maintain coherent long-term context?
 
+### 6. Collective Intelligence (`collective-intelligence/`)
+How does intelligence emerge from interactions among many heterogeneous entities?
+
+**Projects**:
+- **Guild** → `collective-intelligence/guild/CLAUDE.md`
+  - Interaction-first environments for discovering principles of collective intelligence
+  - Manifesto, literature survey, interaction primitives, minimal emergence kernel
+  - Research Q: What are the interaction laws from which intelligent organization emerges?
+
 ---
 
 ## Platform & Tools
@@ -116,6 +125,7 @@ Papers documenting the research:
 - `latent-lens-sae.tex` - SAE interpretability
 - `latent-topologies-multimodal.tex` - Multimodal latent exploration
 - `steerability-adherence.tex` - Steering and alignment
+- `toward-collective-intelligence.tex` - Collective intelligence position paper (Guild)
 
 ---
 
@@ -134,6 +144,9 @@ Projects are deeply interconnected:
 
 **Alignment**:
 - SELPHI + Introspection + Steerability → Honest, controllable systems
+
+**Collective Intelligence**:
+- Guild + Multi-agent → Emergent organizations vs. hand-designed coordination strategies
 
 **See** `RESEARCH.md` for detailed research questions and cross-project connections.
 
@@ -348,6 +361,11 @@ hidden-layer/
 │
 ├── memory/                     # Research Area: Long-term Memory
 │   └── lifelog-personalization/  # Lifelog retrieval & preference
+│
+├── collective-intelligence/    # Research Area: Collective Intelligence
+│   └── guild/                 # Interaction-first emergence environment
+│
+├── collective_intelligence/    # Python package wrapper for collective-intelligence
 │
 ├── agentmesh/                  # Platform: Workflow orchestration
 ├── mlx_lab/                    # Tool: MLX model management CLI
