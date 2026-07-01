@@ -24,7 +24,7 @@
 ### Q: I'm new to Hidden Layer. Where should I start?
 
 **A**: Follow this path:
-1. Read [QUICKSTART.md](QUICKSTART.md) to set up your environment (5 minutes)
+1. Read [QUICKSTART.md](../QUICKSTART.md) to set up your environment (5 minutes)
 2. Run `python check_setup.py` to verify everything works
 3. Browse [PROJECT_GUIDE.md](PROJECT_GUIDE.md) to find a project that interests you
 4. Open that project's `00_quickstart.ipynb` or `01_*.ipynb` notebook
@@ -633,7 +633,7 @@ ssh -L 8888:localhost:8888 user@remote-server
 **Last updated**: 2025-11-19
 
 **Related Documentation**:
-- [QUICKSTART.md](QUICKSTART.md) - Initial setup
+- [QUICKSTART.md](../QUICKSTART.md) - Initial setup
 - [PROJECT_GUIDE.md](PROJECT_GUIDE.md) - Project selection and navigation
 - [CLAUDE.md](CLAUDE.md) - Development guide
 - [RESEARCH.md](RESEARCH.md) - Research themes and questions

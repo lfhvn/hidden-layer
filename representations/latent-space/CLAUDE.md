@@ -2,10 +2,10 @@
 
 ## Project Overview
 
-Understanding and experiencing latent space representations through two complementary approaches:
+Understanding latent space representations through SAE interpretability and generative modeling:
 
-1. **Lens**: SAE interpretability web app (training Sparse Autoencoders, discovering features)
-2. **Topologies**: Mobile latent space exploration (visual, audio, haptic experience)
+1. **Lens**: SAE interpretability API (training Sparse Autoencoders, discovering features)
+2. **CALM**: Continuous autoregressive language modeling experiments (autoencoder + energy transformer)
 
 **Research Question**: How can we understand and make interpretable the high-dimensional latent representations that models use?
 
@@ -19,80 +19,48 @@ Understanding and experiencing latent space representations through two compleme
 
 **Purpose**: Interactive SAE training and feature discovery
 
-**Stack**: FastAPI (backend) + Next.js (frontend) + PyTorch
+**Stack**: FastAPI + PyTorch + HuggingFace transformers
 
 **Features**:
 - Train Sparse Autoencoders on model activations
+- Capture activations via forward hooks on any HF model
 - Discover interpretable features
-- Browse feature gallery
-- Analyze text through activation lens
-- Label and annotate features
+- Feature extraction pipeline with labeling support
 
 **Quick Start**:
 ```bash
-cd projects/latent-space/lens
+cd representations/latent-space/lens
 make dev  # Starts Docker services
-# Frontend: http://localhost:3000
-# Backend: http://localhost:8000
+# Backend API: http://localhost:8000
 ```
 
 **See**: `lens/README.md` for detailed setup
 
-### Latent Topologies (`topologies/`)
+### CALM (`calm/`)
 
-**Purpose**: Mobile app for experiencing latent spaces
+**Purpose**: Continuous autoregressive language modeling experiments
 
-**Stack**: React Native + Expo
+**Stack**: PyTorch (variational autoencoder + energy transformer)
 
-**Features**:
-- Visual constellation navigation
-- Audio representation of meaning gradients
-- Haptic feedback for boundary transitions
-- On-device embedding model
-- Annotation and reshaping
-
-**Status**: Concept/early development
-
-**Quick Start**:
-```bash
-cd projects/latent-space/topologies
-npx expo start
-```
-
-**See**: `topologies/README.md` and `topologies/PRD.md`
+**See**: `calm/README.md` and `calm/CLAUDE.md`
 
 ---
 
 ## Research Questions
 
-### Shared Questions
-
 1. **What representations** do models learn?
    - What features emerge in different layers?
    - How do representations differ across models?
 
-2. **How can humans understand** high-dimensional spaces?
-   - Visual metaphors (constellations)
-   - Audio mappings (sound)
-   - Haptic feedback (touch)
-   - Interactive exploration
-
-3. **Geometry of meaning**:
+2. **Geometry of meaning**:
    - What is the topology of latent space?
    - How do concepts cluster?
    - What are the boundaries between concepts?
 
-### Lens-Specific
-
-- What SAE features are most interpretable?
-- How do features compose?
-- Can we steer via feature activation?
-
-### Topologies-Specific
-
-- Can people navigate latent space intuitively?
-- Does multimodal experience (visual + audio + haptic) aid understanding?
-- Can annotation reshape the space?
+3. **Lens-specific**:
+   - What SAE features are most interpretable?
+   - How do features compose?
+   - Can we steer via feature activation?
 
 ---
 
@@ -130,34 +98,18 @@ async def my_endpoint(data: MyModel):
     return result
 ```
 
-**Frontend** (TypeScript/Next.js):
-```typescript
-// In lens/frontend/src/app/my-page/page.tsx
-
-export default function MyPage() {
-  return <div>My New Feature</div>
-}
-```
-
-### Adding to Topologies
-
-See `topologies/TECH_PLAN.md` for architecture and implementation guide.
-
 ---
 
 ## Key Files
 
 ### Lens
-- `lens/backend/` - FastAPI backend
-- `lens/frontend/` - Next.js frontend
+- `lens/backend/` - FastAPI backend (SAE models, activation capture, pipelines)
 - `lens/docker-compose.yml` - Services setup
 - `lens/openapi.yaml` - API specification
 
-### Topologies
-- `topologies/src/` - React Native code
-- `topologies/research/` - Research notes
-- `topologies/PRD.md` - Product requirements
-- `topologies/TECH_PLAN.md` - Technical architecture
+### CALM
+- `calm/src/autoencoder.py` - Variational autoencoder
+- `calm/src/energy_transformer.py` - Energy transformer
 
 ---
 
@@ -165,14 +117,8 @@ See `topologies/TECH_PLAN.md` for architecture and implementation guide.
 
 ### Lens
 ```bash
-cd projects/latent-space/lens
+cd representations/latent-space/lens
 make test
-```
-
-### Topologies
-```bash
-cd projects/latent-space/topologies
-# Testing approach TBD
 ```
 
 ---

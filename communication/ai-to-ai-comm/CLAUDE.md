@@ -85,7 +85,6 @@ nearest = find_nearest_in_vocab(coords, top_k=5)
 
 **With Latent Space**:
 - Use latent-lens to visualize AI-to-AI messages
-- Use latent-topologies to experience communication
 
 **With Introspection**:
 - What activations correspond to "sending" vs. "receiving"?

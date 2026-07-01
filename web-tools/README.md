@@ -17,15 +17,6 @@ Public-facing web interfaces for Hidden Layer research projects.
 **Path**: `steerability/`
 **Description**: Interactive LLM steering with real-time adherence metrics
 
-### 🤝 Multi-Agent Arena
-**Status**: In Progress
-**Path**: `multi-agent-arena/`
-**Description**: Watch AI agents debate, critique, and solve problems collaboratively
-
-### 🔬 Coming Soon
-- Latent Lens Explorer
-- SELPHI Playground
-
 ## Architecture
 
 ```
@@ -35,7 +26,6 @@ web-tools/
 │   ├── ui-components/         # Reusable React components
 │   └── deployment/            # Docker, deployment configs
 ├── steerability/              # Individual tools
-├── multi-agent-arena/
 └── [tool-name]/
 ```
 
@@ -63,18 +53,17 @@ tool-name/
 
 ### Working on Research (Main Workflow)
 ```bash
-cd projects/multi-agent/
+cd communication/multi-agent/
 jupyter notebook  # Do research as usual
 ```
 
 ### Building Public Interface
 ```bash
-cd web-tools/multi-agent-arena/
+cd web-tools/steerability/
 make dev  # Starts local dev environment
-# Imports from projects/multi-agent/code/
 ```
 
-**Key Principle**: Web tools import from projects, never modify them.
+**Key Principle**: Web tools import from research projects, never modify them.
 
 ## Quick Start
 
@@ -115,7 +104,7 @@ See `DEPLOYMENT.md` for cost analysis.
 
 1. Create directory: `web-tools/my-tool/`
 2. Copy template: `cp -r shared/template/ my-tool/`
-3. Import research code: `from projects.my_project.code import ...`
+3. Import research code: `from communication.multi_agent import ...` (or the relevant area package)
 4. Build UI
 5. Test locally: `make dev`
 6. Deploy: `make deploy`
@@ -150,4 +139,4 @@ See `DEPLOYMENT.md` for detailed instructions.
 
 ---
 
-**Remember**: These are public demos of research. The real work happens in `/projects/` and `/notebooks/`.
+**Remember**: These are public demos of research. The real work happens in the research area directories (`communication/`, `alignment/`, `representations/`, ...).

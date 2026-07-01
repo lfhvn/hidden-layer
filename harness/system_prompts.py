@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 import yaml
 
 # Path to system prompts directory
-SYSTEM_PROMPTS_DIR = Path(__file__).parent.parent.parent / "config" / "system_prompts"
+SYSTEM_PROMPTS_DIR = Path(__file__).parent.parent / "config" / "system_prompts"
 
 
 class SystemPromptMetadata:

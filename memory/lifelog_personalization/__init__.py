@@ -27,7 +27,7 @@ def _load_package(name: str, directory: Path) -> ModuleType:
     return module
 
 
-_base_dir = Path(__file__).resolve().parent / "lifelog-personalization"
+_base_dir = Path(__file__).resolve().parent.parent / "lifelog-personalization"
 _gatekeeper_dir = _base_dir / "gatekeeper"
 
 _gatekeeper_module = _load_package(__name__ + ".gatekeeper", _gatekeeper_dir)

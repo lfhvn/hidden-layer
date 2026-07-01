@@ -66,9 +66,6 @@ These projects are configured to download to **local** `./model_cache` directori
    - `.env.example`: `HF_CACHE_DIR=./model_cache`
    - `backend/app/config.py`: `hf_cache_dir: str = "./model_cache"`
 
-4. **web-tools/latent-lens/**
-   - Likely has similar configuration
-
 **Problem**: Each project downloads its own copy of models!
 
 ---
@@ -113,7 +110,6 @@ Change `HF_CACHE_DIR=./model_cache` to `HF_CACHE_DIR=~/.cache/huggingface/hub` i
 - `representations/latent-space/lens/.env.example`
 - `alignment/steerability/.env.example`
 - `web-tools/steerability/.env.example`
-- `web-tools/latent-lens/.env.example` (if exists)
 
 ### Step 4: Update Config Files
 
@@ -121,7 +117,6 @@ Change default in Python config files from `"./model_cache"` to `os.path.expandu
 - `representations/latent-space/lens/backend/app/config.py`
 - `alignment/steerability/backend/app/config.py`
 - `web-tools/steerability/backend/app/config.py`
-- `web-tools/latent-lens/backend/app/config.py` (if exists)
 
 ### Step 5: Update .gitignore
 
