@@ -60,6 +60,25 @@ class KernelConfig:
     skill_jitter: float = 0.05
     learning_rate: float = 0.2
     skill_decay: float = 0.005
+    # Social transmission: when a covered skill's coverer is at or above
+    # mentor_threshold, teammates absorb a fraction of the gap. Off by
+    # default (0.0) — the minimal kernel results hold without it. With it,
+    # competence can outlive individual practice (a "learning culture"),
+    # which introduces hysteresis: early investment can move the population
+    # to a self-sustaining attractor. See docs/minimal-simulation.md §7.
+    mentorship: float = 0.0
+    mentor_threshold: float = 0.7
+    # Cultural ratchet: when tradition_experts loci are simultaneously at or
+    # above tradition_expert_level in a skill, that skill becomes a
+    # "tradition" (permanently): the baseline that forgetting decays toward
+    # rises to tradition_floor for everyone. Off by default (0 = disabled).
+    # This is the kernel's model of cumulative culture — competence that
+    # outlives the individuals who built it — and the mechanism that makes
+    # self-sustaining collectives (rather than steady-state subsistence)
+    # reachable. See docs/minimal-simulation.md §7.
+    tradition_experts: int = 0
+    tradition_expert_level: float = 0.7
+    tradition_floor: float = 0.4
     bond_gain: float = 1.0
     bond_decay: float = 0.01
     exploration: float = 0.05
@@ -120,6 +139,10 @@ class Kernel:
         # locus i places on past shared success with locus j.
         self.bonds: list[dict[int, float]] = [dict() for _ in range(cfg.n_loci)]
         self.events: list[Event] = []
+        self.traditions: set[int] = set()
+        # Optional per-skill weights for task arrival (environment shaping);
+        # None means uniform. Games/experiments may set this directly.
+        self.task_weights: list[float] | None = None
         self._round = 0
 
     # ------------------------------------------------------------------
@@ -128,7 +151,15 @@ class Kernel:
 
     def _sample_task(self) -> Task:
         cfg = self.config
-        required = tuple(sorted(self.rng.sample(range(cfg.n_skills), cfg.team_size)))
+        if self.task_weights is None:
+            required = tuple(sorted(self.rng.sample(range(cfg.n_skills), cfg.team_size)))
+        else:
+            chosen: list[int] = []
+            while len(chosen) < cfg.team_size:
+                candidates = [k for k in range(cfg.n_skills) if k not in chosen]
+                weights = [self.task_weights[k] for k in candidates]
+                chosen.append(self.rng.choices(candidates, weights=weights, k=1)[0])
+            required = tuple(sorted(chosen))
         return Task(required_skills=required, difficulty=cfg.difficulty)
 
     def _recruit(self) -> list[int]:
@@ -184,23 +215,43 @@ class Kernel:
             for skill, locus in coverage:
                 s = self.skills[locus][skill]
                 self.skills[locus][skill] = s + cfg.learning_rate * (1.0 - s)
+            if cfg.mentorship > 0:
+                for skill, locus in coverage:
+                    master = self.skills[locus][skill]
+                    if master >= cfg.mentor_threshold:
+                        for m in team:
+                            s = self.skills[m][skill]
+                            if m != locus and s < master:
+                                self.skills[m][skill] = s + cfg.mentorship * (master - s)
         if success:
             for i in team:
                 for j in team:
                     if i != j:
                         self.bonds[i][j] = self.bonds[i].get(j, 0.0) + cfg.bond_gain
 
+        # Cultural ratchet: a skill held at expert level by enough loci at
+        # once becomes a tradition — the forgetting floor rises permanently.
+        if cfg.tradition_experts > 0:
+            for k in range(cfg.n_skills):
+                if k not in self.traditions:
+                    experts = sum(1 for v in self.skills if v[k] >= cfg.tradition_expert_level)
+                    if experts >= cfg.tradition_experts:
+                        self.traditions.add(k)
+
         # Forgetting: unexercised competence relaxes toward baseline. This is
         # what makes specialization a real commitment — no locus can maintain
         # every skill, so who you repeatedly act with determines what the
-        # collective can cover.
+        # collective can cover. Traditions raise the baseline itself.
         if cfg.practice and cfg.skill_decay > 0:
-            base = cfg.initial_skill
             keep = 1.0 - cfg.skill_decay
             for vector in self.skills:
                 for k in range(cfg.n_skills):
+                    base = cfg.tradition_floor if k in self.traditions else cfg.initial_skill
                     if vector[k] > base:
                         vector[k] = base + (vector[k] - base) * keep
+                    elif k in self.traditions and vector[k] < base:
+                        # newcomers / the rusty are lifted by living tradition
+                        vector[k] = min(base, vector[k] + cfg.skill_decay * (base - vector[k]) * 4)
 
         decay = 1.0 - cfg.bond_decay
         for i in range(cfg.n_loci):

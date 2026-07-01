@@ -1,6 +1,6 @@
-# Understory — Game Design v0.3 (Project Guild)
+# Understory — Game Design v0.4 (Project Guild)
 
-**Status**: v0.3 — adds the structure of play: loops, run shape, win/loss conditions, meta-progression. Supersedes the presentation layer of [ux-vision.md](ux-vision.md) (whose pillars, staging, and research constraints still stand). Playable slice: [`../prototype/index.html`](../prototype/index.html).
+**Status**: v0.4 — the run structure is now implemented and calibrated (traditions, the Closing, the Exodus), and art direction is defined. Supersedes the presentation layer of [ux-vision.md](ux-vision.md) (whose pillars, staging, and research constraints still stand). Playable slice: [`../prototype/index.html`](../prototype/index.html).
 
 **Design brief**: a consumer game built from concepts a player already understands — pitched *between Baldur's Gate 3, Stardew Valley, and Call of the Wild* — themed to the project's intellectual bent: **ecological and sociological**. No "loci," no "bonds," no research jargon player-side; equally, no guilds, quests, or gold.
 
@@ -51,9 +51,22 @@ You found (or inherit) a settlement in a clearing — a couple dozen strangers, 
 
 Runs end three ways:
 
-- **The Closing (the win).** The valley sustains flourishing through a full cycle of seasons *with the steward's hands still* — concretely: a year above a flourishing threshold with at most a handful of interventions. The understory closes over. The final field note writes itself: *"They don't need a steward anymore."* **Victory is your own obsolescence** — the founder fantasy completed honestly, and, research-side, the definition of a self-sustaining organization.
-- **The Exodus (the loss).** Sustained failure has teeth: villagers leave. Departures thin the skill pool, which deepens failure — a legible death spiral. When the last few walk out of the clearing, the run is over. Dwarf Fortress rule: losing is a story ("the settlement that starved because one circle hoarded all the work" goes in your Almanac, named).
-- **Moving on (the shrug).** A stable-but-mediocre valley can be left voluntarily: the run scores whatever the Almanac recorded. No punishment; some clearings just teach you things.
+- **The Closing (the win).** The valley sustains itself through a full cycle of seasons *with the steward's hands still*. **Victory is your own obsolescence.** Implemented and calibrated (v0.4): year ≥ 4, **≥ 6 living traditions**, a year above expectation, **≤ 2 interventions** in that year, and **no standing calls up** (take your notices down; let the valley choose its own work).
+- **The Exodus (the loss).** When a season's success falls below the valley's rising expectation, villagers leave — the unattached first (companionship hearts and circle membership anchor people; belonging is literally what holds a community together). Departures thin the skill pool, deepening failure. Below six souls, the clearing empties. Dwarf Fortress rule: losing is a story, recorded and named.
+- **Moving on (the shrug).** A stable-but-mediocre valley can be left voluntarily: the run scores whatever was recorded. Some clearings just teach you things.
+
+### Traditions: the mechanic that makes the Closing possible
+
+v0.4's load-bearing addition, forced by calibration rather than invented for flavor. We measured that **every transient intervention washes out** — teaching boosts, even optimally-constructed complementary circles, all converge back to the same steady state within a year or two, because the kernel's equilibrium is set by practice and rust, not by history. "They don't need you anymore" was *physically impossible*: the valley's fate was steward-independent.
+
+The missing physics is **cumulative culture** — knowledge that outlives individuals. Two kernel primitives added (both default-off in the research kernel, on in the game):
+
+- **Apprenticeship** (mentorship spillover): working beside an expert teaches you a little of their craft.
+- **Traditions** (the cultural ratchet): when enough villagers are *simultaneously* expert in a craft, it becomes a tradition of the valley — the baseline everyone rusts back to (and newcomers start from) rises permanently. *"The knowing of it lives in the place now, not in any one pair of hands."*
+
+Calibration (6 seeds, 6 years): hands-off valleys forge **0–1** traditions; a steward who concentrates work with standing calls and teaching seasons forges **7–10 by year 3**. So the Closing genuinely requires stewardship — and then requires withdrawing it. The intended dramatic arc of every winning run: *build the culture, then prove you can let go.* End-to-end validation: a scripted steward reaches the Closing in year 4; a hands-off valley in a blighted clearing bleeds 19 departures into the Exodus.
+
+This is also the research program working as intended: the game needed a mechanism, the mechanism turned out to be a known phenomenon (cumulative culture / the cultural ratchet — Tomasello, Boyd & Richerson), and it is now an optional, ablatable primitive in the kernel that experiments can study.
 
 ### The forest: what persists
 
@@ -120,6 +133,26 @@ Deliberately withheld: dialogue trees, authored arcs, romance. Every authored be
 ## 7. Economy: Surplus Closes the Loop
 
 Successful work produces **surplus**; surplus funds stewardship. A struggling valley leaves the steward fewer moves exactly when moves matter most — comeback tension for free, and thematically honest (a poor commons cannot afford workshops). Every intervention has an opportunity-cost shape consumers already know ("30🧺 on a teaching season, or save toward a newcomer before winter?"). Difficulty tuning becomes payout and season-severity tuning, which players experience as lean years rather than sliders.
+
+## 7.5 Art Direction v0.1: Lo-fi Solarpunk, Glitched at the Seams
+
+Three registers, in strict priority order.
+
+**Primary 1 — Solarpunk pastoral (the world).** The valley is technology-after-repair optimism: sun-washed greens, terracotta and river-teal, hand-tended tools, abundance that looks *maintained* rather than manufactured. References: Ghibli's working landscapes (*Nausicaä*'s valley more than its wasteland), Moebius line clarity, solarpunk illustration's warm-light-on-green. The world should look like a place where the Closing is possible.
+
+**Primary 2 — Lo-fi (the mood).** Warm grain, dusty palette, soft edges, patience. The game should feel the way the lo-fi girl's window looks: golden hour, slightly worn, endlessly watchable. This is the aesthetic argument for the core verb (watching) — lo-fi is the visual language of comfortable attention. Texture: film grain, faint scanlines, paper tooth on UI, tape-warble in transitions.
+
+**Accent — Glitch (the data layer showing through).** Rationed strictly. Glitch is *the understory of the game itself* — the simulation's hidden structure surfacing. It appears **only** when the research layer touches the fiction: a tradition crystallizing (the world stutters for half a second), the steward's ledger, Almanac pages, run-end cards. Never ambient, never decorative: when the world glitches, it *means* the field notes are being written into something. This gives the dual identity (cozy game / research instrument) a visual grammar instead of a disclaimer.
+
+**Characters — anime, early-JRPG spirit at higher fidelity.** SNES-era JRPG expressiveness (Chrono Trigger / FF6 portrait energy: whole personalities in 40 pixels) rendered with modern fidelity — the HD-2D lineage (Octopath, Sea of Stars): pixel-informed proportions, painted light, no crunchy nostalgia filter. In-world villagers are small readable sprites; field-note cards get soft-lined anime bust portraits warm enough to carry the quirk text ("counts the geese every dusk" needs a face that would).
+
+**Palette**: moss and fern greens, sun gold, terracotta, river teal, cream paper; indigo nights. Season = a global color grade shift (the world literally warms and cools).
+
+**UI materials**: the steward's field journal — paper cards, ink-serif prose, stamped craft icons; the research ledger in phosphor-teal with RGB-split hover, visibly *another layer* beneath the paper.
+
+**Sound direction** (for later): lo-fi percussion under field recordings (river, bees, rain on the winter store), tape hiss as room tone; tradition moments get a vinyl skip.
+
+**Implemented in the prototype now** (the CSS-reachable slice): film grain + scanline overlays, sun-wash and seasonal grading on the canvas, the warmed palette, RGB-split title treatment, and the tradition glitch-flash. Sprite/portrait work is the first real art hire's job — the prototype's drawn faces are placeholders proving where portraits go.
 
 ## 8. What Stays Sacred (Research Invariants)
 

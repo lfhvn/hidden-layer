@@ -6,9 +6,10 @@
 <title>Understory — a valley, its people, and you</title>
 <style>
   :root {
-    --bg: #131a13; --panel: #1a231a; --panel2: #22301f; --line: #32432c;
-    --text: #eae4d3; --dim: #a3a58a; --leaf: #9dc383; --wheat: #d9b96a;
-    --heart: #d98a7f; --good: #9dc383; --bad: #d98a7f;
+    --bg: #1a2016; --panel: #222b1c; --panel2: #2b3622; --line: #3d4c32;
+    --text: #efe8d3; --dim: #a9a98d; --leaf: #a4c586; --sun: #e9b44c;
+    --terra: #cf7d5a; --heart: #d98a7f; --sky: #8fc4bb;
+    --good: #a4c586; --bad: #cf7d5a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -16,86 +17,128 @@
     font: 14px/1.5 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
     height: 100vh; display: flex; flex-direction: column; overflow: hidden;
   }
+  /* lo-fi: film grain + faint scanlines over everything */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 90; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.055; mix-blend-mode: overlay;
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; z-index: 91; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0 1px, transparent 1px 3px);
+    opacity: 0.5;
+  }
   header {
-    display: flex; align-items: center; gap: 14px; padding: 9px 16px;
+    display: flex; align-items: center; gap: 13px; padding: 9px 16px;
     background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap;
   }
-  header h1 { font-size: 17px; font-weight: 700; letter-spacing: 1.5px; color: var(--leaf); }
-  header h1 span { color: var(--dim); font-weight: 400; font-size: 12px; letter-spacing: 0; margin-left: 8px; font-style: italic; }
-  .spacer { flex: 1; }
-  select, button, input[type=range] { font: inherit; color: var(--text); }
-  button {
-    background: var(--panel2); border: 1px solid var(--line); border-radius: 6px;
-    padding: 5px 11px; cursor: pointer; font-size: 13px;
+  header h1 {
+    font-size: 17px; font-weight: 700; letter-spacing: 3px; color: var(--leaf);
+    text-shadow: 1px 0 0 rgba(143,196,187,0.45), -1px 0 0 rgba(207,125,90,0.45);
   }
-  button:hover:not(:disabled) { border-color: var(--leaf); }
+  header h1 span {
+    color: var(--dim); font-weight: 400; font-size: 12px; letter-spacing: 0;
+    margin-left: 8px; font-style: italic; text-shadow: none;
+  }
+  .spacer { flex: 1; }
+  button {
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font: inherit; font-size: 13px; color: var(--text);
+  }
+  button:hover:not(:disabled) { border-color: var(--sun); }
   button:disabled { opacity: 0.38; cursor: default; }
-  .date { font-variant-numeric: tabular-nums; color: var(--text); min-width: 175px; text-align: right; }
-  .surplus { color: var(--wheat); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .date { font-variant-numeric: tabular-nums; min-width: 178px; text-align: right; }
+  .surplus { color: var(--sun); font-weight: 700; font-variant-numeric: tabular-nums; }
   main { flex: 1; display: flex; min-height: 0; }
   #world { flex: 1; position: relative; min-width: 0; }
+  #world.glitch { animation: glitch 0.55s steps(2, jump-none) 1; }
+  @keyframes glitch {
+    0%   { filter: hue-rotate(0deg); transform: translate(0); }
+    20%  { filter: hue-rotate(18deg) saturate(1.6); transform: translate(2px, -1px); }
+    40%  { filter: hue-rotate(-14deg); transform: translate(-2px, 1px); }
+    60%  { filter: hue-rotate(10deg) saturate(1.4); transform: translate(1px, 0); }
+    100% { filter: none; transform: none; }
+  }
   #canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   #dayBanner {
     position: absolute; top: 10px; left: 10px; max-width: 62%;
-    background: rgba(20,27,19,0.88); border: 1px solid var(--line); border-radius: 8px;
+    background: rgba(24,30,20,0.88); border: 1px solid var(--line); border-radius: 10px;
     padding: 8px 12px; font-size: 13px;
   }
   #dayBanner .need { font-weight: 700; }
   #dayBanner .party { color: var(--dim); font-style: italic; }
   #dayBanner .ok { color: var(--good); } #dayBanner .no { color: var(--bad); }
   aside {
-    width: 355px; background: var(--panel); border-left: 1px solid var(--line);
+    width: 358px; background: var(--panel); border-left: 1px solid var(--line);
     display: flex; flex-direction: column; min-height: 0;
   }
   section { padding: 11px 14px; border-bottom: 1px solid var(--line); }
   section h2 {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 1.6px;
-    color: var(--dim); margin-bottom: 7px; font-family: -apple-system, sans-serif;
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--dim); margin-bottom: 7px; font-family: -apple-system, "Segoe UI", sans-serif;
   }
   .valleyRow { display: flex; align-items: baseline; justify-content: space-between; }
   .tier { color: var(--leaf); font-weight: 700; }
-  .bar { height: 5px; background: var(--panel2); border-radius: 3px; margin-top: 6px; overflow: hidden; }
-  .bar i { display: block; height: 100%; background: var(--leaf); }
-  .seasonNote { color: var(--dim); font-size: 12px; margin-top: 6px; font-style: italic; }
+  .bar { height: 6px; background: var(--panel2); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--leaf), var(--sun)); }
+  .subline { color: var(--dim); font-size: 12px; margin-top: 6px; font-style: italic; }
+  .tradRow { margin-top: 7px; font-size: 15px; letter-spacing: 3px; }
+  .tradRow .off { opacity: 0.22; filter: grayscale(1); }
+  .closing { margin-top: 6px; font-size: 12px; color: var(--sky); }
+  .closing b.no { color: var(--terra); }
   .chips { display: flex; flex-wrap: wrap; gap: 5px; }
   .chip {
     display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
     border: 1px solid var(--line); border-radius: 999px; font-size: 12px;
     cursor: pointer; user-select: none; background: var(--panel2);
   }
-  .chip.posted { border-color: var(--wheat); box-shadow: 0 0 0 1px var(--wheat) inset; }
+  .chip.posted { border-color: var(--sun); box-shadow: 0 0 0 1px var(--sun) inset; }
   .chip.season { border-style: dashed; }
   .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .actions button { text-align: left; font-size: 12.5px; padding: 7px 9px; }
-  .actions .cost { color: var(--wheat); float: right; }
+  .actions .cost { color: var(--sun); float: right; }
   .hint { color: var(--dim); font-size: 12px; margin-top: 7px; font-style: italic; }
   #villagerCard { font-size: 13px; }
   #villagerCard .vname { font-weight: 700; font-size: 15px; }
   #villagerCard .epithet { color: var(--leaf); }
   #villagerCard .quirk { color: var(--dim); font-style: italic; }
-  #villagerCard .crafts { margin-top: 5px; }
   #villagerCard .hearts { color: var(--heart); }
   #notes { flex: 1; overflow-y: auto; min-height: 0; }
-  #notes div { padding: 4px 0; font-size: 12.5px; border-bottom: 1px dotted #2b3a27; }
+  #notes div { padding: 4px 0; font-size: 12.5px; border-bottom: 1px dotted #33402a; }
   #notes .d { color: var(--dim); margin-right: 6px; font-variant-numeric: tabular-nums; font-family: sans-serif; font-size: 11px; }
-  #notes .circle { color: var(--wheat); font-weight: 600; }
+  #notes .circle { color: var(--sun); font-weight: 600; }
   #notes .warn { color: var(--bad); }
   #notes .milestone { color: var(--good); }
   details { font-size: 12px; color: var(--dim); }
   details summary { cursor: pointer; }
+  details summary:hover { text-shadow: 1px 0 0 rgba(143,196,187,0.6), -1px 0 0 rgba(207,125,90,0.6); }
   .ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px; margin-top: 6px; font-variant-numeric: tabular-nums; }
   label.ctl { display: flex; align-items: center; gap: 6px; color: var(--dim); font-size: 12px; }
+  #overlay {
+    position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center;
+    background: rgba(14,18,11,0.82); backdrop-filter: blur(3px);
+  }
+  #overlay[hidden] { display: none; }
+  #overlayCard {
+    width: min(560px, 92vw); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 26px 30px; box-shadow: 0 18px 60px rgba(0,0,0,0.5);
+  }
+  #overlayCard h3 { font-size: 24px; letter-spacing: 2px; color: var(--sun); margin-bottom: 4px; }
+  #overlayCard .sub { color: var(--dim); font-style: italic; margin-bottom: 14px; }
+  #overlayCard .elegy { font-size: 13.5px; line-height: 1.65; }
+  #overlayCard .elegy b { color: var(--leaf); }
+  #overlayCard .row { margin-top: 18px; display: flex; gap: 10px; }
 </style>
 </head>
 <body>
 <header>
   <h1>UNDERSTORY <span>a valley, its people, and you — the steward</span></h1>
-  <button id="reset">New valley</button>
+  <button id="leave">Leave the valley</button>
   <div class="spacer"></div>
   <label class="ctl">pace <input type="range" id="speed" min="0" max="8" value="3" style="width:90px"></label>
   <button id="pause">Pause</button>
-  <div class="date" id="date">Spring · Day 1 · Year 1</div>
-  <div class="surplus" id="surplus">🧺 30</div>
+  <div class="date" id="date"></div>
+  <div class="surplus" id="surplus"></div>
 </header>
 <main>
   <div id="world">
@@ -105,9 +148,12 @@
   <aside>
     <section>
       <h2>The Valley</h2>
-      <div class="valleyRow"><span class="tier" id="tier">A Camp</span><span id="tierNext" style="color:var(--dim);font-size:12px"></span></div>
+      <div class="valleyRow"><span class="tier" id="tier"></span><span id="tierNext" style="color:var(--dim);font-size:12px"></span></div>
       <div class="bar"><i id="tierBar" style="width:0%"></i></div>
-      <div class="seasonNote" id="seasonNote"></div>
+      <div class="subline" id="seasonNote"></div>
+      <div class="tradRow" id="tradRow" title="Traditions — crafts the valley itself now knows"></div>
+      <div class="subline" id="handsNote"></div>
+      <div class="closing" id="closingNote" hidden></div>
     </section>
     <section>
       <h2>Standing Calls <span style="text-transform:none;letter-spacing:0">— raise one to draw that work (🧺8)</span></h2>
@@ -121,7 +167,7 @@
         <button id="actTeach">Teaching season <span class="cost">🧺30</span></button>
         <button id="actWelcome">Welcome a newcomer <span class="cost">🧺45</span></button>
       </div>
-      <div class="hint" id="selHint">Click two villagers to share a hearth between them, or give them space.</div>
+      <div class="hint" id="selHint"></div>
     </section>
     <section id="cardSection" hidden>
       <h2>Field Notes On…</h2>
@@ -138,18 +184,29 @@
           <span>work succeeding: <b id="mSucc">—</b></span>
           <span>niches forming: <b id="mSpec">—</b></span>
           <span>crews re-forming: <b id="mRecur">—</b></span>
-          <span>circles: <b id="mGroups">—</b></span>
+          <span>the valley expects: <b id="mExpect">—</b></span>
         </div>
       </details>
     </section>
   </aside>
 </main>
+<div id="overlay" hidden>
+  <div id="overlayCard">
+    <h3 id="ovTitle"></h3>
+    <div class="sub" id="ovSub"></div>
+    <div class="elegy" id="ovElegy"></div>
+    <div class="row">
+      <button id="ovNew">Wander to a new clearing</button>
+      <button id="ovStay">Stay awhile</button>
+    </div>
+  </div>
+</div>
 <script>
 "use strict";
 /* ============================================================
- * Kernel — faithful JS port of collective-intelligence/guild/
- * guild/kernel.py (same rules, same default parameters).
- * The consumer layer above it is presentation only.
+ * Kernel — JS port of collective-intelligence/guild/guild/
+ * kernel.py including the optional culture primitives
+ * (mentorship spillover, tradition ratchet), here switched on.
  * ============================================================ */
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -162,16 +219,16 @@ function mulberry32(seed) {
 }
 
 const CRAFTS = [
-  { name: "Foraging",     icon: "🌾", person: "Forager" },
-  { name: "Fishing",      icon: "🎣", person: "Fisher" },
-  { name: "Healing",      icon: "🌿", person: "Healer" },
-  { name: "Carpentry",    icon: "🪚", person: "Carpenter" },
-  { name: "Weaving",      icon: "🧶", person: "Weaver" },
-  { name: "Keeping",      icon: "🐝", person: "Keeper" },
-  { name: "Cooking",      icon: "🍲", person: "Cook" },
-  { name: "Storytelling", icon: "📖", person: "Storyteller" },
-  { name: "Wayfinding",   icon: "🧭", person: "Wayfinder" },
-  { name: "Claywork",     icon: "🏺", person: "Potter" },
+  { name: "Foraging",     icon: "🌾", person: "forager" },
+  { name: "Fishing",      icon: "🎣", person: "fisher" },
+  { name: "Healing",      icon: "🌿", person: "healer" },
+  { name: "Carpentry",    icon: "🪚", person: "carpenter" },
+  { name: "Weaving",      icon: "🧶", person: "weaver" },
+  { name: "Keeping",      icon: "🐝", person: "keeper" },
+  { name: "Cooking",      icon: "🍲", person: "cook" },
+  { name: "Storytelling", icon: "📖", person: "storyteller" },
+  { name: "Wayfinding",   icon: "🧭", person: "wayfinder" },
+  { name: "Claywork",     icon: "🏺", person: "potter" },
 ];
 const CRAFT_HUE = i => (i * 360 / CRAFTS.length + 15) % 360;
 
@@ -188,16 +245,15 @@ const NEEDS = [
   ["New vessels for {P}", "Reline the spring at {P}"],
 ];
 const PLACES = ["Reedmarsh","Alder Hollow","the ford","the high meadow","the old cedar","the winter store","the east huts","Foxglove Bank"];
-
 const SEASONS = [
-  { name: "Spring", icon: "🌱", wants: [0, 2], note: "First growth and spring fevers — the valley wants foragers and healers." },
-  { name: "Summer", icon: "☀️", wants: [1, 8], note: "Long days and far paths — the valley wants fishers and wayfinders." },
-  { name: "Autumn", icon: "🍂", wants: [6, 4], note: "Preserving and mending — the valley wants cooks and weavers." },
-  { name: "Winter", icon: "❄️", wants: [3, 7], note: "Repairs and long nights — the valley wants carpenters and storytellers." },
+  { name: "Spring", icon: "🌱", wants: [0, 2], diff: 0.55, note: "First growth and spring fevers — the valley wants foragers and healers." },
+  { name: "Summer", icon: "☀️", wants: [1, 8], diff: 0.55, note: "Long days and far paths — the valley wants fishers and wayfinders." },
+  { name: "Autumn", icon: "🍂", wants: [6, 4], diff: 0.55, note: "Preserving and mending — the valley wants cooks and weavers." },
+  { name: "Winter", icon: "❄️", wants: [3, 7], diff: 0.68, note: "The hard season. Repairs and long nights — carpenters and storytellers, if you have them." },
 ];
-const SEASON_LEN = 28;
+const SEASON_LEN = 28, YEAR_LEN = 112;
 
-const NAMES = ["Sela","Bram","Osric","Wren","Petra","Aldous","Mira","Finn","Edda","Jori","Tilda","Nils","Rosa","Kell","Doro","Hale","Isolde","Quinn","Sten","Vera","Willa","Yorick","Cass","Lina","Greta","Piper","Ulf","Anselm","Berry","Moss","Hazel","Corin"];
+const NAMES = ["Sela","Bram","Osric","Wren","Petra","Aldous","Mira","Finn","Edda","Jori","Tilda","Nils","Rosa","Kell","Doro","Hale","Isolde","Quinn","Sten","Vera","Willa","Yorick","Cass","Lina","Greta","Piper","Ulf","Anselm","Berry","Moss","Hazel","Corin","Fen","Iris","Tam"];
 const QUIRKS = [
   "counts the geese every dusk","hums while she works","never sits with his back to the door",
   "keeps a pebble from every place she's been","talks to the river","remembers everyone's birthday",
@@ -209,25 +265,25 @@ const QUIRKS = [
   "sleeps outdoors till first frost","braids grass while thinking","greets the moon like an old friend",
   "hoards seeds in coat pockets","whistles back at kestrels","measures twice, cuts once, checks again",
   "leaves berries on stumps for 'whoever'","claims to have seen the marsh-light twice","keeps yesterday's bread for the ducks",
-  "draws maps of places she's never been","stacks stones wherever he waits",
+  "draws maps of places she's never been","stacks stones wherever he waits","waves at every passing bird",
+  "sharpens the same knife every evening","knows all the shallow places by heart",
 ];
 const CIRCLE_WORDS = ["Alder","Reed","Cedar","Fern","Heron","Otter","Bramble","Moss","Kestrel","Willow","Aspen","Tern"];
 const LEVELS = [
-  { min: 0.80, label: "Elder",     stars: "★★★★★" },
-  { min: 0.60, label: "Expert",    stars: "★★★★" },
-  { min: 0.45, label: "Skilled",   stars: "★★★" },
-  { min: 0.30, label: "Practiced", stars: "★★" },
-  { min: 0.00, label: "Learning",  stars: "★" },
+  { min: 0.80, stars: "★★★★★" }, { min: 0.60, stars: "★★★★" }, { min: 0.45, stars: "★★★" },
+  { min: 0.30, stars: "★★" }, { min: 0.00, stars: "★" },
 ];
 const TIERS = [
-  { at: 0,   label: "A Camp" }, { at: 15, label: "A Hamlet" }, { at: 40, label: "A Village" },
-  { at: 90,  label: "A Township" }, { at: 180, label: "A Heartland" },
+  { at: 0, label: "A Camp" }, { at: 15, label: "A Hamlet" }, { at: 40, label: "A Village" },
+  { at: 90, label: "A Township" }, { at: 180, label: "A Heartland" },
 ];
 
 const DEFAULTS = {
-  nLoci: 24, nSkills: 10, teamSize: 3, difficulty: 0.5,
+  nLoci: 24, nSkills: 10, teamSize: 3, difficulty: 0.55,
   initialSkill: 0.25, skillJitter: 0.05, learningRate: 0.2,
   skillDecay: 0.005, bondGain: 1.0, bondDecay: 0.01, exploration: 0.05,
+  mentorship: 0.04, mentorThreshold: 0.7,
+  traditionExperts: 4, traditionLevel: 0.8, traditionFloor: 0.4,
   reinforcement: true, practice: true, seed: 3,
 };
 
@@ -236,22 +292,33 @@ class Kernel {
     this.cfg = { ...DEFAULTS, ...cfg };
     this.rng = mulberry32(this.cfg.seed);
     this.skills = []; this.bonds = [];
+    this.active = new Set();
+    this.taskBias = new Set();
+    this.seasonBias = new Set();
+    this.traditions = new Set();
     for (let i = 0; i < this.cfg.nLoci; i++) this.addLocus();
     this.round = 0;
     this.recent = [];
-    this.taskBias = new Set();      // steward's standing calls
-    this.seasonBias = new Set();    // the season's demands
     this.trainingUntil = 0;
   }
   addLocus() {
     const c = this.cfg, v = [];
     for (let k = 0; k < c.nSkills; k++) {
-      v.push(Math.min(1, Math.max(0, c.initialSkill + (this.rng() * 2 - 1) * c.skillJitter)));
+      const base = this.traditions.has(k) ? c.traditionFloor : c.initialSkill;
+      v.push(Math.min(1, Math.max(0, base + (this.rng() * 2 - 1) * c.skillJitter)));
     }
+    const i = this.skills.length;
     this.skills.push(v);
     this.bonds.push(new Map());
-    return this.skills.length - 1;
+    this.active.add(i);
+    return i;
   }
+  removeLocus(i) {
+    this.active.delete(i);
+    this.bonds[i].clear();
+    for (const m of this.bonds) m.delete(i);
+  }
+  activeList() { return [...this.active]; }
   weightedPick(items, weights) {
     let total = 0;
     for (const w of weights) total += w;
@@ -274,11 +341,11 @@ class Kernel {
     return req;
   }
   recruit() {
-    const c = this.cfg, n = this.skills.length;
-    const team = [Math.floor(this.rng() * n)];
+    const c = this.cfg, act = this.activeList();
+    const team = [act[Math.floor(this.rng() * act.length)]];
     while (team.length < c.teamSize) {
       const cand = [], weights = [];
-      for (let j = 0; j < n; j++) {
+      for (const j of act) {
         if (team.includes(j)) continue;
         cand.push(j);
         if (c.reinforcement) {
@@ -312,16 +379,42 @@ class Kernel {
         const s = this.skills[m][k];
         this.skills[m][k] = s + lr * (1 - s);
       }
+      // mentorship: working beside an expert teaches
+      if (c.mentorship > 0) {
+        for (const [k, m] of coverage) {
+          const master = this.skills[m][k];
+          if (master >= c.mentorThreshold) {
+            for (const other of team) {
+              const s = this.skills[other][k];
+              if (other !== m && s < master) this.skills[other][k] = s + c.mentorship * (master - s);
+            }
+          }
+        }
+      }
     }
     if (success) {
       for (const i of team) for (const j of team) if (i !== j) {
         this.bonds[i].set(j, (this.bonds[i].get(j) || 0) + c.bondGain);
       }
     }
+    // tradition ratchet: enough simultaneous experts -> the craft belongs to the valley
+    if (c.traditionExperts > 0) {
+      for (let k = 0; k < c.nSkills; k++) {
+        if (this.traditions.has(k)) continue;
+        let experts = 0;
+        for (const i of this.active) if (this.skills[i][k] >= c.traditionLevel) experts++;
+        if (experts >= c.traditionExperts) this.traditions.add(k);
+      }
+    }
     if (practiceActive && c.skillDecay > 0) {
-      const base = c.initialSkill, keep = 1 - c.skillDecay;
-      for (const v of this.skills) for (let k = 0; k < c.nSkills; k++) {
-        if (v[k] > base) v[k] = base + (v[k] - base) * keep;
+      const keep = 1 - c.skillDecay;
+      for (const i of this.active) {
+        const v = this.skills[i];
+        for (let k = 0; k < c.nSkills; k++) {
+          const base = this.traditions.has(k) ? c.traditionFloor : c.initialSkill;
+          if (v[k] > base) v[k] = base + (v[k] - base) * keep;
+          else if (this.traditions.has(k) && v[k] < base) v[k] = Math.min(base, v[k] + c.skillDecay * (base - v[k]) * 4);
+        }
       }
     }
     const bd = 1 - c.bondDecay;
@@ -337,20 +430,22 @@ class Kernel {
   }
 }
 
-/* ---- research detectors (ports of metrics.py) ---- */
-function specialization(skills) {
-  const K = skills[0].length; let total = 0, n = 0;
-  for (const v of skills) {
+/* ---- research detectors ---- */
+function specialization(skills, active) {
+  const idx = active ? [...active] : skills.map((_, i) => i);
+  if (!idx.length) return 0;
+  const K = skills[0].length; let total = 0;
+  for (const i of idx) {
+    const v = skills[i];
     const floor = Math.min(...v);
     const ex = v.map(s => s - floor);
     const mass = ex.reduce((a, b) => a + b, 0);
-    n++;
     if (mass <= 1e-9) continue;
     let H = 0;
     for (const e of ex) { const q = e / mass; if (q > 0) H -= q * Math.log(q); }
     total += 1 - H / Math.log(K);
   }
-  return n ? total / n : 0;
+  return total / idx.length;
 }
 function successRate(events) {
   if (!events.length) return 0;
@@ -364,43 +459,14 @@ function teamRecurrence(events) {
   for (const c of counts.values()) if (c >= 2) rep += c;
   return rep / events.length;
 }
-function emergentGroups(bonds) {
-  const n = bonds.length, w = new Map();
-  for (let i = 0; i < n; i++) for (const [j, v] of bonds[i]) {
-    const key = i < j ? i + ":" + j : j + ":" + i;
-    w.set(key, (w.get(key) || 0) + v);
-  }
-  const vals = [...w.values()].filter(x => x > 0);
-  if (!vals.length) return [];
-  const thr = vals.reduce((a, b) => a + b, 0) / vals.length;
-  const adj = new Map();
-  for (const [key, v] of w) {
-    if (v < thr) continue;
-    const [i, j] = key.split(":").map(Number);
-    if (!adj.has(i)) adj.set(i, []);
-    if (!adj.has(j)) adj.set(j, []);
-    adj.get(i).push(j); adj.get(j).push(i);
-  }
-  const seen = new Set(), comps = [];
-  for (const start of adj.keys()) {
-    if (seen.has(start)) continue;
-    const stack = [start], comp = new Set();
-    while (stack.length) {
-      const x = stack.pop();
-      if (comp.has(x)) continue;
-      comp.add(x);
-      for (const y of adj.get(x) || []) if (!comp.has(y)) stack.push(y);
-    }
-    for (const x of comp) seen.add(x);
-    if (comp.size >= 2) comps.push(comp);
-  }
-  return comps.sort((a, b) => b.size - a.size);
-}
 
 /* ============================================================
- * The consumer layer: villagers, needs, seasons, surplus,
- * circles, field notes. Presentation over the same event log.
+ * The run: one clearing, one succession story.
+ * Win = the Closing. Loss = the Exodus. Leaving is allowed.
  * ============================================================ */
+const CLOSING = { minYear: 3, traditions: 6, success: 0.14, hands: 2 };
+const EXODUS_FLOOR = 6;
+
 class Game {
   constructor(seed) {
     this.kernel = new Kernel({ seed });
@@ -410,13 +476,17 @@ class Game {
     this.surplus = 30;
     this.flourish = 0;
     this.tierIdx = 0;
-    this.crews = new Map();     // teamKey -> {count, wins, name, lastSeen, disbanded}
+    this.crews = new Map();
     this.log = [];
     this.milestones = new Set();
     this.flashes = [];
-    this.today = null;          // the day's need + outcome, for the banner
+    this.today = null;
     this.season = -1;
-    this.note(0, "You are the steward of a small commons — a few huts, a river, and two dozen people who barely know each other. You cannot tell anyone what to do. You can only watch, and tend.", "milestone");
+    this.hands = [];            // rounds when the steward acted
+    this.departedCount = 0;
+    this.over = null;           // null | 'closing' | 'exodus' | 'leave'
+    this.closed = false;
+    this.note(0, "You are the steward of a small commons — a few huts, a river, and two dozen people who barely know each other. You cannot tell anyone what to do. You can only watch, and tend. They say a valley is truly settled when it no longer needs its steward.", "milestone");
     this.applySeason();
   }
   addVillager() {
@@ -424,14 +494,14 @@ class Game {
     this.villagers.push({
       name: NAMES[i % NAMES.length] + (i >= NAMES.length ? " II" : ""),
       quirk: QUIRKS[Math.floor(this.flavorRng() * QUIRKS.length)],
-      works: 0, carried: 0,
+      works: 0, carried: 0, departed: false,
     });
     return i;
   }
   vname(i) { return this.villagers[i].name; }
   note(day, html, cls) {
     this.log.unshift({ day, html, cls });
-    if (this.log.length > 90) this.log.pop();
+    if (this.log.length > 100) this.log.pop();
     this.logDirty = true;
   }
   spend(cost) {
@@ -439,17 +509,85 @@ class Game {
     this.surplus -= cost;
     return true;
   }
+  recordHand() { this.hands.push(this.kernel.round); }
+  handsInYear() { return this.hands.filter(r => r > this.kernel.round - YEAR_LEN).length; }
+  year() { return Math.floor(this.kernel.round / YEAR_LEN) + 1; }
+  expectation() {
+    const y = this.year();
+    return y <= 1 ? 0 : Math.min(0.16, 0.08 + 0.02 * (y - 1));
+  }
   dateParts(day) {
     const season = Math.floor(day / SEASON_LEN) % 4;
-    return { season, dayOfSeason: (day % SEASON_LEN) + 1, year: Math.floor(day / (SEASON_LEN * 4)) + 1 };
+    return { season, dayOfSeason: (day % SEASON_LEN) + 1, year: Math.floor(day / YEAR_LEN) + 1 };
   }
   applySeason() {
     const s = this.dateParts(this.kernel.round).season;
     if (s === this.season) return;
     this.season = s;
     this.kernel.seasonBias = new Set(SEASONS[s].wants);
+    this.kernel.cfg.difficulty = SEASONS[s].diff;
     if (this.kernel.round > 0) {
       this.note(this.kernel.round, `${SEASONS[s].icon} ${SEASONS[s].name} comes to the valley. ${SEASONS[s].note}`, "milestone");
+    }
+  }
+  inLivingCircle(i) {
+    for (const [key, c] of this.crews) {
+      if (c.name && !c.disbanded && this.kernel.round - c.lastSeen < 300 &&
+          key.split(",").map(Number).includes(i)) return true;
+    }
+    return false;
+  }
+  anchor(i) {
+    let total = 0;
+    for (const [, w] of this.kernel.bonds[i]) total += w;
+    for (const j of this.kernel.active) { const w = this.kernel.bonds[j].get(i); if (w) total += w; }
+    return Math.min(1, total / 8);
+  }
+  seasonTick() {
+    const k = this.kernel;
+    const succ = successRate(k.recent.slice(-100));
+    const e = this.expectation();
+    // hard seasons pull people away; companionship and circles hold them
+    const shortfall = Math.max(0, e - succ);
+    if (shortfall > 0 && !this.over) {
+      let leaves = 0;
+      const reasons = ["has gone over the pass, looking for kinder country",
+                       "took the river road south before first light",
+                       "went back to their mother's people",
+                       "left with a passing trader, and few could blame them"];
+      for (const i of k.activeList()) {
+        if (leaves >= 3) break;
+        if (this.inLivingCircle(i)) continue;
+        const p = Math.min(0.35, shortfall * 2.5) * (1 - this.anchor(i));
+        if (this.flavorRng() < p) {
+          k.removeLocus(i);
+          this.villagers[i].departed = true;
+          this.departedCount++; leaves++;
+          this.note(k.round, `${this.vname(i)} ${reasons[Math.floor(this.flavorRng() * reasons.length)]}.`, "warn");
+        }
+      }
+      if (leaves && k.active.size < 10) {
+        this.note(k.round, `The valley is thinning. ${k.active.size} souls remain.`, "warn");
+      }
+    }
+    if (k.active.size < EXODUS_FLOOR && !this.over) return this.end("exodus");
+    // the Closing
+    if (!this.closed && !this.over && this.year() > CLOSING.minYear) {
+      const yearSucc = successRate(k.recent.slice(-YEAR_LEN));
+      const handsY = this.handsInYear();
+      const conds = {
+        traditions: k.traditions.size >= CLOSING.traditions,
+        success: yearSucc >= CLOSING.success,
+        hands: handsY <= CLOSING.hands,
+        calls: k.taskBias.size === 0,
+      };
+      if (Object.values(conds).every(Boolean)) return this.end("closing");
+      const hintKey = "hint" + this.year();
+      if (conds.traditions && !this.milestones.has(hintKey)) {
+        this.milestones.add(hintKey);
+        if (!conds.calls) this.note(k.round, `The valley hardly needs its steward — but your calls still hang on the post. Take them down; let it choose its own work.`);
+        else if (!conds.hands) this.note(k.round, `The valley is nearly itself. It lacks only your absence — you lent a hand ${handsY} times this year.`);
+      }
     }
   }
   needTitle(req) {
@@ -462,14 +600,30 @@ class Game {
     return c && c.name ? `<span class="circle">${c.name}</span>` : null;
   }
   day() {
+    if (this.over) return;
     const k = this.kernel;
+    if (k.round > 0 && k.round % SEASON_LEN === 0) {
+      this.seasonTick();
+      if (this.over) return;
+    }
     this.applySeason();
+    const beforeTrads = k.traditions.size;
     const ev = k.step();
+    if (k.round % 40 === 0) this.surplus = Math.min(99, this.surplus + 1);
+
+    if (k.traditions.size > beforeTrads) {
+      for (const t of k.traditions) {
+        if (!this.milestones.has("trad" + t)) {
+          this.milestones.add("trad" + t);
+          this.note(ev.round, `${CRAFTS[t].icon} ${CRAFTS[t].name} has become a tradition of the valley — the knowing of it lives in the place now, not in any one pair of hands.`, "milestone");
+          this.glitch = true;
+        }
+      }
+    }
+
     const icons = ev.req.map(s => CRAFTS[s].icon).join("");
     const needTitle = this.needTitle(ev.req);
     const partyNames = ev.team.map(i => this.vname(i));
-
-    // who carried, what was missing — legible outcome attribution
     let best = ev.coverage[0], worst = ev.coverage[0];
     const strength = ([s, m]) => k.skills[m][s];
     for (const c of ev.coverage) {
@@ -478,18 +632,17 @@ class Game {
     }
     let outcome;
     if (ev.success) {
-      this.surplus += 5; this.flourish += 1;
+      this.surplus = Math.min(99, this.surplus + 5); this.flourish += 1;
       outcome = `done — ${this.vname(best[1])}'s ${CRAFTS[best[0]].name.toLowerCase()} carried the day. <span class="ok">+5🧺</span>`;
       this.villagers[best[1]].carried++;
       this.flashes.push({ team: ev.team, t: 1 });
       if (this.flashes.length > 6) this.flashes.shift();
     } else {
-      outcome = `it went badly — <span class="no">no real ${CRAFTS[worst[0]].person.toLowerCase()} among them</span>.`;
+      outcome = `it went badly — <span class="no">no real ${CRAFTS[worst[0]].person} among them</span>.`;
     }
     for (const i of ev.team) this.villagers[i].works++;
-    this.today = { day: ev.round, title: needTitle, icons, partyNames, success: ev.success, outcome };
+    this.today = { title: needTitle, icons, partyNames, outcome };
 
-    // crews & circles
     const key = ev.team.join(",");
     let crew = this.crews.get(key);
     if (!crew) { crew = { count: 0, wins: 0, name: null, lastSeen: 0 }; this.crews.set(key, crew); }
@@ -503,16 +656,12 @@ class Game {
       if (crew.wins === 5 && !crew.name) {
         crew.name = "The " + CIRCLE_WORDS[Math.floor(this.flavorRng() * CIRCLE_WORDS.length)] + " Circle";
         this.note(ev.round, `${partyNames.join(", ")} have worked side by side through five good days. People have started calling them <span class="circle">${crew.name}</span>.`, "milestone");
-      } else if (crew.name && crew.wins % 15 === 0) {
-        this.note(ev.round, `${this.crewName(key)} do what they do — their ${crew.wins}th good day together.`);
       }
     }
     if (ev.round % 100 === 0) this.periodic();
-    return ev;
   }
   periodic() {
-    const k = this.kernel, win = k.recent.slice(-100);
-    const succ = successRate(win);
+    const k = this.kernel;
     for (const [key, c] of this.crews) {
       if (c.name && !c.disbanded && k.round - c.lastSeen > 500) {
         c.disbanded = true;
@@ -523,20 +672,41 @@ class Game {
       this.tierIdx++;
       this.note(k.round, `The valley has grown. Travelers now speak of ${TIERS[this.tierIdx].label.toLowerCase()} by the river.`, "milestone");
     }
-    if (!this.milestones.has("niche") && specialization(k.skills) > 0.15) {
+    if (!this.milestones.has("niche") && specialization(k.skills, k.active) > 0.15) {
       this.milestones.add("niche");
       this.note(k.round, `The valley is finding its niches — people are settling into livelihoods of their own.`, "milestone");
     }
-    if (teamRecurrence(win) > 0.45 && succ < 0.12 && k.round > 400 && !this.milestones.has("habit" + Math.floor(k.round / 800))) {
+    const win = k.recent.slice(-100);
+    if (teamRecurrence(win) > 0.45 && successRate(win) < 0.12 && k.round > 400 && !this.milestones.has("habit" + Math.floor(k.round / 800))) {
       this.milestones.add("habit" + Math.floor(k.round / 800));
       this.note(k.round, `The same few answer every call, and it keeps going badly. Old habits are starving new growth — perhaps someone needs space.`, "warn");
     }
+  }
+  end(kind) {
+    this.over = kind;
+    if (kind === "closing") this.closed = true;
+    this.overDirty = true;
+  }
+  elegy() {
+    const k = this.kernel;
+    const y = this.year(), remaining = k.active.size;
+    const circles = [...this.crews.values()].filter(c => c.name).map(c => c.name);
+    const trads = [...k.traditions].map(t => CRAFTS[t].icon).join(" ") || "none";
+    const elders = k.activeList().filter(i => Math.max(...k.skills[i]) >= 0.8).length;
+    return `You kept this valley for <b>${y} year${y > 1 ? "s" : ""}</b>.<br>` +
+      `<b>${remaining}</b> souls remain; <b>${this.departedCount}</b> walked away. ` +
+      `<b>${elders}</b> became elders of their craft.<br>` +
+      `Circles founded: <b>${circles.length ? circles.join(", ") : "none"}</b>.<br>` +
+      `Traditions of the valley: ${trads}.<br>` +
+      `In all that time, they needed your hand <b>${this.hands.length}</b> times — ` +
+      `${TIERS[this.tierIdx].label.toLowerCase()} stands by the river.`;
   }
   /* ------- steward's actions ------- */
   shareHearth(i, j) {
     if (!this.spend(10)) return false;
     this.kernel.bonds[i].set(j, (this.kernel.bonds[i].get(j) || 0) + 6);
     this.kernel.bonds[j].set(i, (this.kernel.bonds[j].get(i) || 0) + 6);
+    this.recordHand();
     this.note(this.kernel.round, `You seat ${this.vname(i)} and ${this.vname(j)} at the same fire, and keep the stew coming.`);
     return true;
   }
@@ -544,6 +714,7 @@ class Game {
     if (!this.spend(8)) return false;
     this.kernel.bonds[i].delete(j);
     this.kernel.bonds[j].delete(i);
+    this.recordHand();
     this.note(this.kernel.round, `You find reasons for ${this.vname(i)} and ${this.vname(j)} to work apart for a while.`);
     return true;
   }
@@ -556,12 +727,14 @@ class Game {
     }
     if (!this.spend(8)) return false;
     bias.add(skill);
+    this.recordHand();
     this.note(this.kernel.round, `You raise a standing call: the valley has need of ${CRAFTS[skill].name.toLowerCase()}.`);
     return true;
   }
   teachingSeason() {
     if (!this.spend(30)) return false;
     this.kernel.trainingUntil = this.kernel.round + 150;
+    this.recordHand();
     this.note(this.kernel.round, `You set aside surplus for a teaching season — elders hold workshops, and for a while everyone learns faster.`);
     return true;
   }
@@ -569,14 +742,14 @@ class Game {
     if (!this.spend(45)) return false;
     this.kernel.addLocus();
     const i = this.addVillager();
+    this.recordHand();
     this.note(this.kernel.round, `A newcomer walks down the valley road with everything they own. ${this.vname(i)} — ${this.villagers[i].quirk}.`, "milestone");
-    return true;
+    return i;
   }
 }
 
 /* ============================================================
- * Renderer: companionship-driven layout; villagers as faces,
- * hue = dominant livelihood, saturation = how settled the niche.
+ * Renderer
  * ============================================================ */
 class Renderer {
   constructor(canvas) {
@@ -600,12 +773,12 @@ class Renderer {
     this.w = r.width; this.h = r.height;
   }
   physics(game) {
-    const k = game.kernel, n = k.skills.length;
-    this.syncNodes(n);
+    const k = game.kernel, act = k.activeList();
+    this.syncNodes(k.skills.length);
     const P = this.pos, V = this.vel;
-    for (let i = 0; i < n; i++) {
+    for (const i of act) {
       let fx = 0, fy = 0;
-      for (let j = 0; j < n; j++) {
+      for (const j of act) {
         if (i === j) continue;
         const dx = P[i][0] - P[j][0], dy = P[i][1] - P[j][1];
         const d2 = dx * dx + dy * dy + 1e-4;
@@ -619,8 +792,6 @@ class Renderer {
       }
       fx += (0.5 - P[i][0]) * 0.028; fy += (0.53 - P[i][1]) * 0.028;
       V[i][0] = (V[i][0] + fx) * 0.82; V[i][1] = (V[i][1] + fy) * 0.82;
-    }
-    for (let i = 0; i < n; i++) {
       P[i][0] = Math.min(0.97, Math.max(0.03, P[i][0] + V[i][0]));
       P[i][1] = Math.min(0.95, Math.max(0.10, P[i][1] + V[i][1]));
     }
@@ -630,26 +801,26 @@ class Renderer {
     const floor = Math.min(...v), max = Math.max(...v);
     let best = 0;
     for (let s = 0; s < v.length; s++) if (v[s] > v[best]) best = s;
-    const range = max - floor;
     return {
       hue: CRAFT_HUE(best),
-      sat: Math.min(75, 10 + range * 220),
-      light: 46 + Math.min(24, max * 26),
+      sat: Math.min(72, 10 + (max - floor) * 210),
+      light: 47 + Math.min(23, max * 25),
       radius: 8 + max * 8,
     };
   }
   px(i) { return [this.pos[i][0] * this.w, this.pos[i][1] * this.h]; }
   drawBackdrop(game) {
-    const ctx = this.ctx;
-    const season = game.season;
-    const tints = ["rgba(120,180,90,0.05)", "rgba(220,190,90,0.05)", "rgba(200,120,60,0.06)", "rgba(140,170,220,0.06)"];
+    const ctx = this.ctx, season = game.season;
+    // solarpunk sun-wash
+    const sun = ctx.createRadialGradient(this.w * 0.18, -40, 10, this.w * 0.18, -40, this.h * 0.9);
+    sun.addColorStop(0, "rgba(233,180,76,0.10)");
+    sun.addColorStop(1, "rgba(233,180,76,0)");
+    ctx.fillStyle = sun; ctx.fillRect(0, 0, this.w, this.h);
+    const tints = ["rgba(140,190,100,0.06)", "rgba(230,200,90,0.06)", "rgba(210,130,70,0.07)", "rgba(150,180,225,0.07)"];
     const g = ctx.createLinearGradient(0, 0, 0, this.h);
-    g.addColorStop(0, "rgba(0,0,0,0)");
-    g.addColorStop(1, tints[season] || tints[0]);
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, this.w, this.h);
-    // the river
-    ctx.strokeStyle = "rgba(110,150,170,0.14)";
+    g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, tints[season] || tints[0]);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, this.w, this.h);
+    ctx.strokeStyle = "rgba(143,196,187,0.15)";
     ctx.lineWidth = 14;
     ctx.beginPath();
     ctx.moveTo(-20, this.h * 0.9);
@@ -657,72 +828,69 @@ class Renderer {
     ctx.stroke();
   }
   draw(game, selected) {
-    const ctx = this.ctx, k = game.kernel, n = k.skills.length;
+    const ctx = this.ctx, k = game.kernel, act = k.activeList();
     ctx.clearRect(0, 0, this.w, this.h);
     this.drawBackdrop(game);
-    // companionship lines
     const drawn = new Set();
-    for (let i = 0; i < n; i++) {
+    for (const i of act) {
       for (const [j, w] of k.bonds[i]) {
+        if (!k.active.has(j)) continue;
         const key = i < j ? i + ":" + j : j + ":" + i;
         if (drawn.has(key)) continue;
         drawn.add(key);
         const sym = w + (k.bonds[j].get(i) || 0);
         if (sym < 0.4) continue;
         const [x1, y1] = this.px(i), [x2, y2] = this.px(j);
-        ctx.strokeStyle = `rgba(196,186,150,${Math.min(0.7, 0.08 + sym * 0.05)})`;
+        ctx.strokeStyle = `rgba(210,196,150,${Math.min(0.7, 0.08 + sym * 0.05)})`;
         ctx.lineWidth = Math.min(5, 0.5 + sym * 0.2);
         ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
       }
     }
-    // today's party glow
     game.flashes = game.flashes.filter(f => f.t > 0);
     for (const f of game.flashes) {
-      ctx.strokeStyle = `rgba(217,185,106,${f.t * 0.7})`;
+      ctx.strokeStyle = `rgba(233,180,76,${f.t * 0.7})`;
       ctx.lineWidth = 2;
       for (const m of f.team) {
-        if (m >= this.pos.length) continue;
+        if (!k.active.has(m)) continue;
         const [x, y] = this.px(m);
         ctx.beginPath(); ctx.arc(x, y, 15 + (1 - f.t) * 8, 0, Math.PI * 2); ctx.stroke();
       }
       f.t -= 0.06;
     }
-    // villagers as faces
-    for (let i = 0; i < n; i++) {
+    for (const i of act) {
       const st = this.villagerStyle(game, i);
       const [x, y] = this.px(i);
       ctx.fillStyle = `hsl(${st.hue} ${st.sat}% ${st.light}%)`;
       ctx.beginPath(); ctx.arc(x, y, st.radius, 0, Math.PI * 2); ctx.fill();
-      // face
-      ctx.fillStyle = "rgba(20,22,18,0.75)";
+      ctx.fillStyle = "rgba(22,24,18,0.75)";
       const e = st.radius * 0.28;
       ctx.beginPath(); ctx.arc(x - e, y - e * 0.6, st.radius * 0.09 + 0.7, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(x + e, y - e * 0.6, st.radius * 0.09 + 0.7, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = "rgba(20,22,18,0.75)"; ctx.lineWidth = 1.2;
+      ctx.strokeStyle = "rgba(22,24,18,0.75)"; ctx.lineWidth = 1.2;
       ctx.beginPath(); ctx.arc(x, y + e * 0.35, st.radius * 0.42, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
       if (selected.includes(i)) {
-        ctx.strokeStyle = "#eae4d3"; ctx.lineWidth = 2;
+        ctx.strokeStyle = "#efe8d3"; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(x, y, st.radius + 3, 0, Math.PI * 2); ctx.stroke();
       }
-      ctx.fillStyle = "rgba(234,228,211,0.85)";
+      ctx.fillStyle = "rgba(239,232,211,0.85)";
       ctx.font = "11px Georgia, serif"; ctx.textAlign = "center";
       ctx.fillText(game.vname(i), x, y - st.radius - 5);
     }
-    // circle names at their centroids
     for (const [key, crew] of game.crews) {
       if (!crew.name || crew.disbanded || game.kernel.round - crew.lastSeen > 300) continue;
-      const ids = key.split(",").map(Number).filter(i => i < this.pos.length);
+      const ids = key.split(",").map(Number).filter(i => k.active.has(i));
       if (ids.length < 2) continue;
       let cx = 0, cy = 0;
       for (const i of ids) { const [x, y] = this.px(i); cx += x; cy += y; }
       cx /= ids.length; cy /= ids.length;
-      ctx.fillStyle = "rgba(217,185,106,0.9)";
+      ctx.fillStyle = "rgba(233,180,76,0.9)";
       ctx.font = "italic 12px Georgia, serif"; ctx.textAlign = "center";
       ctx.fillText(crew.name, cx, cy + 4);
     }
   }
-  hit(x, y) {
-    for (let i = this.pos.length - 1; i >= 0; i--) {
+  hit(game, x, y) {
+    const act = game.kernel.activeList().reverse();
+    for (const i of act) {
       const [px, py] = this.px(i);
       if ((px - x) ** 2 + (py - y) ** 2 < 15 ** 2) return i;
     }
@@ -753,21 +921,20 @@ function refreshChips() {
     chip.classList.toggle("season", game.kernel.seasonBias.has(s) && !game.kernel.taskBias.has(s));
   }
 }
-function levelOf(s) { return LEVELS.find(l => s >= l.min); }
+function levelStars(s) { return LEVELS.find(l => s >= l.min).stars; }
 function refreshCard() {
   const sec = $("cardSection");
-  if (!selected.length) { sec.hidden = true; return; }
-  sec.hidden = false;
   const i = selected[selected.length - 1];
+  if (i === undefined || game.villagers[i].departed) { sec.hidden = true; return; }
+  sec.hidden = false;
   const v = game.villagers[i], skills = game.kernel.skills[i];
   const ranked = skills.map((s, idx) => [s, idx]).sort((a, b) => b[0] - a[0]).slice(0, 3);
   const elder = ranked[0][0] >= 0.8 ? `<span class="epithet">Elder ${CRAFTS[ranked[0][1]].person}</span> · ` : "";
   const crafts = ranked.filter(([s]) => s > 0.28).map(([s, idx]) =>
-    `${CRAFTS[idx].icon} ${CRAFTS[idx].name} <span style="color:var(--wheat)">${levelOf(s).stars}</span>`).join(" &nbsp; ") || "no settled livelihood yet";
-  // top companions by symmetrized bond
+    `${CRAFTS[idx].icon} ${CRAFTS[idx].name} <span style="color:var(--sun)">${levelStars(s)}</span>`).join(" &nbsp; ") || "no settled livelihood yet";
   const bonds = new Map();
   for (const [j, w] of game.kernel.bonds[i]) bonds.set(j, (bonds.get(j) || 0) + w);
-  for (let j = 0; j < game.kernel.bonds.length; j++) {
+  for (const j of game.kernel.active) {
     const w = game.kernel.bonds[j].get(i);
     if (w) bonds.set(j, (bonds.get(j) || 0) + w);
   }
@@ -782,13 +949,12 @@ function refreshCard() {
     `<div class="vname">${v.name}</div>` +
     `<div>${elder}${v.works} days of work · carried the day ${v.carried} times${circle}</div>` +
     `<div class="quirk">${v.quirk}</div>` +
-    `<div class="crafts">${crafts}</div>` +
+    `<div style="margin-top:5px">${crafts}</div>` +
     `<div style="margin-top:4px">${companions}</div>`;
 }
 function refreshBanner() {
   const t = game.today;
-  if (!t) { $("dayBanner").innerHTML = "The valley wakes."; return; }
-  $("dayBanner").innerHTML =
+  $("dayBanner").innerHTML = !t ? "The valley wakes." :
     `<span class="need">${t.title}</span> ${t.icons}<br>` +
     `<span class="party">${t.partyNames.join(", ")} answered the call…</span> ${t.outcome}`;
 }
@@ -798,7 +964,7 @@ function refreshHeader() {
   $("surplus").textContent = `🧺 ${game.surplus}`;
 }
 function refreshValley() {
-  $("tier").textContent = TIERS[game.tierIdx].label;
+  $("tier").textContent = `${TIERS[game.tierIdx].label} · ${game.kernel.active.size} souls`;
   const next = TIERS[game.tierIdx + 1];
   if (next) {
     const prev = TIERS[game.tierIdx].at;
@@ -809,13 +975,28 @@ function refreshValley() {
     $("tierBar").style.width = "100%";
   }
   $("seasonNote").textContent = SEASONS[game.season].note;
+  $("tradRow").innerHTML = CRAFTS.map((c, i) =>
+    `<span class="${game.kernel.traditions.has(i) ? "" : "off"}" title="${c.name}${game.kernel.traditions.has(i) ? " — a tradition of the valley" : ""}">${c.icon}</span>`).join("");
+  $("handsNote").textContent = `Your hand, this past year: ${game.handsInYear()} times.`;
+  const cn = $("closingNote");
+  if (game.closed) { cn.hidden = false; cn.innerHTML = "✦ The valley closed over. It keeps itself now."; }
+  else if (game.year() > CLOSING.minYear) {
+    cn.hidden = false;
+    const k = game.kernel;
+    const t = k.traditions.size, sy = Math.round(successRate(k.recent.slice(-YEAR_LEN)) * 100);
+    const hy = game.handsInYear(), calls = k.taskBias.size;
+    const b = (ok, s) => `<b class="${ok ? "" : "no"}">${s}</b>`;
+    cn.innerHTML = `The Closing: ${b(t >= CLOSING.traditions, t + "/" + CLOSING.traditions + " traditions")} · ` +
+      `${b(sy >= CLOSING.success * 100, sy + "% year")} · ${b(hy <= CLOSING.hands, hy + "/" + CLOSING.hands + " hands")} · ` +
+      `${b(calls === 0, calls + " calls up")}`;
+  } else cn.hidden = true;
 }
 function refreshLedger() {
   const k = game.kernel, win = k.recent.slice(-100);
   $("mSucc").textContent = win.length ? Math.round(successRate(win) * 100) + "%" : "—";
-  $("mSpec").textContent = specialization(k.skills).toFixed(2);
+  $("mSpec").textContent = specialization(k.skills, k.active).toFixed(2);
   $("mRecur").textContent = teamRecurrence(win).toFixed(2);
-  $("mGroups").textContent = emergentGroups(k.bonds).length;
+  $("mExpect").textContent = Math.round(game.expectation() * 100) + "%";
 }
 function refreshNotes() {
   if (!game.logDirty) return;
@@ -827,21 +1008,37 @@ function refreshNotes() {
 }
 function refreshButtons() {
   const two = selected.length === 2;
-  $("actHearth").disabled = !two || game.surplus < 10;
-  $("actSpace").disabled = !two || game.surplus < 8;
-  $("actTeach").disabled = game.surplus < 30;
-  $("actWelcome").disabled = game.surplus < 45;
+  $("actHearth").disabled = !two || game.surplus < 10 || game.over;
+  $("actSpace").disabled = !two || game.surplus < 8 || game.over;
+  $("actTeach").disabled = game.surplus < 30 || game.over;
+  $("actWelcome").disabled = game.surplus < 45 || game.over;
   $("selHint").textContent = two
     ? `${game.vname(selected[0])} and ${game.vname(selected[1])} selected.`
     : "Click two villagers to share a hearth between them, or give them space.";
+}
+function refreshOverlay() {
+  if (!game.overDirty) return;
+  game.overDirty = false;
+  const ov = $("overlay");
+  if (!game.over) { ov.hidden = true; return; }
+  ov.hidden = false;
+  const kind = game.over;
+  $("ovTitle").textContent = kind === "closing" ? "The Closing" : kind === "exodus" ? "The Exodus" : "Moving On";
+  $("ovSub").textContent =
+    kind === "closing" ? "A full year, and they hardly thought of you. The understory has closed over." :
+    kind === "exodus" ? "The last fires are banked. The clearing goes back to the birds." :
+    "You leave the valley as you found it: theirs.";
+  $("ovElegy").innerHTML = game.elegy();
+  $("ovStay").hidden = kind === "exodus";
 }
 
 function start(newSeed) {
   seed = newSeed;
   game = new Game(seed);
+  window.__game = game;   // debug/testing hook
   selected = [];
   buildChips(); refreshChips();
-  game.logDirty = true;
+  game.logDirty = true; game.overDirty = true;
 }
 
 function init() {
@@ -850,11 +1047,17 @@ function init() {
   window.addEventListener("resize", () => renderer.resize());
   renderer.resize();
 
-  $("reset").onclick = () => start(Math.floor(Math.random() * 1e6));
+  $("leave").onclick = () => { if (!game.over) game.end("leave"); };
   $("pause").onclick = () => { paused = !paused; $("pause").textContent = paused ? "Resume" : "Pause"; };
+  $("ovNew").onclick = () => start(Math.floor(Math.random() * 1e6));
+  $("ovStay").onclick = () => {
+    if (game.over === "leave") game.over = null;   // changed your mind
+    else if (game.over === "closing") game.over = null;  // stay and watch
+    game.overDirty = true; $("overlay").hidden = true;
+  };
   $("canvas").addEventListener("click", e => {
     const r = $("canvas").getBoundingClientRect();
-    const i = renderer.hit(e.clientX - r.left, e.clientY - r.top);
+    const i = renderer.hit(game, e.clientX - r.left, e.clientY - r.top);
     if (i < 0) { selected = []; refreshCard(); return; }
     if (selected.includes(i)) selected = selected.filter(x => x !== i);
     else { selected.push(i); if (selected.length > 2) selected.shift(); }
@@ -867,10 +1070,12 @@ function init() {
 
   let acc = 0, frame = 0;
   setInterval(() => {
-    if (!paused) {
-      acc += Number($("speed").value) / 20;   // slider = days per second, tick = 50ms
+    if (!paused && !game.over) {
+      acc += Number($("speed").value) / 20;
       while (acc >= 1) { game.day(); acc -= 1; }
     }
+    selected = selected.filter(i => game.kernel.active.has(i));
+    if (game.glitch) { game.glitch = false; const w = $("world"); w.classList.remove("glitch"); void w.offsetWidth; w.classList.add("glitch"); }
     renderer.physics(game);
     renderer.draw(game, selected);
     frame++;
@@ -878,7 +1083,7 @@ function init() {
       refreshHeader(); refreshValley(); refreshBanner();
       refreshButtons(); refreshChips(); refreshCard(); refreshLedger();
     }
-    refreshNotes();
+    refreshNotes(); refreshOverlay();
   }, 50);
 }
 init();

@@ -123,6 +123,48 @@ class TestEmergence:
         assert success_rate(full_events, window=WINDOW) > success_rate(full_events[:WINDOW])
 
 
+class TestCulture:
+    """Optional social-transmission primitives (off by default)."""
+
+    def test_defaults_leave_culture_off(self):
+        kernel = Kernel(KernelConfig(seed=0))
+        kernel.run(300)
+        assert kernel.traditions == set()
+
+    def test_mentorship_spreads_skill(self):
+        config = KernelConfig(seed=2, mentorship=0.05)
+        kernel = Kernel(config)
+        kernel.skills[0] = [0.9] + [0.25] * 9  # one expert in skill 0
+        baseline = Kernel(KernelConfig(seed=2))
+        baseline.skills[0] = [0.9] + [0.25] * 9
+        kernel.run(400)
+        baseline.run(400)
+
+        def mean_skill0(k):
+            return sum(v[0] for v in k.skills) / len(k.skills)
+
+        assert mean_skill0(kernel) > mean_skill0(baseline)
+
+    def test_tradition_ratchet_raises_floor(self):
+        config = KernelConfig(seed=1, tradition_experts=2, tradition_expert_level=0.5)
+        kernel = Kernel(config)
+        kernel.run(600)
+        assert kernel.traditions, "loose thresholds should forge at least one tradition"
+        skill = next(iter(kernel.traditions))
+        kernel.run(400)
+        floor = config.tradition_floor
+        near_floor = sum(1 for v in kernel.skills if v[skill] >= floor * 0.9)
+        assert near_floor >= len(kernel.skills) * 0.8
+
+    def test_task_weights_bias_arrivals(self):
+        kernel = Kernel(KernelConfig(seed=3))
+        kernel.task_weights = [10.0, 10.0, 10.0] + [0.1] * 7
+        events = kernel.run(300)
+        focused = sum(1 for e in events for s in e.required_skills if s < 3)
+        total = sum(len(e.required_skills) for e in events)
+        assert focused / total > 0.8
+
+
 class TestMetrics:
     def test_empty_inputs(self):
         assert specialization_index([]) == 0.0

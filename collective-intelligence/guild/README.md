@@ -24,7 +24,9 @@ A LaTeX version of the manifesto lives at `papers/toward-collective-intelligence
 
 ## Understory (playable prototype)
 
-[`prototype/index.html`](prototype/index.html) — open it in any browser (no build, no server). The kernel, skinned as a valley community observed by its steward: named villagers with faces and quirks, one need per day ("Mend the weir at Reedmarsh 🪚🧭🏺"), 28-day seasons that rotate demand, surplus earned by successes and spent on steward verbs (Share a hearth, Give space, Teaching season, Welcome a newcomer, Raise a call), companionship hearts, self-naming "circles," and field notes written as diary prose. Research metrics live in a collapsed ledger. The earlier research-skinned prototype is preserved at `prototype/terrarium-v0.1.html`.
+[`prototype/index.html`](prototype/index.html) — open it in any browser (no build, no server). The kernel, skinned as a valley community observed by its steward: named villagers with faces and quirks, one need per day ("Mend the weir at Reedmarsh 🪚🧭🏺"), 28-day seasons that rotate demand, surplus earned by successes and spent on steward verbs (Share a hearth, Give space, Teaching season, Welcome a newcomer, Raise a call), companionship hearts, self-naming "circles," and field notes written as diary prose.
+
+The full run structure is playable: **traditions** (the cultural ratchet — crafts the valley itself comes to know), **the Closing** (win: a year in which they needed your hand at most twice), and **the Exodus** (loss: hard seasons pull the unattached away until the clearing empties). Lo-fi solarpunk presentation with glitch reserved for moments the data layer shows through. Research metrics live in a collapsed ledger; `window.__game` is exposed as a scripting hook. The earlier research-skinned prototype is preserved at `prototype/terrarium-v0.1.html`.
 
 ## The Kernel
 
