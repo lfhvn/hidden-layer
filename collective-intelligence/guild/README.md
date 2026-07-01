@@ -18,11 +18,11 @@ Guild treats collective intelligence as a missing scientific discipline and buil
 | [docs/interaction-primitives.md](docs/interaction-primitives.md) | Candidate interaction primitives (SIGNAL / TRANSFER / BIND / ACT / REINFORCE) |
 | [docs/minimal-simulation.md](docs/minimal-simulation.md) | Design + results of the minimal emergence kernel |
 | [docs/ux-vision.md](docs/ux-vision.md) | UX vision v0.1: making emergence playable (pillars, core loop, staging) |
-| [docs/game-design.md](docs/game-design.md) | Game design v0.2: "Commons" — the consumer layer (ecological/sociological theme) |
+| [docs/game-design.md](docs/game-design.md) | Game design v0.3: "Understory" — consumer layer, run structure, win/loss conditions |
 
 A LaTeX version of the manifesto lives at `papers/toward-collective-intelligence.tex`.
 
-## The Commons (playable prototype)
+## Understory (playable prototype)
 
 [`prototype/index.html`](prototype/index.html) — open it in any browser (no build, no server). The kernel, skinned as a valley community observed by its steward: named villagers with faces and quirks, one need per day ("Mend the weir at Reedmarsh 🪚🧭🏺"), 28-day seasons that rotate demand, surplus earned by successes and spent on steward verbs (Share a hearth, Give space, Teaching season, Welcome a newcomer, Raise a call), companionship hearts, self-naming "circles," and field notes written as diary prose. Research metrics live in a collapsed ledger. The earlier research-skinned prototype is preserved at `prototype/terrarium-v0.1.html`.
 

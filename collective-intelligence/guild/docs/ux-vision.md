@@ -1,6 +1,6 @@
 # Guild UX Vision: Making Emergence Playable
 
-**Status**: v0.1 — the first UX iteration. The presentation layer described here (Terrarium, guild-fantasy skin, Influence, scenarios) is superseded by [game-design.md](game-design.md) ("Commons", ecological/sociological theme); the pillars, precedent analysis, staging, and research constraints in this document still stand. The v0.1 prototype is preserved at [`../prototype/terrarium-v0.1.html`](../prototype/terrarium-v0.1.html).
+**Status**: v0.1 — the first UX iteration. The presentation layer described here (Terrarium, guild-fantasy skin, Influence, scenarios) is superseded by [game-design.md](game-design.md) ("Understory", ecological/sociological theme); the pillars, precedent analysis, staging, and research constraints in this document still stand. The v0.1 prototype is preserved at [`../prototype/terrarium-v0.1.html`](../prototype/terrarium-v0.1.html).
 
 ---
 
