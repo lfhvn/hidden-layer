@@ -3,135 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guild — Terrarium Prototype</title>
+<title>The Commons — a valley, its people, and you</title>
 <style>
   :root {
-    --bg: #0e1116; --panel: #161b23; --panel2: #1c2330; --line: #2a3342;
-    --text: #dde4ee; --dim: #8b96a8; --accent: #6ea8fe; --gold: #e8c268;
-    --good: #63c384; --bad: #e07a6b;
+    --bg: #131a13; --panel: #1a231a; --panel2: #22301f; --line: #32432c;
+    --text: #eae4d3; --dim: #a3a58a; --leaf: #9dc383; --wheat: #d9b96a;
+    --heart: #d98a7f; --good: #9dc383; --bad: #d98a7f;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--bg); color: var(--text);
-    font: 14px/1.45 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font: 14px/1.5 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
     height: 100vh; display: flex; flex-direction: column; overflow: hidden;
   }
   header {
-    display: flex; align-items: center; gap: 14px; padding: 10px 16px;
+    display: flex; align-items: center; gap: 14px; padding: 9px 16px;
     background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap;
   }
-  header h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.4px; }
-  header h1 span { color: var(--dim); font-weight: 400; font-size: 12px; margin-left: 8px; }
+  header h1 { font-size: 17px; font-weight: 700; letter-spacing: 1.5px; color: var(--leaf); }
+  header h1 span { color: var(--dim); font-weight: 400; font-size: 12px; letter-spacing: 0; margin-left: 8px; font-style: italic; }
   .spacer { flex: 1; }
   select, button, input[type=range] { font: inherit; color: var(--text); }
-  select, button {
+  button {
     background: var(--panel2); border: 1px solid var(--line); border-radius: 6px;
-    padding: 5px 10px; cursor: pointer;
+    padding: 5px 11px; cursor: pointer; font-size: 13px;
   }
-  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:hover:not(:disabled) { border-color: var(--leaf); }
   button:disabled { opacity: 0.38; cursor: default; }
-  .influence { color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; }
-  .round { color: var(--dim); font-variant-numeric: tabular-nums; min-width: 90px; }
+  .date { font-variant-numeric: tabular-nums; color: var(--text); min-width: 175px; text-align: right; }
+  .surplus { color: var(--wheat); font-weight: 700; font-variant-numeric: tabular-nums; }
   main { flex: 1; display: flex; min-height: 0; }
   #world { flex: 1; position: relative; min-width: 0; }
   #canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  #goalBanner {
-    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-    background: rgba(22,27,35,0.92); border: 1px solid var(--line); border-radius: 8px;
-    padding: 7px 14px; font-size: 13px; text-align: center; max-width: 90%;
+  #dayBanner {
+    position: absolute; top: 10px; left: 10px; max-width: 62%;
+    background: rgba(20,27,19,0.88); border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 12px; font-size: 13px;
   }
-  #goalBanner .win { color: var(--good); font-weight: 700; }
-  #goalBanner .lose { color: var(--bad); font-weight: 700; }
+  #dayBanner .need { font-weight: 700; }
+  #dayBanner .party { color: var(--dim); font-style: italic; }
+  #dayBanner .ok { color: var(--good); } #dayBanner .no { color: var(--bad); }
   aside {
-    width: 340px; background: var(--panel); border-left: 1px solid var(--line);
+    width: 355px; background: var(--panel); border-left: 1px solid var(--line);
     display: flex; flex-direction: column; min-height: 0;
   }
-  section { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  section { padding: 11px 14px; border-bottom: 1px solid var(--line); }
   section h2 {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--dim); margin-bottom: 8px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.6px;
+    color: var(--dim); margin-bottom: 7px; font-family: -apple-system, sans-serif;
   }
-  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
-  .stat { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
-  .stat .k { color: var(--dim); }
-  #spark { width: 100%; height: 34px; margin-top: 8px; display: block; }
+  .valleyRow { display: flex; align-items: baseline; justify-content: space-between; }
+  .tier { color: var(--leaf); font-weight: 700; }
+  .bar { height: 5px; background: var(--panel2); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--leaf); }
+  .seasonNote { color: var(--dim); font-size: 12px; margin-top: 6px; font-style: italic; }
   .chips { display: flex; flex-wrap: wrap; gap: 5px; }
   .chip {
-    display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px;
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
     border: 1px solid var(--line); border-radius: 999px; font-size: 12px;
     cursor: pointer; user-select: none; background: var(--panel2);
   }
-  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
-  .chip.posted { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+  .chip.posted { border-color: var(--wheat); box-shadow: 0 0 0 1px var(--wheat) inset; }
+  .chip.season { border-style: dashed; }
   .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .actions button { text-align: left; font-size: 12.5px; padding: 7px 9px; }
-  .actions .cost { color: var(--gold); float: right; }
-  .hint { color: var(--dim); font-size: 12px; margin-top: 7px; }
-  #ticker { flex: 1; overflow-y: auto; min-height: 0; }
-  #ticker div { padding: 3px 0; font-size: 12.5px; border-bottom: 1px dotted #222a37; }
-  #ticker .r { color: var(--dim); margin-right: 6px; font-variant-numeric: tabular-nums; }
-  #ticker .name { color: var(--gold); font-weight: 600; }
-  #ticker .warn { color: var(--bad); }
-  #ticker .milestone { color: var(--good); }
+  .actions .cost { color: var(--wheat); float: right; }
+  .hint { color: var(--dim); font-size: 12px; margin-top: 7px; font-style: italic; }
+  #villagerCard { font-size: 13px; }
+  #villagerCard .vname { font-weight: 700; font-size: 15px; }
+  #villagerCard .epithet { color: var(--leaf); }
+  #villagerCard .quirk { color: var(--dim); font-style: italic; }
+  #villagerCard .crafts { margin-top: 5px; }
+  #villagerCard .hearts { color: var(--heart); }
+  #notes { flex: 1; overflow-y: auto; min-height: 0; }
+  #notes div { padding: 4px 0; font-size: 12.5px; border-bottom: 1px dotted #2b3a27; }
+  #notes .d { color: var(--dim); margin-right: 6px; font-variant-numeric: tabular-nums; font-family: sans-serif; font-size: 11px; }
+  #notes .circle { color: var(--wheat); font-weight: 600; }
+  #notes .warn { color: var(--bad); }
+  #notes .milestone { color: var(--good); }
+  details { font-size: 12px; color: var(--dim); }
+  details summary { cursor: pointer; }
+  .ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px; margin-top: 6px; font-variant-numeric: tabular-nums; }
   label.ctl { display: flex; align-items: center; gap: 6px; color: var(--dim); font-size: 12px; }
 </style>
 </head>
 <body>
 <header>
-  <h1>GUILD <span>terrarium prototype — you are the founder, not the hero</span></h1>
-  <select id="scenario">
-    <option value="sandbox">Sandbox</option>
-    <option value="ossified">Scenario: The Ossified Guild</option>
-    <option value="coldstart">Scenario: Cold Start</option>
-  </select>
-  <button id="reset">Restart</button>
+  <h1>THE COMMONS <span>a valley, its people, and you — the steward</span></h1>
+  <button id="reset">New valley</button>
   <div class="spacer"></div>
-  <label class="ctl">speed <input type="range" id="speed" min="0" max="10" value="4" style="width:90px"></label>
+  <label class="ctl">pace <input type="range" id="speed" min="0" max="8" value="3" style="width:90px"></label>
   <button id="pause">Pause</button>
-  <div class="round" id="round">round 0</div>
-  <div class="influence" id="influence">◆ 10</div>
+  <div class="date" id="date">Spring · Day 1 · Year 1</div>
+  <div class="surplus" id="surplus">🧺 30</div>
 </header>
 <main>
   <div id="world">
     <canvas id="canvas"></canvas>
-    <div id="goalBanner" hidden></div>
+    <div id="dayBanner"></div>
   </div>
   <aside>
     <section>
-      <h2>Guild Ledger</h2>
-      <div class="stats">
-        <div class="stat"><span class="k">contract success</span><span id="mSucc">—</span></div>
-        <div class="stat"><span class="k">specialization</span><span id="mSpec">—</span></div>
-        <div class="stat"><span class="k">team recurrence</span><span id="mRecur">—</span></div>
-        <div class="stat"><span class="k">emergent groups</span><span id="mGroups">—</span></div>
-      </div>
-      <canvas id="spark"></canvas>
+      <h2>The Valley</h2>
+      <div class="valleyRow"><span class="tier" id="tier">A Camp</span><span id="tierNext" style="color:var(--dim);font-size:12px"></span></div>
+      <div class="bar"><i id="tierBar" style="width:0%"></i></div>
+      <div class="seasonNote" id="seasonNote"></div>
     </section>
     <section>
-      <h2>Contract Board <span style="text-transform:none;letter-spacing:0">— post to attract work in a craft (◆2)</span></h2>
-      <div class="chips" id="skillChips"></div>
+      <h2>Standing Calls <span style="text-transform:none;letter-spacing:0">— raise one to draw that work (🧺8)</span></h2>
+      <div class="chips" id="craftChips"></div>
     </section>
     <section>
-      <h2>Interventions</h2>
+      <h2>Steward's Actions</h2>
       <div class="actions">
-        <button id="actCharter">Charter <span class="cost">◆3</span></button>
-        <button id="actSever">Sever <span class="cost">◆2</span></button>
-        <button id="actTrain">Fund training <span class="cost">◆4</span></button>
-        <button id="actRecruit">Recruit <span class="cost">◆5</span></button>
+        <button id="actHearth">Share a hearth <span class="cost">🧺10</span></button>
+        <button id="actSpace">Give space <span class="cost">🧺8</span></button>
+        <button id="actTeach">Teaching season <span class="cost">🧺30</span></button>
+        <button id="actWelcome">Welcome a newcomer <span class="cost">🧺45</span></button>
       </div>
-      <div class="hint" id="selHint">Click two members to enable Charter (push them together) or Sever (break their bond).</div>
+      <div class="hint" id="selHint">Click two villagers to share a hearth between them, or give them space.</div>
+    </section>
+    <section id="cardSection" hidden>
+      <h2>Field Notes On…</h2>
+      <div id="villagerCard"></div>
     </section>
     <section style="flex:1;display:flex;flex-direction:column;min-height:0">
-      <h2>Chronicle</h2>
-      <div id="ticker"></div>
+      <h2>Field Notes</h2>
+      <div id="notes"></div>
+    </section>
+    <section>
+      <details>
+        <summary>Steward's ledger (research metrics)</summary>
+        <div class="ledger">
+          <span>work succeeding: <b id="mSucc">—</b></span>
+          <span>niches forming: <b id="mSpec">—</b></span>
+          <span>crews re-forming: <b id="mRecur">—</b></span>
+          <span>circles: <b id="mGroups">—</b></span>
+        </div>
+      </details>
     </section>
   </aside>
 </main>
 <script>
 "use strict";
 /* ============================================================
- * Guild kernel — faithful JS port of collective-intelligence/
- * guild/guild/kernel.py (same rules, same default parameters).
+ * Kernel — faithful JS port of collective-intelligence/guild/
+ * guild/kernel.py (same rules, same default parameters).
+ * The consumer layer above it is presentation only.
  * ============================================================ */
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -143,27 +161,87 @@ function mulberry32(seed) {
   };
 }
 
-const SKILLS = ["Smithing","Lore","Scouting","Alchemy","Warding","Trade","Beastcraft","Song","Cartography","Cipher"];
-const SKILL_HUE = i => (i * 360 / SKILLS.length + 8) % 360;
+const CRAFTS = [
+  { name: "Foraging",     icon: "🌾", person: "Forager" },
+  { name: "Fishing",      icon: "🎣", person: "Fisher" },
+  { name: "Healing",      icon: "🌿", person: "Healer" },
+  { name: "Carpentry",    icon: "🪚", person: "Carpenter" },
+  { name: "Weaving",      icon: "🧶", person: "Weaver" },
+  { name: "Keeping",      icon: "🐝", person: "Keeper" },
+  { name: "Cooking",      icon: "🍲", person: "Cook" },
+  { name: "Storytelling", icon: "📖", person: "Storyteller" },
+  { name: "Wayfinding",   icon: "🧭", person: "Wayfinder" },
+  { name: "Claywork",     icon: "🏺", person: "Potter" },
+];
+const CRAFT_HUE = i => (i * 360 / CRAFTS.length + 15) % 360;
+
+const NEEDS = [
+  ["First greens at {P}", "The berry thickets of {P}"],
+  ["The fish run below {P}", "Set the night-lines at {P}"],
+  ["Fever in {P}", "A hard birth at {P}"],
+  ["Mend the weir at {P}", "Shore up the bridge by {P}"],
+  ["Winter cloth for {P}", "New nets for {P}"],
+  ["The hives at {P} are restless", "Lambing at {P}"],
+  ["Lay in stores at {P}", "The gathering feast at {P}"],
+  ["A quarrel to settle in {P}", "Long-night vigil at {P}"],
+  ["A traveler lost near {P}", "Blaze a path to {P}"],
+  ["New vessels for {P}", "Reline the spring at {P}"],
+];
+const PLACES = ["Reedmarsh","Alder Hollow","the ford","the high meadow","the old cedar","the winter store","the east huts","Foxglove Bank"];
+
+const SEASONS = [
+  { name: "Spring", icon: "🌱", wants: [0, 2], note: "First growth and spring fevers — the valley wants foragers and healers." },
+  { name: "Summer", icon: "☀️", wants: [1, 8], note: "Long days and far paths — the valley wants fishers and wayfinders." },
+  { name: "Autumn", icon: "🍂", wants: [6, 4], note: "Preserving and mending — the valley wants cooks and weavers." },
+  { name: "Winter", icon: "❄️", wants: [3, 7], note: "Repairs and long nights — the valley wants carpenters and storytellers." },
+];
+const SEASON_LEN = 28;
+
+const NAMES = ["Sela","Bram","Osric","Wren","Petra","Aldous","Mira","Finn","Edda","Jori","Tilda","Nils","Rosa","Kell","Doro","Hale","Isolde","Quinn","Sten","Vera","Willa","Yorick","Cass","Lina","Greta","Piper","Ulf","Anselm","Berry","Moss","Hazel","Corin"];
+const QUIRKS = [
+  "counts the geese every dusk","hums while she works","never sits with his back to the door",
+  "keeps a pebble from every place she's been","talks to the river","remembers everyone's birthday",
+  "won't eat before the others do","whittles little boats","laughs at her own jokes",
+  "swears the old cedar listens","mends things nobody asked her to","walks the fences at dawn",
+  "always knows when rain is coming","saves the last bite for the dogs","writes letters he never sends",
+  "names the bees","sings off-key with great conviction","keeps her tools sharper than her tongue",
+  "collects odd-shaped spoons","never crosses the ford dry-shod","tells the same story differently each time",
+  "sleeps outdoors till first frost","braids grass while thinking","greets the moon like an old friend",
+  "hoards seeds in coat pockets","whistles back at kestrels","measures twice, cuts once, checks again",
+  "leaves berries on stumps for 'whoever'","claims to have seen the marsh-light twice","keeps yesterday's bread for the ducks",
+  "draws maps of places she's never been","stacks stones wherever he waits",
+];
+const CIRCLE_WORDS = ["Alder","Reed","Cedar","Fern","Heron","Otter","Bramble","Moss","Kestrel","Willow","Aspen","Tern"];
+const LEVELS = [
+  { min: 0.80, label: "Elder",     stars: "★★★★★" },
+  { min: 0.60, label: "Expert",    stars: "★★★★" },
+  { min: 0.45, label: "Skilled",   stars: "★★★" },
+  { min: 0.30, label: "Practiced", stars: "★★" },
+  { min: 0.00, label: "Learning",  stars: "★" },
+];
+const TIERS = [
+  { at: 0,   label: "A Camp" }, { at: 15, label: "A Hamlet" }, { at: 40, label: "A Village" },
+  { at: 90,  label: "A Township" }, { at: 180, label: "A Heartland" },
+];
 
 const DEFAULTS = {
   nLoci: 24, nSkills: 10, teamSize: 3, difficulty: 0.5,
   initialSkill: 0.25, skillJitter: 0.05, learningRate: 0.2,
   skillDecay: 0.005, bondGain: 1.0, bondDecay: 0.01, exploration: 0.05,
-  reinforcement: true, practice: true, seed: 0,
+  reinforcement: true, practice: true, seed: 3,
 };
 
 class Kernel {
   constructor(cfg) {
     this.cfg = { ...DEFAULTS, ...cfg };
     this.rng = mulberry32(this.cfg.seed);
-    this.skills = [];
-    this.bonds = [];
+    this.skills = []; this.bonds = [];
     for (let i = 0; i < this.cfg.nLoci; i++) this.addLocus();
     this.round = 0;
-    this.recent = [];              // trailing events for metrics (cap 300)
-    this.taskBias = new Set();     // posted contracts (skill indices)
-    this.trainingUntil = 0;        // Fund-training boost expiry
+    this.recent = [];
+    this.taskBias = new Set();      // steward's standing calls
+    this.seasonBias = new Set();    // the season's demands
+    this.trainingUntil = 0;
   }
   addLocus() {
     const c = this.cfg, v = [];
@@ -183,7 +261,10 @@ class Kernel {
   }
   sampleTask() {
     const c = this.cfg, pool = [], weights = [];
-    for (let k = 0; k < c.nSkills; k++) { pool.push(k); weights.push(this.taskBias.has(k) ? 5 : 1); }
+    for (let k = 0; k < c.nSkills; k++) {
+      pool.push(k);
+      weights.push(1 + (this.taskBias.has(k) ? 4 : 0) + (this.seasonBias.has(k) ? 2 : 0));
+    }
     const req = [];
     while (req.length < c.teamSize) {
       const k = this.weightedPick(pool, weights);
@@ -223,9 +304,6 @@ class Kernel {
     for (const [k, m] of coverage) { const s = this.skills[m][k]; p *= s / (s + c.difficulty); }
     const success = this.rng() < p;
 
-    // Fund-training semantics: where the guild already learns, training
-    // doubles the rate; in an ossified guild (practice off), training is
-    // the only time anyone learns at all.
     const training = this.round < this.trainingUntil;
     const practiceActive = c.practice || training;
     const lr = (c.practice && training) ? c.learningRate * 2 : c.learningRate;
@@ -251,7 +329,7 @@ class Kernel {
       const nw = w * bd;
       if (nw < 1e-6) m.delete(j); else m.set(j, nw);
     }
-    const ev = { round: this.round, team: [...team].sort((a, b) => a - b), req, success, p };
+    const ev = { round: this.round, team: [...team].sort((a, b) => a - b), req, coverage, success, p };
     this.recent.push(ev);
     if (this.recent.length > 300) this.recent.shift();
     this.round++;
@@ -259,7 +337,7 @@ class Kernel {
   }
 }
 
-/* ---- metrics (ports of metrics.py, over the trailing window) ---- */
+/* ---- research detectors (ports of metrics.py) ---- */
 function specialization(skills) {
   const K = skills[0].length; let total = 0, n = 0;
   for (const v of skills) {
@@ -320,190 +398,185 @@ function emergentGroups(bonds) {
 }
 
 /* ============================================================
- * Game layer: influence economy, diegetic interventions,
- * narrator ticker, auto-named teams, scenarios.
+ * The consumer layer: villagers, needs, seasons, surplus,
+ * circles, field notes. Presentation over the same event log.
  * ============================================================ */
-const SCENARIOS = {
-  sandbox: {
-    label: "Sandbox",
-    intro: "A fresh guild of 24. Watch it organize — or shape it. Colors are crafts; links are working bonds.",
-    cfg: {}, influence: 10, goal: null,
-    setup() {},
-  },
-  ossified: {
-    label: "The Ossified Guild",
-    intro: "This guild stopped learning years ago. Old crews hold iron bonds, keep taking the contracts, and keep failing. No one improves unless you fund apprenticeships (◆4, 300 rounds each) — and you can't afford many. Reach 15% success within 1,500 rounds.",
-    cfg: { practice: false, exploration: 0.04, seed: 5 },
-    influence: 14,
-    goal: { succ: 0.15, deadline: 1500 },
-    setup(k) {
-      for (const trio of [[0, 1, 2], [3, 4, 5]]) {   // locked-in mediocre crews
-        for (const i of trio) for (const j of trio) if (i !== j) k.bonds[i].set(j, 40);
-      }
-    },
-  },
-  coldstart: {
-    label: "Cold Start",
-    intro: "Contracts here are brutal (difficulty 0.8) and the guild is green. Hint: post a narrow contract board so practice concentrates on few crafts. Reach 12% success within 2,500 rounds.",
-    cfg: { difficulty: 0.8, seed: 7 },
-    influence: 14,
-    goal: { succ: 0.12, deadline: 2500 },
-    setup() {},
-  },
-};
-
-const NAME_A = ["Ash","Iron","Ember","Grey","Thorn","Salt","Moon","Oak","Rune","Star","Frost","Wolf"];
-const NAME_B = ["weavers","wrights","wardens","striders","binders","callers","menders","seekers","cutters","singers"];
-
 class Game {
-  constructor(scenarioKey) {
-    this.scenarioKey = scenarioKey;
-    const sc = SCENARIOS[scenarioKey];
-    this.kernel = new Kernel(sc.cfg);
-    sc.setup(this.kernel);
-    this.influence = sc.influence;
-    this.goal = sc.goal ? { ...sc.goal, done: false, won: false } : null;
-    this.teamStats = new Map();   // teamKey -> {count, wins, name, lastSeen}
-    this.flashes = [];            // success glow animations
+  constructor(seed) {
+    this.kernel = new Kernel({ seed });
+    this.flavorRng = mulberry32(seed + 999);
+    this.villagers = [];
+    for (let i = 0; i < this.kernel.skills.length; i++) this.addVillager();
+    this.surplus = 30;
+    this.flourish = 0;
+    this.tierIdx = 0;
+    this.crews = new Map();     // teamKey -> {count, wins, name, lastSeen, disbanded}
     this.log = [];
     this.milestones = new Set();
-    this.succHistory = [];        // sparkline
-    this.say(0, sc.intro);
-    this.nameRng = mulberry32((sc.cfg.seed || 0) + 999);
+    this.flashes = [];
+    this.today = null;          // the day's need + outcome, for the banner
+    this.season = -1;
+    this.note(0, "You are the steward of a small commons — a few huts, a river, and two dozen people who barely know each other. You cannot tell anyone what to do. You can only watch, and tend.", "milestone");
+    this.applySeason();
   }
-  say(round, html, cls) {
-    this.log.unshift({ round, html, cls });
-    if (this.log.length > 80) this.log.pop();
+  addVillager() {
+    const i = this.villagers.length;
+    this.villagers.push({
+      name: NAMES[i % NAMES.length] + (i >= NAMES.length ? " II" : ""),
+      quirk: QUIRKS[Math.floor(this.flavorRng() * QUIRKS.length)],
+      works: 0, carried: 0,
+    });
+    return i;
+  }
+  vname(i) { return this.villagers[i].name; }
+  note(day, html, cls) {
+    this.log.unshift({ day, html, cls });
+    if (this.log.length > 90) this.log.pop();
     this.logDirty = true;
   }
   spend(cost) {
-    if (this.influence < cost) return false;
-    this.influence -= cost;
+    if (this.surplus < cost) return false;
+    this.surplus -= cost;
     return true;
   }
-  teamName(key) {
-    const st = this.teamStats.get(key);
-    return st && st.name ? `<span class="name">${st.name}</span>` : null;
+  dateParts(day) {
+    const season = Math.floor(day / SEASON_LEN) % 4;
+    return { season, dayOfSeason: (day % SEASON_LEN) + 1, year: Math.floor(day / (SEASON_LEN * 4)) + 1 };
   }
-  tick(steps) {
-    const k = this.kernel;
-    for (let s = 0; s < steps; s++) {
-      const ev = k.step();
-      // influence trickle
-      if (k.round % 40 === 0) this.influence = Math.min(20, this.influence + 1);
-      // team bookkeeping + narration
-      const key = ev.team.join(",");
-      let st = this.teamStats.get(key);
-      if (!st) { st = { count: 0, wins: 0, name: null, lastSeen: 0 }; this.teamStats.set(key, st); }
-      st.count++; st.lastSeen = k.round;
-      if (ev.success) {
-        st.wins++;
-        this.flashes.push({ team: ev.team, t: 1 });
-        if (this.flashes.length > 8) this.flashes.shift();
-        if (!this.milestones.has("first")) {
-          this.milestones.add("first");
-          this.say(k.round, `First contract completed, by members ${ev.team.join(", ")}.`, "milestone");
-        }
-        if (st.wins === 5 && !st.name) {
-          st.name = NAME_A[Math.floor(this.nameRng() * NAME_A.length)] + " " +
-                    NAME_B[Math.floor(this.nameRng() * NAME_B.length)];
-          this.say(k.round, `A company is born: members ${ev.team.join(", ")} have completed five contracts together. They call themselves <span class="name">${st.name}</span>.`, "milestone");
-        } else if (st.name && st.wins % 15 === 0) {
-          this.say(k.round, `${this.teamName(key)} complete their ${st.wins}th contract.`);
-        }
-      }
-      // periodic checks
-      if (k.round % 100 === 0) this.periodic();
+  applySeason() {
+    const s = this.dateParts(this.kernel.round).season;
+    if (s === this.season) return;
+    this.season = s;
+    this.kernel.seasonBias = new Set(SEASONS[s].wants);
+    if (this.kernel.round > 0) {
+      this.note(this.kernel.round, `${SEASONS[s].icon} ${SEASONS[s].name} comes to the valley. ${SEASONS[s].note}`, "milestone");
     }
+  }
+  needTitle(req) {
+    const primary = req[Math.floor(this.flavorRng() * req.length)];
+    const t = NEEDS[primary][Math.floor(this.flavorRng() * NEEDS[primary].length)];
+    return t.replace("{P}", PLACES[Math.floor(this.flavorRng() * PLACES.length)]);
+  }
+  crewName(key) {
+    const c = this.crews.get(key);
+    return c && c.name ? `<span class="circle">${c.name}</span>` : null;
+  }
+  day() {
+    const k = this.kernel;
+    this.applySeason();
+    const ev = k.step();
+    const icons = ev.req.map(s => CRAFTS[s].icon).join("");
+    const needTitle = this.needTitle(ev.req);
+    const partyNames = ev.team.map(i => this.vname(i));
+
+    // who carried, what was missing — legible outcome attribution
+    let best = ev.coverage[0], worst = ev.coverage[0];
+    const strength = ([s, m]) => k.skills[m][s];
+    for (const c of ev.coverage) {
+      if (strength(c) > strength(best)) best = c;
+      if (strength(c) < strength(worst)) worst = c;
+    }
+    let outcome;
+    if (ev.success) {
+      this.surplus += 5; this.flourish += 1;
+      outcome = `done — ${this.vname(best[1])}'s ${CRAFTS[best[0]].name.toLowerCase()} carried the day. <span class="ok">+5🧺</span>`;
+      this.villagers[best[1]].carried++;
+      this.flashes.push({ team: ev.team, t: 1 });
+      if (this.flashes.length > 6) this.flashes.shift();
+    } else {
+      outcome = `it went badly — <span class="no">no real ${CRAFTS[worst[0]].person.toLowerCase()} among them</span>.`;
+    }
+    for (const i of ev.team) this.villagers[i].works++;
+    this.today = { day: ev.round, title: needTitle, icons, partyNames, success: ev.success, outcome };
+
+    // crews & circles
+    const key = ev.team.join(",");
+    let crew = this.crews.get(key);
+    if (!crew) { crew = { count: 0, wins: 0, name: null, lastSeen: 0 }; this.crews.set(key, crew); }
+    crew.count++; crew.lastSeen = ev.round;
+    if (ev.success) {
+      crew.wins++;
+      if (!this.milestones.has("first")) {
+        this.milestones.add("first");
+        this.note(ev.round, `${partyNames.join(", ")} came back singing — the valley's first real success.`, "milestone");
+      }
+      if (crew.wins === 5 && !crew.name) {
+        crew.name = "The " + CIRCLE_WORDS[Math.floor(this.flavorRng() * CIRCLE_WORDS.length)] + " Circle";
+        this.note(ev.round, `${partyNames.join(", ")} have worked side by side through five good days. People have started calling them <span class="circle">${crew.name}</span>.`, "milestone");
+      } else if (crew.name && crew.wins % 15 === 0) {
+        this.note(ev.round, `${this.crewName(key)} do what they do — their ${crew.wins}th good day together.`);
+      }
+    }
+    if (ev.round % 100 === 0) this.periodic();
+    return ev;
   }
   periodic() {
-    const k = this.kernel;
-    const win = k.recent.slice(-100);
+    const k = this.kernel, win = k.recent.slice(-100);
     const succ = successRate(win);
-    this.succHistory.push(succ);
-    if (this.succHistory.length > 120) this.succHistory.shift();
-    // disbandment
-    for (const [key, st] of this.teamStats) {
-      if (st.name && !st.disbanded && k.round - st.lastSeen > 500) {
-        st.disbanded = true;
-        this.say(k.round, `${this.teamName(key)} have gone their separate ways.`, "warn");
+    for (const [key, c] of this.crews) {
+      if (c.name && !c.disbanded && k.round - c.lastSeen > 500) {
+        c.disbanded = true;
+        this.note(k.round, `No one has seen ${this.crewName(key)} work together in months. Quietly, it seems, they've gone their own ways.`, "warn");
       }
     }
-    // success milestones
-    for (const m of [0.1, 0.2, 0.3]) {
-      const tag = "succ" + m;
-      if (succ >= m && !this.milestones.has(tag)) {
-        this.milestones.add(tag);
-        this.say(k.round, `The guild's reputation grows — contract success has reached ${Math.round(m * 100)}%.`, "milestone");
-      }
+    while (this.tierIdx + 1 < TIERS.length && this.flourish >= TIERS[this.tierIdx + 1].at) {
+      this.tierIdx++;
+      this.note(k.round, `The valley has grown. Travelers now speak of ${TIERS[this.tierIdx].label.toLowerCase()} by the river.`, "milestone");
     }
-    // specialization milestone
-    if (!this.milestones.has("spec") && specialization(k.skills) > 0.15) {
-      this.milestones.add("spec");
-      this.say(k.round, `Division of labor is emerging — members are developing distinct crafts.`, "milestone");
+    if (!this.milestones.has("niche") && specialization(k.skills) > 0.15) {
+      this.milestones.add("niche");
+      this.note(k.round, `The valley is finding its niches — people are settling into livelihoods of their own.`, "milestone");
     }
-    // cronyism detector (the lock-in regime measured in the kernel experiments)
-    if (teamRecurrence(win) > 0.45 && succ < 0.12 && k.round > 400 && !this.milestones.has("crony" + Math.floor(k.round / 800))) {
-      this.milestones.add("crony" + Math.floor(k.round / 800));
-      this.say(k.round, `The same crews keep re-forming and keep failing. Structure without competence — consider severing.`, "warn");
-    }
-    // goal check
-    if (this.goal && !this.goal.done) {
-      if (succ >= this.goal.succ) {
-        this.goal.done = true; this.goal.won = true;
-        this.say(k.round, `Goal reached: ${Math.round(this.goal.succ * 100)}% success in ${k.round} rounds.`, "milestone");
-      } else if (k.round >= this.goal.deadline) {
-        this.goal.done = true; this.goal.won = false;
-        this.say(k.round, `The deadline passes. The guild did not make it this time — restart and try another shape.`, "warn");
-      }
+    if (teamRecurrence(win) > 0.45 && succ < 0.12 && k.round > 400 && !this.milestones.has("habit" + Math.floor(k.round / 800))) {
+      this.milestones.add("habit" + Math.floor(k.round / 800));
+      this.note(k.round, `The same few answer every call, and it keeps going badly. Old habits are starving new growth — perhaps someone needs space.`, "warn");
     }
   }
-  /* ------- interventions (diegetic verbs over kernel state) ------- */
-  charter(i, j) {
-    if (!this.spend(3)) return false;
+  /* ------- steward's actions ------- */
+  shareHearth(i, j) {
+    if (!this.spend(10)) return false;
     this.kernel.bonds[i].set(j, (this.kernel.bonds[i].get(j) || 0) + 6);
     this.kernel.bonds[j].set(i, (this.kernel.bonds[j].get(i) || 0) + 6);
-    this.say(this.kernel.round, `Charter signed: members ${i} and ${j} are encouraged to work together.`);
+    this.note(this.kernel.round, `You seat ${this.vname(i)} and ${this.vname(j)} at the same fire, and keep the stew coming.`);
     return true;
   }
-  sever(i, j) {
-    if (!this.spend(2)) return false;
+  giveSpace(i, j) {
+    if (!this.spend(8)) return false;
     this.kernel.bonds[i].delete(j);
     this.kernel.bonds[j].delete(i);
-    this.say(this.kernel.round, `Severance: the bond between members ${i} and ${j} is dissolved.`);
+    this.note(this.kernel.round, `You find reasons for ${this.vname(i)} and ${this.vname(j)} to work apart for a while.`);
     return true;
   }
-  toggleContract(skill) {
+  toggleCall(skill) {
     const bias = this.kernel.taskBias;
     if (bias.has(skill)) {
       bias.delete(skill);
-      this.say(this.kernel.round, `Contract for ${SKILLS[skill]} withdrawn from the board.`);
+      this.note(this.kernel.round, `You take down the standing call for ${CRAFTS[skill].name.toLowerCase()}.`);
       return true;
     }
-    if (!this.spend(2)) return false;
+    if (!this.spend(8)) return false;
     bias.add(skill);
-    this.say(this.kernel.round, `Contract posted: work demanding ${SKILLS[skill]} will now seek out the guild.`);
+    this.note(this.kernel.round, `You raise a standing call: the valley has need of ${CRAFTS[skill].name.toLowerCase()}.`);
     return true;
   }
-  fundTraining() {
-    if (!this.spend(4)) return false;
-    this.kernel.trainingUntil = this.kernel.round + 300;
-    this.say(this.kernel.round, this.kernel.cfg.practice
-      ? `Training fund opened — members learn twice as fast for 300 rounds.`
-      : `Apprenticeships funded — for 300 rounds, the guild learns again.`);
+  teachingSeason() {
+    if (!this.spend(30)) return false;
+    this.kernel.trainingUntil = this.kernel.round + 150;
+    this.note(this.kernel.round, `You set aside surplus for a teaching season — elders hold workshops, and for a while everyone learns faster.`);
     return true;
   }
-  recruitLocus() {
-    if (!this.spend(5)) return false;
-    const id = this.kernel.addLocus();
-    this.say(this.kernel.round, `A newcomer joins the guild: member ${id}.`);
-    return id;
+  welcome() {
+    if (!this.spend(45)) return false;
+    this.kernel.addLocus();
+    const i = this.addVillager();
+    this.note(this.kernel.round, `A newcomer walks down the valley road with everything they own. ${this.vname(i)} — ${this.villagers[i].quirk}.`, "milestone");
+    return true;
   }
 }
 
 /* ============================================================
- * Renderer: bond-driven force layout. Hue = dominant craft,
- * saturation = specialization, edges = bonds, flash = success.
+ * Renderer: companionship-driven layout; villagers as faces,
+ * hue = dominant livelihood, saturation = how settled the niche.
  * ============================================================ */
 class Renderer {
   constructor(canvas) {
@@ -514,8 +587,8 @@ class Renderer {
   }
   syncNodes(n) {
     while (this.pos.length < n) {
-      const a = this.layoutRng() * Math.PI * 2, r = 0.25 + this.layoutRng() * 0.2;
-      this.pos.push([0.5 + Math.cos(a) * r, 0.5 + Math.sin(a) * r]);
+      const a = this.layoutRng() * Math.PI * 2, r = 0.22 + this.layoutRng() * 0.18;
+      this.pos.push([0.5 + Math.cos(a) * r, 0.52 + Math.sin(a) * r]);
       this.vel.push([0, 0]);
     }
   }
@@ -532,7 +605,6 @@ class Renderer {
     const P = this.pos, V = this.vel;
     for (let i = 0; i < n; i++) {
       let fx = 0, fy = 0;
-      // repulsion
       for (let j = 0; j < n; j++) {
         if (i === j) continue;
         const dx = P[i][0] - P[j][0], dy = P[i][1] - P[j][1];
@@ -540,37 +612,55 @@ class Renderer {
         const f = 0.00014 / d2;
         fx += dx * f; fy += dy * f;
       }
-      // bond springs
       for (const [j, w] of k.bonds[i]) {
         const dx = P[j][0] - P[i][0], dy = P[j][1] - P[i][1];
         const pull = Math.min(0.05, w * 0.002);
         fx += dx * pull; fy += dy * pull;
       }
-      // centering
-      fx += (0.5 - P[i][0]) * 0.028; fy += (0.5 - P[i][1]) * 0.028;
+      fx += (0.5 - P[i][0]) * 0.028; fy += (0.53 - P[i][1]) * 0.028;
       V[i][0] = (V[i][0] + fx) * 0.82; V[i][1] = (V[i][1] + fy) * 0.82;
     }
     for (let i = 0; i < n; i++) {
       P[i][0] = Math.min(0.97, Math.max(0.03, P[i][0] + V[i][0]));
-      P[i][1] = Math.min(0.96, Math.max(0.04, P[i][1] + V[i][1]));
+      P[i][1] = Math.min(0.95, Math.max(0.10, P[i][1] + V[i][1]));
     }
   }
-  nodeStyle(game, i) {
+  villagerStyle(game, i) {
     const v = game.kernel.skills[i];
     const floor = Math.min(...v), max = Math.max(...v);
     let best = 0;
     for (let s = 0; s < v.length; s++) if (v[s] > v[best]) best = s;
     const range = max - floor;
-    const sat = Math.min(90, 12 + range * 260);          // flat = grey, specialist = vivid
-    const light = 42 + Math.min(28, max * 30);
-    const radius = 6 + max * 8;
-    return { hue: SKILL_HUE(best), sat, light, radius };
+    return {
+      hue: CRAFT_HUE(best),
+      sat: Math.min(75, 10 + range * 220),
+      light: 46 + Math.min(24, max * 26),
+      radius: 8 + max * 8,
+    };
   }
   px(i) { return [this.pos[i][0] * this.w, this.pos[i][1] * this.h]; }
+  drawBackdrop(game) {
+    const ctx = this.ctx;
+    const season = game.season;
+    const tints = ["rgba(120,180,90,0.05)", "rgba(220,190,90,0.05)", "rgba(200,120,60,0.06)", "rgba(140,170,220,0.06)"];
+    const g = ctx.createLinearGradient(0, 0, 0, this.h);
+    g.addColorStop(0, "rgba(0,0,0,0)");
+    g.addColorStop(1, tints[season] || tints[0]);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, this.w, this.h);
+    // the river
+    ctx.strokeStyle = "rgba(110,150,170,0.14)";
+    ctx.lineWidth = 14;
+    ctx.beginPath();
+    ctx.moveTo(-20, this.h * 0.9);
+    ctx.bezierCurveTo(this.w * 0.3, this.h * 0.82, this.w * 0.6, this.h * 0.96, this.w + 20, this.h * 0.86);
+    ctx.stroke();
+  }
   draw(game, selected) {
     const ctx = this.ctx, k = game.kernel, n = k.skills.length;
     ctx.clearRect(0, 0, this.w, this.h);
-    // edges
+    this.drawBackdrop(game);
+    // companionship lines
     const drawn = new Set();
     for (let i = 0; i < n; i++) {
       for (const [j, w] of k.bonds[i]) {
@@ -580,59 +670,61 @@ class Renderer {
         const sym = w + (k.bonds[j].get(i) || 0);
         if (sym < 0.4) continue;
         const [x1, y1] = this.px(i), [x2, y2] = this.px(j);
-        ctx.strokeStyle = `rgba(150,178,220,${Math.min(0.85, 0.10 + sym * 0.055)})`;
-        ctx.lineWidth = Math.min(6, 0.5 + sym * 0.22);
+        ctx.strokeStyle = `rgba(196,186,150,${Math.min(0.7, 0.08 + sym * 0.05)})`;
+        ctx.lineWidth = Math.min(5, 0.5 + sym * 0.2);
         ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
       }
     }
-    // success flashes
+    // today's party glow
     game.flashes = game.flashes.filter(f => f.t > 0);
     for (const f of game.flashes) {
-      ctx.strokeStyle = `rgba(232,194,104,${f.t * 0.8})`;
+      ctx.strokeStyle = `rgba(217,185,106,${f.t * 0.7})`;
       ctx.lineWidth = 2;
-      for (let a = 0; a < f.team.length; a++) {
-        if (f.team[a] >= this.pos.length) continue;
-        const [x, y] = this.px(f.team[a]);
-        ctx.beginPath(); ctx.arc(x, y, 14 + (1 - f.t) * 10, 0, Math.PI * 2); ctx.stroke();
-        for (let b = a + 1; b < f.team.length; b++) {
-          if (f.team[b] >= this.pos.length) continue;
-          const [x2, y2] = this.px(f.team[b]);
-          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke();
-        }
+      for (const m of f.team) {
+        if (m >= this.pos.length) continue;
+        const [x, y] = this.px(m);
+        ctx.beginPath(); ctx.arc(x, y, 15 + (1 - f.t) * 8, 0, Math.PI * 2); ctx.stroke();
       }
-      f.t -= 0.09;
+      f.t -= 0.06;
     }
-    // nodes
+    // villagers as faces
     for (let i = 0; i < n; i++) {
-      const st = this.nodeStyle(game, i);
+      const st = this.villagerStyle(game, i);
       const [x, y] = this.px(i);
       ctx.fillStyle = `hsl(${st.hue} ${st.sat}% ${st.light}%)`;
       ctx.beginPath(); ctx.arc(x, y, st.radius, 0, Math.PI * 2); ctx.fill();
+      // face
+      ctx.fillStyle = "rgba(20,22,18,0.75)";
+      const e = st.radius * 0.28;
+      ctx.beginPath(); ctx.arc(x - e, y - e * 0.6, st.radius * 0.09 + 0.7, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + e, y - e * 0.6, st.radius * 0.09 + 0.7, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "rgba(20,22,18,0.75)"; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(x, y + e * 0.35, st.radius * 0.42, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
       if (selected.includes(i)) {
-        ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+        ctx.strokeStyle = "#eae4d3"; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(x, y, st.radius + 3, 0, Math.PI * 2); ctx.stroke();
       }
-      ctx.fillStyle = "rgba(230,236,245,0.85)";
-      ctx.font = "10px sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(String(i), x, y - st.radius - 4);
+      ctx.fillStyle = "rgba(234,228,211,0.85)";
+      ctx.font = "11px Georgia, serif"; ctx.textAlign = "center";
+      ctx.fillText(game.vname(i), x, y - st.radius - 5);
     }
-    // named-team labels at cluster centroids
-    for (const [key, st] of game.teamStats) {
-      if (!st.name || st.disbanded || game.kernel.round - st.lastSeen > 300) continue;
+    // circle names at their centroids
+    for (const [key, crew] of game.crews) {
+      if (!crew.name || crew.disbanded || game.kernel.round - crew.lastSeen > 300) continue;
       const ids = key.split(",").map(Number).filter(i => i < this.pos.length);
       if (ids.length < 2) continue;
       let cx = 0, cy = 0;
       for (const i of ids) { const [x, y] = this.px(i); cx += x; cy += y; }
       cx /= ids.length; cy /= ids.length;
-      ctx.fillStyle = "rgba(232,194,104,0.9)";
-      ctx.font = "italic 11px serif"; ctx.textAlign = "center";
-      ctx.fillText(st.name, cx, cy + 3);
+      ctx.fillStyle = "rgba(217,185,106,0.9)";
+      ctx.font = "italic 12px Georgia, serif"; ctx.textAlign = "center";
+      ctx.fillText(crew.name, cx, cy + 4);
     }
   }
   hit(x, y) {
     for (let i = this.pos.length - 1; i >= 0; i--) {
       const [px, py] = this.px(i);
-      if ((px - x) ** 2 + (py - y) ** 2 < 14 ** 2) return i;
+      if ((px - x) ** 2 + (py - y) ** 2 < 15 ** 2) return i;
     }
     return -1;
   }
@@ -640,89 +732,113 @@ class Renderer {
 
 /* ============================== UI ============================== */
 const $ = id => document.getElementById(id);
-let game, renderer, selected = [], paused = false;
+let game, renderer, selected = [], paused = false, seed = 3;
 
 function buildChips() {
-  const box = $("skillChips");
+  const box = $("craftChips");
   box.innerHTML = "";
-  SKILLS.forEach((name, i) => {
+  CRAFTS.forEach((craft, i) => {
     const chip = document.createElement("span");
     chip.className = "chip";
-    chip.innerHTML = `<span class="dot" style="background:hsl(${SKILL_HUE(i)} 70% 55%)"></span>${name}`;
-    chip.onclick = () => { game.toggleContract(i); refreshChips(); };
+    chip.textContent = `${craft.icon} ${craft.name}`;
+    chip.onclick = () => { game.toggleCall(i); refreshChips(); };
     chip.dataset.skill = i;
     box.appendChild(chip);
   });
 }
 function refreshChips() {
-  for (const chip of $("skillChips").children) {
-    chip.classList.toggle("posted", game.kernel.taskBias.has(Number(chip.dataset.skill)));
+  for (const chip of $("craftChips").children) {
+    const s = Number(chip.dataset.skill);
+    chip.classList.toggle("posted", game.kernel.taskBias.has(s));
+    chip.classList.toggle("season", game.kernel.seasonBias.has(s) && !game.kernel.taskBias.has(s));
   }
 }
-function refreshTicker() {
-  if (!game.logDirty) return;
-  game.logDirty = false;
-  $("ticker").innerHTML = game.log.map(l =>
-    `<div class="${l.cls || ""}"><span class="r">${l.round}</span>${l.html}</div>`).join("");
+function levelOf(s) { return LEVELS.find(l => s >= l.min); }
+function refreshCard() {
+  const sec = $("cardSection");
+  if (!selected.length) { sec.hidden = true; return; }
+  sec.hidden = false;
+  const i = selected[selected.length - 1];
+  const v = game.villagers[i], skills = game.kernel.skills[i];
+  const ranked = skills.map((s, idx) => [s, idx]).sort((a, b) => b[0] - a[0]).slice(0, 3);
+  const elder = ranked[0][0] >= 0.8 ? `<span class="epithet">Elder ${CRAFTS[ranked[0][1]].person}</span> · ` : "";
+  const crafts = ranked.filter(([s]) => s > 0.28).map(([s, idx]) =>
+    `${CRAFTS[idx].icon} ${CRAFTS[idx].name} <span style="color:var(--wheat)">${levelOf(s).stars}</span>`).join(" &nbsp; ") || "no settled livelihood yet";
+  // top companions by symmetrized bond
+  const bonds = new Map();
+  for (const [j, w] of game.kernel.bonds[i]) bonds.set(j, (bonds.get(j) || 0) + w);
+  for (let j = 0; j < game.kernel.bonds.length; j++) {
+    const w = game.kernel.bonds[j].get(i);
+    if (w) bonds.set(j, (bonds.get(j) || 0) + w);
+  }
+  const companions = [...bonds.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3)
+    .map(([j, w]) => `${game.vname(j)} <span class="hearts">${"♥".repeat(Math.max(1, Math.min(5, Math.round(w / 3))))}</span>`)
+    .join(" &nbsp; ") || "keeps to themselves, so far";
+  let circle = "";
+  for (const [key, c] of game.crews) {
+    if (c.name && !c.disbanded && key.split(",").map(Number).includes(i)) { circle = ` · ${c.name}`; break; }
+  }
+  $("villagerCard").innerHTML =
+    `<div class="vname">${v.name}</div>` +
+    `<div>${elder}${v.works} days of work · carried the day ${v.carried} times${circle}</div>` +
+    `<div class="quirk">${v.quirk}</div>` +
+    `<div class="crafts">${crafts}</div>` +
+    `<div style="margin-top:4px">${companions}</div>`;
 }
-function refreshStats() {
+function refreshBanner() {
+  const t = game.today;
+  if (!t) { $("dayBanner").innerHTML = "The valley wakes."; return; }
+  $("dayBanner").innerHTML =
+    `<span class="need">${t.title}</span> ${t.icons}<br>` +
+    `<span class="party">${t.partyNames.join(", ")} answered the call…</span> ${t.outcome}`;
+}
+function refreshHeader() {
+  const { season, dayOfSeason, year } = game.dateParts(game.kernel.round);
+  $("date").textContent = `${SEASONS[season].icon} ${SEASONS[season].name} · Day ${dayOfSeason} · Year ${year}`;
+  $("surplus").textContent = `🧺 ${game.surplus}`;
+}
+function refreshValley() {
+  $("tier").textContent = TIERS[game.tierIdx].label;
+  const next = TIERS[game.tierIdx + 1];
+  if (next) {
+    const prev = TIERS[game.tierIdx].at;
+    $("tierNext").textContent = `${game.flourish - prev} / ${next.at - prev} to ${next.label.toLowerCase()}`;
+    $("tierBar").style.width = Math.min(100, (game.flourish - prev) / (next.at - prev) * 100) + "%";
+  } else {
+    $("tierNext").textContent = "the valley wants for nothing";
+    $("tierBar").style.width = "100%";
+  }
+  $("seasonNote").textContent = SEASONS[game.season].note;
+}
+function refreshLedger() {
   const k = game.kernel, win = k.recent.slice(-100);
   $("mSucc").textContent = win.length ? Math.round(successRate(win) * 100) + "%" : "—";
   $("mSpec").textContent = specialization(k.skills).toFixed(2);
   $("mRecur").textContent = teamRecurrence(win).toFixed(2);
   $("mGroups").textContent = emergentGroups(k.bonds).length;
-  $("round").textContent = "round " + k.round;
-  $("influence").textContent = "◆ " + game.influence;
-  // sparkline
-  const c = $("spark"), ctx = c.getContext("2d");
-  const dpr = window.devicePixelRatio || 1;
-  const r = c.getBoundingClientRect();
-  c.width = r.width * dpr; c.height = r.height * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, r.width, r.height);
-  const h = game.succHistory;
-  if (h.length > 1) {
-    ctx.strokeStyle = "#6ea8fe"; ctx.lineWidth = 1.5; ctx.beginPath();
-    h.forEach((v, i) => {
-      const x = i / (h.length - 1) * r.width, y = r.height - 3 - v * (r.height - 6) / 0.5;
-      i ? ctx.lineTo(x, Math.max(2, y)) : ctx.moveTo(x, Math.max(2, y));
-    });
-    ctx.stroke();
-    if (game.goal) {
-      const gy = r.height - 3 - game.goal.succ * (r.height - 6) / 0.5;
-      ctx.strokeStyle = "rgba(232,194,104,0.6)"; ctx.setLineDash([3, 3]);
-      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(r.width, gy); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-  }
 }
-function refreshGoal() {
-  const b = $("goalBanner");
-  if (!game.goal) { b.hidden = true; return; }
-  b.hidden = false;
-  const g = game.goal, k = game.kernel;
-  if (g.done) {
-    b.innerHTML = g.won
-      ? `<span class="win">✦ Goal achieved</span> — ${Math.round(g.succ * 100)}% success. Restart to try to do it faster.`
-      : `<span class="lose">✦ Deadline missed</span> — restart and try a different shape.`;
-  } else {
-    const win = k.recent.slice(-100);
-    b.innerHTML = `Goal: <b>${Math.round(g.succ * 100)}% success</b> by round ${g.deadline} · now ${Math.round(successRate(win) * 100)}% · ${Math.max(0, g.deadline - k.round)} rounds left`;
-  }
+function refreshNotes() {
+  if (!game.logDirty) return;
+  game.logDirty = false;
+  $("notes").innerHTML = game.log.map(l => {
+    const { season, dayOfSeason, year } = game.dateParts(l.day);
+    return `<div class="${l.cls || ""}"><span class="d">Y${year} ${SEASONS[season].name.slice(0, 3)} ${dayOfSeason}</span>${l.html}</div>`;
+  }).join("");
 }
 function refreshButtons() {
   const two = selected.length === 2;
-  $("actCharter").disabled = !two || game.influence < 3;
-  $("actSever").disabled = !two || game.influence < 2;
-  $("actTrain").disabled = game.influence < 4;
-  $("actRecruit").disabled = game.influence < 5;
+  $("actHearth").disabled = !two || game.surplus < 10;
+  $("actSpace").disabled = !two || game.surplus < 8;
+  $("actTeach").disabled = game.surplus < 30;
+  $("actWelcome").disabled = game.surplus < 45;
   $("selHint").textContent = two
-    ? `Members ${selected[0]} and ${selected[1]} selected.`
-    : "Click two members to enable Charter (push them together) or Sever (break their bond).";
+    ? `${game.vname(selected[0])} and ${game.vname(selected[1])} selected.`
+    : "Click two villagers to share a hearth between them, or give them space.";
 }
 
-function start(scenarioKey) {
-  game = new Game(scenarioKey);
+function start(newSeed) {
+  seed = newSeed;
+  game = new Game(seed);
   selected = [];
   buildChips(); refreshChips();
   game.logDirty = true;
@@ -730,37 +846,39 @@ function start(scenarioKey) {
 
 function init() {
   renderer = new Renderer($("canvas"));
-  start($("scenario").value);
-  const onResize = () => renderer.resize();
-  window.addEventListener("resize", onResize);
+  start(seed);
+  window.addEventListener("resize", () => renderer.resize());
   renderer.resize();
 
-  $("scenario").onchange = () => start($("scenario").value);
-  $("reset").onclick = () => start($("scenario").value);
+  $("reset").onclick = () => start(Math.floor(Math.random() * 1e6));
   $("pause").onclick = () => { paused = !paused; $("pause").textContent = paused ? "Resume" : "Pause"; };
   $("canvas").addEventListener("click", e => {
     const r = $("canvas").getBoundingClientRect();
     const i = renderer.hit(e.clientX - r.left, e.clientY - r.top);
-    if (i < 0) { selected = []; return; }
+    if (i < 0) { selected = []; refreshCard(); return; }
     if (selected.includes(i)) selected = selected.filter(x => x !== i);
     else { selected.push(i); if (selected.length > 2) selected.shift(); }
+    refreshCard();
   });
-  $("actCharter").onclick = () => { if (selected.length === 2) game.charter(selected[0], selected[1]); };
-  $("actSever").onclick = () => { if (selected.length === 2) game.sever(selected[0], selected[1]); };
-  $("actTrain").onclick = () => game.fundTraining();
-  $("actRecruit").onclick = () => game.recruitLocus();
+  $("actHearth").onclick = () => { if (selected.length === 2) game.shareHearth(selected[0], selected[1]); };
+  $("actSpace").onclick = () => { if (selected.length === 2) game.giveSpace(selected[0], selected[1]); };
+  $("actTeach").onclick = () => game.teachingSeason();
+  $("actWelcome").onclick = () => game.welcome();
 
-  let frame = 0;
+  let acc = 0, frame = 0;
   setInterval(() => {
     if (!paused) {
-      const speed = Number($("speed").value);          // steps per tick (50ms)
-      game.tick(speed);
+      acc += Number($("speed").value) / 20;   // slider = days per second, tick = 50ms
+      while (acc >= 1) { game.day(); acc -= 1; }
     }
     renderer.physics(game);
     renderer.draw(game, selected);
     frame++;
-    if (frame % 6 === 0) { refreshStats(); refreshGoal(); refreshButtons(); refreshChips(); }
-    refreshTicker();
+    if (frame % 5 === 0) {
+      refreshHeader(); refreshValley(); refreshBanner();
+      refreshButtons(); refreshChips(); refreshCard(); refreshLedger();
+    }
+    refreshNotes();
   }, 50);
 }
 init();

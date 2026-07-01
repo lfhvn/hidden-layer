@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guild — Terrarium Prototype</title>
+<style>
+  :root {
+    --bg: #0e1116; --panel: #161b23; --panel2: #1c2330; --line: #2a3342;
+    --text: #dde4ee; --dim: #8b96a8; --accent: #6ea8fe; --gold: #e8c268;
+    --good: #63c384; --bad: #e07a6b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 14px/1.45 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+  header {
+    display: flex; align-items: center; gap: 14px; padding: 10px 16px;
+    background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.4px; }
+  header h1 span { color: var(--dim); font-weight: 400; font-size: 12px; margin-left: 8px; }
+  .spacer { flex: 1; }
+  select, button, input[type=range] { font: inherit; color: var(--text); }
+  select, button {
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 6px;
+    padding: 5px 10px; cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: 0.38; cursor: default; }
+  .influence { color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .round { color: var(--dim); font-variant-numeric: tabular-nums; min-width: 90px; }
+  main { flex: 1; display: flex; min-height: 0; }
+  #world { flex: 1; position: relative; min-width: 0; }
+  #canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #goalBanner {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    background: rgba(22,27,35,0.92); border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 14px; font-size: 13px; text-align: center; max-width: 90%;
+  }
+  #goalBanner .win { color: var(--good); font-weight: 700; }
+  #goalBanner .lose { color: var(--bad); font-weight: 700; }
+  aside {
+    width: 340px; background: var(--panel); border-left: 1px solid var(--line);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  section { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  section h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--dim); margin-bottom: 8px;
+  }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+  .stat { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+  .stat .k { color: var(--dim); }
+  #spark { width: 100%; height: 34px; margin-top: 8px; display: block; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px;
+    border: 1px solid var(--line); border-radius: 999px; font-size: 12px;
+    cursor: pointer; user-select: none; background: var(--panel2);
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.posted { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .actions button { text-align: left; font-size: 12.5px; padding: 7px 9px; }
+  .actions .cost { color: var(--gold); float: right; }
+  .hint { color: var(--dim); font-size: 12px; margin-top: 7px; }
+  #ticker { flex: 1; overflow-y: auto; min-height: 0; }
+  #ticker div { padding: 3px 0; font-size: 12.5px; border-bottom: 1px dotted #222a37; }
+  #ticker .r { color: var(--dim); margin-right: 6px; font-variant-numeric: tabular-nums; }
+  #ticker .name { color: var(--gold); font-weight: 600; }
+  #ticker .warn { color: var(--bad); }
+  #ticker .milestone { color: var(--good); }
+  label.ctl { display: flex; align-items: center; gap: 6px; color: var(--dim); font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>GUILD <span>terrarium prototype — you are the founder, not the hero</span></h1>
+  <select id="scenario">
+    <option value="sandbox">Sandbox</option>
+    <option value="ossified">Scenario: The Ossified Guild</option>
+    <option value="coldstart">Scenario: Cold Start</option>
+  </select>
+  <button id="reset">Restart</button>
+  <div class="spacer"></div>
+  <label class="ctl">speed <input type="range" id="speed" min="0" max="10" value="4" style="width:90px"></label>
+  <button id="pause">Pause</button>
+  <div class="round" id="round">round 0</div>
+  <div class="influence" id="influence">◆ 10</div>
+</header>
+<main>
+  <div id="world">
+    <canvas id="canvas"></canvas>
+    <div id="goalBanner" hidden></div>
+  </div>
+  <aside>
+    <section>
+      <h2>Guild Ledger</h2>
+      <div class="stats">
+        <div class="stat"><span class="k">contract success</span><span id="mSucc">—</span></div>
+        <div class="stat"><span class="k">specialization</span><span id="mSpec">—</span></div>
+        <div class="stat"><span class="k">team recurrence</span><span id="mRecur">—</span></div>
+        <div class="stat"><span class="k">emergent groups</span><span id="mGroups">—</span></div>
+      </div>
+      <canvas id="spark"></canvas>
+    </section>
+    <section>
+      <h2>Contract Board <span style="text-transform:none;letter-spacing:0">— post to attract work in a craft (◆2)</span></h2>
+      <div class="chips" id="skillChips"></div>
+    </section>
+    <section>
+      <h2>Interventions</h2>
+      <div class="actions">
+        <button id="actCharter">Charter <span class="cost">◆3</span></button>
+        <button id="actSever">Sever <span class="cost">◆2</span></button>
+        <button id="actTrain">Fund training <span class="cost">◆4</span></button>
+        <button id="actRecruit">Recruit <span class="cost">◆5</span></button>
+      </div>
+      <div class="hint" id="selHint">Click two members to enable Charter (push them together) or Sever (break their bond).</div>
+    </section>
+    <section style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <h2>Chronicle</h2>
+      <div id="ticker"></div>
+    </section>
+  </aside>
+</main>
+<script>
+"use strict";
+/* ============================================================
+ * Guild kernel — faithful JS port of collective-intelligence/
+ * guild/guild/kernel.py (same rules, same default parameters).
+ * ============================================================ */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const SKILLS = ["Smithing","Lore","Scouting","Alchemy","Warding","Trade","Beastcraft","Song","Cartography","Cipher"];
+const SKILL_HUE = i => (i * 360 / SKILLS.length + 8) % 360;
+
+const DEFAULTS = {
+  nLoci: 24, nSkills: 10, teamSize: 3, difficulty: 0.5,
+  initialSkill: 0.25, skillJitter: 0.05, learningRate: 0.2,
+  skillDecay: 0.005, bondGain: 1.0, bondDecay: 0.01, exploration: 0.05,
+  reinforcement: true, practice: true, seed: 0,
+};
+
+class Kernel {
+  constructor(cfg) {
+    this.cfg = { ...DEFAULTS, ...cfg };
+    this.rng = mulberry32(this.cfg.seed);
+    this.skills = [];
+    this.bonds = [];
+    for (let i = 0; i < this.cfg.nLoci; i++) this.addLocus();
+    this.round = 0;
+    this.recent = [];              // trailing events for metrics (cap 300)
+    this.taskBias = new Set();     // posted contracts (skill indices)
+    this.trainingUntil = 0;        // Fund-training boost expiry
+  }
+  addLocus() {
+    const c = this.cfg, v = [];
+    for (let k = 0; k < c.nSkills; k++) {
+      v.push(Math.min(1, Math.max(0, c.initialSkill + (this.rng() * 2 - 1) * c.skillJitter)));
+    }
+    this.skills.push(v);
+    this.bonds.push(new Map());
+    return this.skills.length - 1;
+  }
+  weightedPick(items, weights) {
+    let total = 0;
+    for (const w of weights) total += w;
+    let r = this.rng() * total;
+    for (let i = 0; i < items.length; i++) { r -= weights[i]; if (r <= 0) return items[i]; }
+    return items[items.length - 1];
+  }
+  sampleTask() {
+    const c = this.cfg, pool = [], weights = [];
+    for (let k = 0; k < c.nSkills; k++) { pool.push(k); weights.push(this.taskBias.has(k) ? 5 : 1); }
+    const req = [];
+    while (req.length < c.teamSize) {
+      const k = this.weightedPick(pool, weights);
+      if (!req.includes(k)) req.push(k);
+    }
+    req.sort((a, b) => a - b);
+    return req;
+  }
+  recruit() {
+    const c = this.cfg, n = this.skills.length;
+    const team = [Math.floor(this.rng() * n)];
+    while (team.length < c.teamSize) {
+      const cand = [], weights = [];
+      for (let j = 0; j < n; j++) {
+        if (team.includes(j)) continue;
+        cand.push(j);
+        if (c.reinforcement) {
+          let w = c.exploration;
+          for (const m of team) w += (this.bonds[m].get(j) || 0);
+          weights.push(w);
+        } else weights.push(1);
+      }
+      team.push(this.weightedPick(cand, weights));
+    }
+    return team;
+  }
+  step() {
+    const c = this.cfg;
+    const req = this.sampleTask();
+    const team = this.recruit();
+    const coverage = req.map(k => {
+      let best = team[0];
+      for (const m of team) if (this.skills[m][k] > this.skills[best][k]) best = m;
+      return [k, best];
+    });
+    let p = 1;
+    for (const [k, m] of coverage) { const s = this.skills[m][k]; p *= s / (s + c.difficulty); }
+    const success = this.rng() < p;
+
+    // Fund-training semantics: where the guild already learns, training
+    // doubles the rate; in an ossified guild (practice off), training is
+    // the only time anyone learns at all.
+    const training = this.round < this.trainingUntil;
+    const practiceActive = c.practice || training;
+    const lr = (c.practice && training) ? c.learningRate * 2 : c.learningRate;
+    if (practiceActive) {
+      for (const [k, m] of coverage) {
+        const s = this.skills[m][k];
+        this.skills[m][k] = s + lr * (1 - s);
+      }
+    }
+    if (success) {
+      for (const i of team) for (const j of team) if (i !== j) {
+        this.bonds[i].set(j, (this.bonds[i].get(j) || 0) + c.bondGain);
+      }
+    }
+    if (practiceActive && c.skillDecay > 0) {
+      const base = c.initialSkill, keep = 1 - c.skillDecay;
+      for (const v of this.skills) for (let k = 0; k < c.nSkills; k++) {
+        if (v[k] > base) v[k] = base + (v[k] - base) * keep;
+      }
+    }
+    const bd = 1 - c.bondDecay;
+    for (const m of this.bonds) for (const [j, w] of m) {
+      const nw = w * bd;
+      if (nw < 1e-6) m.delete(j); else m.set(j, nw);
+    }
+    const ev = { round: this.round, team: [...team].sort((a, b) => a - b), req, success, p };
+    this.recent.push(ev);
+    if (this.recent.length > 300) this.recent.shift();
+    this.round++;
+    return ev;
+  }
+}
+
+/* ---- metrics (ports of metrics.py, over the trailing window) ---- */
+function specialization(skills) {
+  const K = skills[0].length; let total = 0, n = 0;
+  for (const v of skills) {
+    const floor = Math.min(...v);
+    const ex = v.map(s => s - floor);
+    const mass = ex.reduce((a, b) => a + b, 0);
+    n++;
+    if (mass <= 1e-9) continue;
+    let H = 0;
+    for (const e of ex) { const q = e / mass; if (q > 0) H -= q * Math.log(q); }
+    total += 1 - H / Math.log(K);
+  }
+  return n ? total / n : 0;
+}
+function successRate(events) {
+  if (!events.length) return 0;
+  return events.filter(e => e.success).length / events.length;
+}
+function teamRecurrence(events) {
+  if (!events.length) return 0;
+  const counts = new Map();
+  for (const e of events) { const k = e.team.join(","); counts.set(k, (counts.get(k) || 0) + 1); }
+  let rep = 0;
+  for (const c of counts.values()) if (c >= 2) rep += c;
+  return rep / events.length;
+}
+function emergentGroups(bonds) {
+  const n = bonds.length, w = new Map();
+  for (let i = 0; i < n; i++) for (const [j, v] of bonds[i]) {
+    const key = i < j ? i + ":" + j : j + ":" + i;
+    w.set(key, (w.get(key) || 0) + v);
+  }
+  const vals = [...w.values()].filter(x => x > 0);
+  if (!vals.length) return [];
+  const thr = vals.reduce((a, b) => a + b, 0) / vals.length;
+  const adj = new Map();
+  for (const [key, v] of w) {
+    if (v < thr) continue;
+    const [i, j] = key.split(":").map(Number);
+    if (!adj.has(i)) adj.set(i, []);
+    if (!adj.has(j)) adj.set(j, []);
+    adj.get(i).push(j); adj.get(j).push(i);
+  }
+  const seen = new Set(), comps = [];
+  for (const start of adj.keys()) {
+    if (seen.has(start)) continue;
+    const stack = [start], comp = new Set();
+    while (stack.length) {
+      const x = stack.pop();
+      if (comp.has(x)) continue;
+      comp.add(x);
+      for (const y of adj.get(x) || []) if (!comp.has(y)) stack.push(y);
+    }
+    for (const x of comp) seen.add(x);
+    if (comp.size >= 2) comps.push(comp);
+  }
+  return comps.sort((a, b) => b.size - a.size);
+}
+
+/* ============================================================
+ * Game layer: influence economy, diegetic interventions,
+ * narrator ticker, auto-named teams, scenarios.
+ * ============================================================ */
+const SCENARIOS = {
+  sandbox: {
+    label: "Sandbox",
+    intro: "A fresh guild of 24. Watch it organize — or shape it. Colors are crafts; links are working bonds.",
+    cfg: {}, influence: 10, goal: null,
+    setup() {},
+  },
+  ossified: {
+    label: "The Ossified Guild",
+    intro: "This guild stopped learning years ago. Old crews hold iron bonds, keep taking the contracts, and keep failing. No one improves unless you fund apprenticeships (◆4, 300 rounds each) — and you can't afford many. Reach 15% success within 1,500 rounds.",
+    cfg: { practice: false, exploration: 0.04, seed: 5 },
+    influence: 14,
+    goal: { succ: 0.15, deadline: 1500 },
+    setup(k) {
+      for (const trio of [[0, 1, 2], [3, 4, 5]]) {   // locked-in mediocre crews
+        for (const i of trio) for (const j of trio) if (i !== j) k.bonds[i].set(j, 40);
+      }
+    },
+  },
+  coldstart: {
+    label: "Cold Start",
+    intro: "Contracts here are brutal (difficulty 0.8) and the guild is green. Hint: post a narrow contract board so practice concentrates on few crafts. Reach 12% success within 2,500 rounds.",
+    cfg: { difficulty: 0.8, seed: 7 },
+    influence: 14,
+    goal: { succ: 0.12, deadline: 2500 },
+    setup() {},
+  },
+};
+
+const NAME_A = ["Ash","Iron","Ember","Grey","Thorn","Salt","Moon","Oak","Rune","Star","Frost","Wolf"];
+const NAME_B = ["weavers","wrights","wardens","striders","binders","callers","menders","seekers","cutters","singers"];
+
+class Game {
+  constructor(scenarioKey) {
+    this.scenarioKey = scenarioKey;
+    const sc = SCENARIOS[scenarioKey];
+    this.kernel = new Kernel(sc.cfg);
+    sc.setup(this.kernel);
+    this.influence = sc.influence;
+    this.goal = sc.goal ? { ...sc.goal, done: false, won: false } : null;
+    this.teamStats = new Map();   // teamKey -> {count, wins, name, lastSeen}
+    this.flashes = [];            // success glow animations
+    this.log = [];
+    this.milestones = new Set();
+    this.succHistory = [];        // sparkline
+    this.say(0, sc.intro);
+    this.nameRng = mulberry32((sc.cfg.seed || 0) + 999);
+  }
+  say(round, html, cls) {
+    this.log.unshift({ round, html, cls });
+    if (this.log.length > 80) this.log.pop();
+    this.logDirty = true;
+  }
+  spend(cost) {
+    if (this.influence < cost) return false;
+    this.influence -= cost;
+    return true;
+  }
+  teamName(key) {
+    const st = this.teamStats.get(key);
+    return st && st.name ? `<span class="name">${st.name}</span>` : null;
+  }
+  tick(steps) {
+    const k = this.kernel;
+    for (let s = 0; s < steps; s++) {
+      const ev = k.step();
+      // influence trickle
+      if (k.round % 40 === 0) this.influence = Math.min(20, this.influence + 1);
+      // team bookkeeping + narration
+      const key = ev.team.join(",");
+      let st = this.teamStats.get(key);
+      if (!st) { st = { count: 0, wins: 0, name: null, lastSeen: 0 }; this.teamStats.set(key, st); }
+      st.count++; st.lastSeen = k.round;
+      if (ev.success) {
+        st.wins++;
+        this.flashes.push({ team: ev.team, t: 1 });
+        if (this.flashes.length > 8) this.flashes.shift();
+        if (!this.milestones.has("first")) {
+          this.milestones.add("first");
+          this.say(k.round, `First contract completed, by members ${ev.team.join(", ")}.`, "milestone");
+        }
+        if (st.wins === 5 && !st.name) {
+          st.name = NAME_A[Math.floor(this.nameRng() * NAME_A.length)] + " " +
+                    NAME_B[Math.floor(this.nameRng() * NAME_B.length)];
+          this.say(k.round, `A company is born: members ${ev.team.join(", ")} have completed five contracts together. They call themselves <span class="name">${st.name}</span>.`, "milestone");
+        } else if (st.name && st.wins % 15 === 0) {
+          this.say(k.round, `${this.teamName(key)} complete their ${st.wins}th contract.`);
+        }
+      }
+      // periodic checks
+      if (k.round % 100 === 0) this.periodic();
+    }
+  }
+  periodic() {
+    const k = this.kernel;
+    const win = k.recent.slice(-100);
+    const succ = successRate(win);
+    this.succHistory.push(succ);
+    if (this.succHistory.length > 120) this.succHistory.shift();
+    // disbandment
+    for (const [key, st] of this.teamStats) {
+      if (st.name && !st.disbanded && k.round - st.lastSeen > 500) {
+        st.disbanded = true;
+        this.say(k.round, `${this.teamName(key)} have gone their separate ways.`, "warn");
+      }
+    }
+    // success milestones
+    for (const m of [0.1, 0.2, 0.3]) {
+      const tag = "succ" + m;
+      if (succ >= m && !this.milestones.has(tag)) {
+        this.milestones.add(tag);
+        this.say(k.round, `The guild's reputation grows — contract success has reached ${Math.round(m * 100)}%.`, "milestone");
+      }
+    }
+    // specialization milestone
+    if (!this.milestones.has("spec") && specialization(k.skills) > 0.15) {
+      this.milestones.add("spec");
+      this.say(k.round, `Division of labor is emerging — members are developing distinct crafts.`, "milestone");
+    }
+    // cronyism detector (the lock-in regime measured in the kernel experiments)
+    if (teamRecurrence(win) > 0.45 && succ < 0.12 && k.round > 400 && !this.milestones.has("crony" + Math.floor(k.round / 800))) {
+      this.milestones.add("crony" + Math.floor(k.round / 800));
+      this.say(k.round, `The same crews keep re-forming and keep failing. Structure without competence — consider severing.`, "warn");
+    }
+    // goal check
+    if (this.goal && !this.goal.done) {
+      if (succ >= this.goal.succ) {
+        this.goal.done = true; this.goal.won = true;
+        this.say(k.round, `Goal reached: ${Math.round(this.goal.succ * 100)}% success in ${k.round} rounds.`, "milestone");
+      } else if (k.round >= this.goal.deadline) {
+        this.goal.done = true; this.goal.won = false;
+        this.say(k.round, `The deadline passes. The guild did not make it this time — restart and try another shape.`, "warn");
+      }
+    }
+  }
+  /* ------- interventions (diegetic verbs over kernel state) ------- */
+  charter(i, j) {
+    if (!this.spend(3)) return false;
+    this.kernel.bonds[i].set(j, (this.kernel.bonds[i].get(j) || 0) + 6);
+    this.kernel.bonds[j].set(i, (this.kernel.bonds[j].get(i) || 0) + 6);
+    this.say(this.kernel.round, `Charter signed: members ${i} and ${j} are encouraged to work together.`);
+    return true;
+  }
+  sever(i, j) {
+    if (!this.spend(2)) return false;
+    this.kernel.bonds[i].delete(j);
+    this.kernel.bonds[j].delete(i);
+    this.say(this.kernel.round, `Severance: the bond between members ${i} and ${j} is dissolved.`);
+    return true;
+  }
+  toggleContract(skill) {
+    const bias = this.kernel.taskBias;
+    if (bias.has(skill)) {
+      bias.delete(skill);
+      this.say(this.kernel.round, `Contract for ${SKILLS[skill]} withdrawn from the board.`);
+      return true;
+    }
+    if (!this.spend(2)) return false;
+    bias.add(skill);
+    this.say(this.kernel.round, `Contract posted: work demanding ${SKILLS[skill]} will now seek out the guild.`);
+    return true;
+  }
+  fundTraining() {
+    if (!this.spend(4)) return false;
+    this.kernel.trainingUntil = this.kernel.round + 300;
+    this.say(this.kernel.round, this.kernel.cfg.practice
+      ? `Training fund opened — members learn twice as fast for 300 rounds.`
+      : `Apprenticeships funded — for 300 rounds, the guild learns again.`);
+    return true;
+  }
+  recruitLocus() {
+    if (!this.spend(5)) return false;
+    const id = this.kernel.addLocus();
+    this.say(this.kernel.round, `A newcomer joins the guild: member ${id}.`);
+    return id;
+  }
+}
+
+/* ============================================================
+ * Renderer: bond-driven force layout. Hue = dominant craft,
+ * saturation = specialization, edges = bonds, flash = success.
+ * ============================================================ */
+class Renderer {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.pos = []; this.vel = [];
+    this.layoutRng = mulberry32(42);
+  }
+  syncNodes(n) {
+    while (this.pos.length < n) {
+      const a = this.layoutRng() * Math.PI * 2, r = 0.25 + this.layoutRng() * 0.2;
+      this.pos.push([0.5 + Math.cos(a) * r, 0.5 + Math.sin(a) * r]);
+      this.vel.push([0, 0]);
+    }
+  }
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const r = this.canvas.getBoundingClientRect();
+    this.canvas.width = r.width * dpr; this.canvas.height = r.height * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.w = r.width; this.h = r.height;
+  }
+  physics(game) {
+    const k = game.kernel, n = k.skills.length;
+    this.syncNodes(n);
+    const P = this.pos, V = this.vel;
+    for (let i = 0; i < n; i++) {
+      let fx = 0, fy = 0;
+      // repulsion
+      for (let j = 0; j < n; j++) {
+        if (i === j) continue;
+        const dx = P[i][0] - P[j][0], dy = P[i][1] - P[j][1];
+        const d2 = dx * dx + dy * dy + 1e-4;
+        const f = 0.00014 / d2;
+        fx += dx * f; fy += dy * f;
+      }
+      // bond springs
+      for (const [j, w] of k.bonds[i]) {
+        const dx = P[j][0] - P[i][0], dy = P[j][1] - P[i][1];
+        const pull = Math.min(0.05, w * 0.002);
+        fx += dx * pull; fy += dy * pull;
+      }
+      // centering
+      fx += (0.5 - P[i][0]) * 0.028; fy += (0.5 - P[i][1]) * 0.028;
+      V[i][0] = (V[i][0] + fx) * 0.82; V[i][1] = (V[i][1] + fy) * 0.82;
+    }
+    for (let i = 0; i < n; i++) {
+      P[i][0] = Math.min(0.97, Math.max(0.03, P[i][0] + V[i][0]));
+      P[i][1] = Math.min(0.96, Math.max(0.04, P[i][1] + V[i][1]));
+    }
+  }
+  nodeStyle(game, i) {
+    const v = game.kernel.skills[i];
+    const floor = Math.min(...v), max = Math.max(...v);
+    let best = 0;
+    for (let s = 0; s < v.length; s++) if (v[s] > v[best]) best = s;
+    const range = max - floor;
+    const sat = Math.min(90, 12 + range * 260);          // flat = grey, specialist = vivid
+    const light = 42 + Math.min(28, max * 30);
+    const radius = 6 + max * 8;
+    return { hue: SKILL_HUE(best), sat, light, radius };
+  }
+  px(i) { return [this.pos[i][0] * this.w, this.pos[i][1] * this.h]; }
+  draw(game, selected) {
+    const ctx = this.ctx, k = game.kernel, n = k.skills.length;
+    ctx.clearRect(0, 0, this.w, this.h);
+    // edges
+    const drawn = new Set();
+    for (let i = 0; i < n; i++) {
+      for (const [j, w] of k.bonds[i]) {
+        const key = i < j ? i + ":" + j : j + ":" + i;
+        if (drawn.has(key)) continue;
+        drawn.add(key);
+        const sym = w + (k.bonds[j].get(i) || 0);
+        if (sym < 0.4) continue;
+        const [x1, y1] = this.px(i), [x2, y2] = this.px(j);
+        ctx.strokeStyle = `rgba(150,178,220,${Math.min(0.85, 0.10 + sym * 0.055)})`;
+        ctx.lineWidth = Math.min(6, 0.5 + sym * 0.22);
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      }
+    }
+    // success flashes
+    game.flashes = game.flashes.filter(f => f.t > 0);
+    for (const f of game.flashes) {
+      ctx.strokeStyle = `rgba(232,194,104,${f.t * 0.8})`;
+      ctx.lineWidth = 2;
+      for (let a = 0; a < f.team.length; a++) {
+        if (f.team[a] >= this.pos.length) continue;
+        const [x, y] = this.px(f.team[a]);
+        ctx.beginPath(); ctx.arc(x, y, 14 + (1 - f.t) * 10, 0, Math.PI * 2); ctx.stroke();
+        for (let b = a + 1; b < f.team.length; b++) {
+          if (f.team[b] >= this.pos.length) continue;
+          const [x2, y2] = this.px(f.team[b]);
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke();
+        }
+      }
+      f.t -= 0.09;
+    }
+    // nodes
+    for (let i = 0; i < n; i++) {
+      const st = this.nodeStyle(game, i);
+      const [x, y] = this.px(i);
+      ctx.fillStyle = `hsl(${st.hue} ${st.sat}% ${st.light}%)`;
+      ctx.beginPath(); ctx.arc(x, y, st.radius, 0, Math.PI * 2); ctx.fill();
+      if (selected.includes(i)) {
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(x, y, st.radius + 3, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.fillStyle = "rgba(230,236,245,0.85)";
+      ctx.font = "10px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(String(i), x, y - st.radius - 4);
+    }
+    // named-team labels at cluster centroids
+    for (const [key, st] of game.teamStats) {
+      if (!st.name || st.disbanded || game.kernel.round - st.lastSeen > 300) continue;
+      const ids = key.split(",").map(Number).filter(i => i < this.pos.length);
+      if (ids.length < 2) continue;
+      let cx = 0, cy = 0;
+      for (const i of ids) { const [x, y] = this.px(i); cx += x; cy += y; }
+      cx /= ids.length; cy /= ids.length;
+      ctx.fillStyle = "rgba(232,194,104,0.9)";
+      ctx.font = "italic 11px serif"; ctx.textAlign = "center";
+      ctx.fillText(st.name, cx, cy + 3);
+    }
+  }
+  hit(x, y) {
+    for (let i = this.pos.length - 1; i >= 0; i--) {
+      const [px, py] = this.px(i);
+      if ((px - x) ** 2 + (py - y) ** 2 < 14 ** 2) return i;
+    }
+    return -1;
+  }
+}
+
+/* ============================== UI ============================== */
+const $ = id => document.getElementById(id);
+let game, renderer, selected = [], paused = false;
+
+function buildChips() {
+  const box = $("skillChips");
+  box.innerHTML = "";
+  SKILLS.forEach((name, i) => {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.innerHTML = `<span class="dot" style="background:hsl(${SKILL_HUE(i)} 70% 55%)"></span>${name}`;
+    chip.onclick = () => { game.toggleContract(i); refreshChips(); };
+    chip.dataset.skill = i;
+    box.appendChild(chip);
+  });
+}
+function refreshChips() {
+  for (const chip of $("skillChips").children) {
+    chip.classList.toggle("posted", game.kernel.taskBias.has(Number(chip.dataset.skill)));
+  }
+}
+function refreshTicker() {
+  if (!game.logDirty) return;
+  game.logDirty = false;
+  $("ticker").innerHTML = game.log.map(l =>
+    `<div class="${l.cls || ""}"><span class="r">${l.round}</span>${l.html}</div>`).join("");
+}
+function refreshStats() {
+  const k = game.kernel, win = k.recent.slice(-100);
+  $("mSucc").textContent = win.length ? Math.round(successRate(win) * 100) + "%" : "—";
+  $("mSpec").textContent = specialization(k.skills).toFixed(2);
+  $("mRecur").textContent = teamRecurrence(win).toFixed(2);
+  $("mGroups").textContent = emergentGroups(k.bonds).length;
+  $("round").textContent = "round " + k.round;
+  $("influence").textContent = "◆ " + game.influence;
+  // sparkline
+  const c = $("spark"), ctx = c.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const r = c.getBoundingClientRect();
+  c.width = r.width * dpr; c.height = r.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, r.width, r.height);
+  const h = game.succHistory;
+  if (h.length > 1) {
+    ctx.strokeStyle = "#6ea8fe"; ctx.lineWidth = 1.5; ctx.beginPath();
+    h.forEach((v, i) => {
+      const x = i / (h.length - 1) * r.width, y = r.height - 3 - v * (r.height - 6) / 0.5;
+      i ? ctx.lineTo(x, Math.max(2, y)) : ctx.moveTo(x, Math.max(2, y));
+    });
+    ctx.stroke();
+    if (game.goal) {
+      const gy = r.height - 3 - game.goal.succ * (r.height - 6) / 0.5;
+      ctx.strokeStyle = "rgba(232,194,104,0.6)"; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(r.width, gy); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+}
+function refreshGoal() {
+  const b = $("goalBanner");
+  if (!game.goal) { b.hidden = true; return; }
+  b.hidden = false;
+  const g = game.goal, k = game.kernel;
+  if (g.done) {
+    b.innerHTML = g.won
+      ? `<span class="win">✦ Goal achieved</span> — ${Math.round(g.succ * 100)}% success. Restart to try to do it faster.`
+      : `<span class="lose">✦ Deadline missed</span> — restart and try a different shape.`;
+  } else {
+    const win = k.recent.slice(-100);
+    b.innerHTML = `Goal: <b>${Math.round(g.succ * 100)}% success</b> by round ${g.deadline} · now ${Math.round(successRate(win) * 100)}% · ${Math.max(0, g.deadline - k.round)} rounds left`;
+  }
+}
+function refreshButtons() {
+  const two = selected.length === 2;
+  $("actCharter").disabled = !two || game.influence < 3;
+  $("actSever").disabled = !two || game.influence < 2;
+  $("actTrain").disabled = game.influence < 4;
+  $("actRecruit").disabled = game.influence < 5;
+  $("selHint").textContent = two
+    ? `Members ${selected[0]} and ${selected[1]} selected.`
+    : "Click two members to enable Charter (push them together) or Sever (break their bond).";
+}
+
+function start(scenarioKey) {
+  game = new Game(scenarioKey);
+  selected = [];
+  buildChips(); refreshChips();
+  game.logDirty = true;
+}
+
+function init() {
+  renderer = new Renderer($("canvas"));
+  start($("scenario").value);
+  const onResize = () => renderer.resize();
+  window.addEventListener("resize", onResize);
+  renderer.resize();
+
+  $("scenario").onchange = () => start($("scenario").value);
+  $("reset").onclick = () => start($("scenario").value);
+  $("pause").onclick = () => { paused = !paused; $("pause").textContent = paused ? "Resume" : "Pause"; };
+  $("canvas").addEventListener("click", e => {
+    const r = $("canvas").getBoundingClientRect();
+    const i = renderer.hit(e.clientX - r.left, e.clientY - r.top);
+    if (i < 0) { selected = []; return; }
+    if (selected.includes(i)) selected = selected.filter(x => x !== i);
+    else { selected.push(i); if (selected.length > 2) selected.shift(); }
+  });
+  $("actCharter").onclick = () => { if (selected.length === 2) game.charter(selected[0], selected[1]); };
+  $("actSever").onclick = () => { if (selected.length === 2) game.sever(selected[0], selected[1]); };
+  $("actTrain").onclick = () => game.fundTraining();
+  $("actRecruit").onclick = () => game.recruitLocus();
+
+  let frame = 0;
+  setInterval(() => {
+    if (!paused) {
+      const speed = Number($("speed").value);          // steps per tick (50ms)
+      game.tick(speed);
+    }
+    renderer.physics(game);
+    renderer.draw(game, selected);
+    frame++;
+    if (frame % 6 === 0) { refreshStats(); refreshGoal(); refreshButtons(); refreshChips(); }
+    refreshTicker();
+  }, 50);
+}
+init();
+</script>
+</body>
+</html>
