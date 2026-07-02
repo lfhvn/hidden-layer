@@ -152,7 +152,7 @@ Three registers, in strict priority order.
 
 **Sound direction** (for later): lo-fi percussion under field recordings (river, bees, rain on the winter store), tape hiss as room tone; tradition moments get a vinyl skip.
 
-**Implemented in the prototype now** (the CSS-reachable slice): film grain + scanline overlays, sun-wash and seasonal grading on the canvas, the warmed palette, RGB-split title treatment, and the tradition glitch-flash. Sprite/portrait work is the first real art hire's job — the prototype's drawn faces are placeholders proving where portraits go.
+**Implemented in the prototype now**: programmatic pixel-sprite villagers (six hair colors, four skin tones, craft-dyed tunics whose saturation deepens as a niche settles, two-frame walk cycle, JRPG blinking-cursor selection), a painted valley scene (seasonal sky and palette grading, sun, drifting clouds, layered hills, river with shimmer, dithered lo-fi texture, vignette), huts that appear as the settlement grows tiers (with chimney smoke), a staked pennant at each day's work site, canvas-native slice-glitch when a tradition crystallizes, and the paper-field-journal UI with the research ledger rendered as a phosphor terminal beneath the paper. Real sprite/portrait art remains the first art hire's job — but the prototype now *demonstrates the direction* instead of describing it.
 
 ## 8. What Stays Sacred (Research Invariants)
 
