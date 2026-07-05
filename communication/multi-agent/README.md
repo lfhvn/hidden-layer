@@ -135,7 +135,6 @@ multi-agent/
 │   └── crit/              # Design critique
 ├── notebooks/             # Experiment notebooks
 ├── config/                # Model configurations
-├── tests/                 # Tests
 └── CLAUDE.md              # Development guide
 ```
 

@@ -135,9 +135,8 @@ python multi_agent/cli.py "Design task" --config claude-researcher
 ## Testing
 
 ```bash
-# Run tests
-cd communication/multi-agent
-pytest tests/
+# Run tests (lab-wide suite covers this package)
+pytest tests/  # from repo root
 
 # Test specific strategy
 python -c "from communication.multi_agent import run_strategy; print(run_strategy('single', 'test'))"
