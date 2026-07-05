@@ -1,0 +1,20 @@
+{"id": "phase0-00", "input": "A shelf holds 12 books and a second shelf holds 23 books. How many books are there in total?", "expected": 35, "eval_type": "numeric"}
+{"id": "phase0-01", "input": "Nina had 40 apples and gave away 17. How many does she have left?", "expected": 23, "eval_type": "numeric"}
+{"id": "phase0-02", "input": "A ticket costs 8 dollars. How much do 7 tickets cost?", "expected": 56, "eval_type": "numeric"}
+{"id": "phase0-03", "input": "There are 96 chairs arranged in 8 equal rows. How many chairs are in each row?", "expected": 12, "eval_type": "numeric"}
+{"id": "phase0-04", "input": "Tom walked 3 km in the morning and 5 km in the evening for 6 days. How many km did he walk in total?", "expected": 48, "eval_type": "numeric"}
+{"id": "phase0-05", "input": "A tank holds 250 liters. It is filled at 25 liters per minute. How many minutes to fill it from empty?", "expected": 10, "eval_type": "numeric"}
+{"id": "phase0-06", "input": "A baker made 144 rolls and packed them into boxes of 12. How many boxes did he fill?", "expected": 12, "eval_type": "numeric"}
+{"id": "phase0-07", "input": "Sara saves 15 dollars a week. How many dollars has she saved after 9 weeks?", "expected": 135, "eval_type": "numeric"}
+{"id": "phase0-08", "input": "A train travels 60 km per hour for 4 hours. How far does it travel?", "expected": 240, "eval_type": "numeric"}
+{"id": "phase0-09", "input": "Out of 200 seeds, 45 did not sprout. How many sprouted?", "expected": 155, "eval_type": "numeric"}
+{"id": "phase0-10", "input": "A rope 84 meters long is cut into 7 equal pieces. How long is each piece in meters?", "expected": 12, "eval_type": "numeric"}
+{"id": "phase0-11", "input": "Ben read 28 pages a day for 5 days and then 30 more pages. How many pages did he read?", "expected": 170, "eval_type": "numeric"}
+{"id": "phase0-12", "input": "A parking lot has 6 levels with 45 cars on each. How many cars are parked?", "expected": 270, "eval_type": "numeric"}
+{"id": "phase0-13", "input": "Lea bought 3 notebooks at 4 dollars each and paid with a 20 dollar bill. How much change did she get?", "expected": 8, "eval_type": "numeric"}
+{"id": "phase0-14", "input": "A farm has 17 cows and 4 times as many sheep. How many sheep are there?", "expected": 68, "eval_type": "numeric"}
+{"id": "phase0-15", "input": "A pizza is cut into 8 slices. If 5 pizzas are ordered and 13 slices are eaten, how many slices remain?", "expected": 27, "eval_type": "numeric"}
+{"id": "phase0-16", "input": "The temperature was 21 degrees and dropped 6 degrees, then rose 9. What is it now?", "expected": 24, "eval_type": "numeric"}
+{"id": "phase0-17", "input": "A worker earns 18 dollars per hour and worked 7 hours. How much did the worker earn?", "expected": 126, "eval_type": "numeric"}
+{"id": "phase0-18", "input": "A library lends 35 books per day. How many books does it lend in 14 days?", "expected": 490, "eval_type": "numeric"}
+{"id": "phase0-19", "input": "If 5 pencils cost 60 cents, how many cents do 8 pencils cost?", "expected": 96, "eval_type": "numeric"}
