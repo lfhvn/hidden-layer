@@ -24,17 +24,19 @@ artifact — a results directory in this repo, a preprint, or a release.
 
 *Goal: make "run an experiment, commit the results" a one-command habit.*
 
-- [ ] Add a `results/` convention: `results/<project>/<experiment-name>/`
-      containing `config.json`, `results.jsonl`, `summary.json` (the harness
-      tracker already writes these — point it at the repo and commit outputs).
+- [x] Add a `results/` convention — see `results/README.md`; the default
+      tracker directory `experiments/` stays gitignored scratch space.
 - [ ] Repair the multi-agent project's stale test suite (27 failures from the
       dash/underscore reorg) so CI is honest again.
 - [ ] Add a behavioral test for `system_prompts` and `experiment_tracker`
       (the two harness areas with zero coverage — one already shipped a
       silent path bug).
-- [ ] **First committed experiment** ("hello world"): `single` vs `debate` on
-      50 GSM8K items, one local model, 3 seeds. The point is not the finding;
-      it is that the pipeline runs end-to-end and the result lands in git.
+- [ ] **First committed experiment** ("hello world"): run
+      `python scripts/run_phase0.py` (single vs debate, bundled 20-task
+      smoke set) against a local Ollama model and commit the run
+      directories it writes under `results/multi-agent/phase0-smoke/`.
+      The point is not the finding; it is that the pipeline runs
+      end-to-end and the result lands in git.
 - [ ] **Decision gate — AgentMesh**: commercial push, internal tool, or
       archive? It now imports `run_strategy` correctly; decide whether anyone
       will run it before spending more on it. (Recommendation: freeze until
