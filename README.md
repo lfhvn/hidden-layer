@@ -235,6 +235,7 @@ steered_output = steerer.generate_with_steering(
 ## Documentation
 
 ### Lab-Wide
+- **[ROADMAP.md](ROADMAP.md)** - 18-month research roadmap and publication plan
 - **[RESEARCH.md](RESEARCH.md)** - Research themes and cross-project connections
 - **[CLAUDE.md](CLAUDE.md)** - Development guide for Claude
 - **[docs/](docs/)** - Shared documentation (infrastructure, workflows, conventions)
