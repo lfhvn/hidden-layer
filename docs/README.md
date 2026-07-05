@@ -6,19 +6,31 @@ Lab-wide documentation for infrastructure, workflows, and conventions.
 
 ```
 docs/
-├── infrastructure/     # Core systems (LLM providers, tracking, etc.)
-├── hardware/          # Hardware setup (local models - optional)
-├── workflows/         # Research processes
-└── archive/           # Historical documentation
+├── FAQ.md              # Common questions and troubleshooting
+├── PROJECT_GUIDE.md    # Overview of all projects, how to get started
+├── SETUP.md            # Advanced / manual setup
+├── ARCHITECTURE.md     # System architecture
+├── BENCHMARKS.md       # Benchmark information
+├── infrastructure/     # Core systems (LLM providers, model management)
+├── hardware/           # Hardware setup (local models - optional)
+└── workflows/          # Research processes (benchmarking, notebooks)
 ```
 
 ## Quick Navigation
+
+### Getting Started
+
+- **[Project Guide](PROJECT_GUIDE.md)** - All projects, organized by research area
+- **[FAQ](FAQ.md)** - Common questions and troubleshooting
+- **[Advanced Setup](SETUP.md)** - Manual environment configuration
+- **[Quickstart](../QUICKSTART.md)** - Zero-to-notebook setup (repo root)
 
 ### Infrastructure
 
 Core systems used across all projects:
 
 - **[Provider Limitations](infrastructure/provider-limitations.md)** - Provider capabilities and constraints
+- **[Model Management](infrastructure/model-management.md)** - Centralized model storage
 
 ### Hardware (Optional - Local Models)
 
@@ -30,6 +42,7 @@ Core systems used across all projects:
 Research processes and best practices:
 
 - **[Benchmarking](workflows/benchmarking.md)** - Using standard benchmarks
+- **[Notebook Setup](workflows/notebook-setup.md)** - Provider configuration for notebooks
 
 ### Research
 
@@ -57,6 +70,14 @@ Each project has its own documentation:
 **Alignment**:
 - [Steerability](../alignment/steerability/CLAUDE.md)
 
+**Memory**:
+- [Lifelog Personalization](../memory/lifelog-personalization/README.md)
+
+**Platform & Tools**:
+- [AgentMesh](../agentmesh/README.md) (product docs in `agentmesh/docs/`)
+- [MLX Lab](../mlx_lab/README.md)
+- [AI Research Aggregator](../ai_research_aggregator/README.md)
+
 ---
 
 ## For New Developers
@@ -64,7 +85,7 @@ Each project has its own documentation:
 1. Start with [RESEARCH.md](../RESEARCH.md) for research overview
 2. Read [CLAUDE.md](../CLAUDE.md) for development guide and methodology
 3. Optional: Configure hardware: [Local Setup](hardware/local-setup.md)
-4. Pick a research area: communication, theory-of-mind, representations, or alignment
+4. Pick a research area: communication, theory-of-mind, representations, alignment, or memory
 5. Read project CLAUDE.md for specific guidance
 
 ---
@@ -75,8 +96,7 @@ When adding documentation:
 
 1. **Infrastructure** → Affects all projects
 2. **Workflows** → Research processes
-3. **Conventions** → Coding standards
-4. **Project-specific** → Put in project's own docs
+3. **Project-specific** → Put in project's own docs
 
 Keep documentation:
 - **Clear**: Easy to understand

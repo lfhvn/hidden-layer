@@ -48,46 +48,6 @@ latent-lens/
 │   ├── requirements-dev.txt
 │   └── Dockerfile
 │
-├── frontend/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── page.tsx                 # Home page
-│   │   │   ├── layout.tsx               # Root layout
-│   │   │   ├── globals.css              # Global styles
-│   │   │   ├── layer-explorer/
-│   │   │   │   └── page.tsx             # Layer selection view
-│   │   │   ├── feature-gallery/
-│   │   │   │   └── page.tsx             # Feature browsing
-│   │   │   ├── activation-lens/
-│   │   │   │   └── page.tsx             # Text analysis view
-│   │   │   └── labeling/
-│   │   │       └── page.tsx             # Feature labeling
-│   │   ├── components/
-│   │   │   ├── ui/                      # shadcn/ui components
-│   │   │   │   ├── button.tsx
-│   │   │   │   ├── card.tsx
-│   │   │   │   ├── input.tsx
-│   │   │   │   └── badge.tsx
-│   │   │   ├── FeatureCard.tsx          # Feature display
-│   │   │   ├── ActivationHeatmap.tsx    # Visualization
-│   │   │   ├── LayerSelector.tsx        # Layer picker
-│   │   │   ├── LabelEditor.tsx          # Label form
-│   │   │   └── Navigation.tsx           # Nav bar
-│   │   ├── lib/
-│   │   │   ├── api.ts                   # API client
-│   │   │   ├── utils.ts                 # Utilities
-│   │   │   └── websocket.ts             # WebSocket client
-│   │   └── types/
-│   │       └── index.ts                 # TypeScript types
-│   ├── public/
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── next.config.js
-│   ├── tailwind.config.ts
-│   ├── postcss.config.js
-│   ├── components.json
-│   └── Dockerfile
-│
 ├── docker-compose.yml
 ├── Makefile
 ├── README.md
@@ -118,7 +78,6 @@ latent-lens/
    ```
 
 4. **Access Application**
-   - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
    - API Docs: http://localhost:8000/docs
    - OpenAPI Spec: http://localhost:8000/openapi.json
@@ -143,33 +102,9 @@ uvicorn app.main:app --reload
 
 Backend runs on: http://localhost:8000
 
-#### Frontend Setup
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-```
-
-Frontend runs on: http://localhost:3000
-
 ## Usage Workflow
 
 ### 1. Create an Experiment
-
-**Via UI:**
-1. Navigate to **Layer Explorer** (http://localhost:3000/layer-explorer)
-2. Enter experiment details:
-   - Name: `gpt2_layer6_experiment`
-   - Model: `gpt2`
-   - Layer index: `6`
-   - Hidden dim: `4096`
-   - Sparsity: `0.01`
-3. Click "Create Experiment"
 
 **Via API:**
 ```bash
@@ -218,27 +153,15 @@ print(f"Final loss: {history['train_loss'][-1]}")
 
 ### 3. Browse Features
 
-Navigate to **Feature Gallery** (http://localhost:3000/feature-gallery) to:
-- View all discovered features
-- Filter by experiment ID
-- See activation statistics
-- View top-activating tokens
+Use `GET /api/features` (filter by experiment ID, sparsity range) to view discovered features, activation statistics, and top-activating tokens.
 
 ### 4. Analyze Text
 
-Go to **Activation Lens** (http://localhost:3000/activation-lens):
-1. Enter text: "The quick brown fox jumps over the lazy dog"
-2. Select experiment ID
-3. Click "Analyze"
-4. View heatmap of token-level activations
+Use `POST /api/activations/analyze` with text and an experiment ID to get token-level feature activations.
 
 ### 5. Label Features
 
-In **Labeling** view (http://localhost:3000/labeling):
-1. Select experiment
-2. Click on features to label
-3. Add labels with descriptions and tags
-4. Export labeled features
+Use `POST /api/features/{id}/labels` to add labels with descriptions and tags.
 
 ## Testing
 
@@ -249,10 +172,6 @@ make test
 # Backend tests with coverage
 cd backend
 pytest -v --cov=app --cov-report=html
-
-# Frontend type checking
-cd frontend
-npm run type-check
 
 # Lint code
 make lint
@@ -278,9 +197,6 @@ make clean
 
 # Run backend only
 make backend
-
-# Run frontend only
-make frontend
 ```
 
 ## Troubleshooting

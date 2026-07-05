@@ -164,4 +164,4 @@ resp = llm_call("API call", provider="anthropic", model="claude-3-5-haiku-202410
 3. Branch into CRIT/SELPHI/Latent Lens/Steerability using the shared harness.
 4. Customize `config/models.yaml` for your favorite models or system prompts.
 
-Refer to `README.md` for a deeper system overview and `SETUP.md` for hardware-specific tuning.
+Refer to `README.md` for a deeper system overview and `docs/SETUP.md` for hardware-specific tuning.

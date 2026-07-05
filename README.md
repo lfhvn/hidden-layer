@@ -146,55 +146,34 @@ response = llm_call("Question?", provider="anthropic", model="claude-3-5-sonnet-
 ---
 
 ## Quick Start
-<<<<<<< HEAD
- 
- **The Fast Way:**
- ```bash
- # Clone
- git clone https://github.com/yourusername/hidden-layer
- cd hidden-layer
- 
- # One-command setup & launch
- make start
- ```
- This will check your environment, install dependencies, ensure Ollama is running, and launch Jupyter Lab.
- 
- **Manual Setup:**
- ```bash
- ./setup.sh
- source venv/bin/activate
- ```
- 
- **Pick a project:**
- ```bash
- cd communication/multi-agent    # Or theory-of-mind/selphi, representations/latent-space, etc.
- cat README.md
- ```
-=======
 
 **New to Hidden Layer?** → See **[QUICKSTART.md](QUICKSTART.md)** for complete setup guide
 
-**Looking for a specific project?** → See **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** for all projects and how to get started
+**Looking for a specific project?** → See **[docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md)** for all projects and how to get started
 
+**The Fast Way:**
 ```bash
 # Clone
 git clone https://github.com/yourusername/hidden-layer
 cd hidden-layer
 
-# Setup environment
-make setup
+# One-command setup & launch
+make start
+```
+This will check your environment, install dependencies, ensure Ollama is running, and launch Jupyter Lab.
+
+**Manual Setup:**
+```bash
+make setup            # or ./setup.sh
 source venv/bin/activate
+python check_setup.py # verify setup
+```
 
-# Verify setup
-python check_setup.py
-
-# Pick a project (see PROJECT_GUIDE.md for all options)
+**Pick a project:**
+```bash
 cd communication/multi-agent    # Or theory-of-mind/selphi, representations/latent-space, etc.
-
-# See project README for specific instructions
 cat README.md
 ```
->>>>>>> 6a690060b86baa6e2d82273b3c829b0cfb8eb6ae
 
 ### Example: Multi-Agent Debate
 
@@ -256,6 +235,7 @@ steered_output = steerer.generate_with_steering(
 ## Documentation
 
 ### Lab-Wide
+- **[ROADMAP.md](ROADMAP.md)** - 18-month research roadmap and publication plan
 - **[RESEARCH.md](RESEARCH.md)** - Research themes and cross-project connections
 - **[CLAUDE.md](CLAUDE.md)** - Development guide for Claude
 - **[docs/](docs/)** - Shared documentation (infrastructure, workflows, conventions)
@@ -305,7 +285,7 @@ hidden-layer/
 ├── representations/            # Research Area: Internal Representations
 │   └── latent-space/
 │       ├── lens/              # SAE interpretability
-│       └── topologies/        # Mobile latent exploration
+│       └── calm/              # Continuous latent modeling experiments
 │
 ├── alignment/                  # Research Area: Alignment & Steerability
 │   └── steerability/          # Steering vectors & metrics
@@ -313,8 +293,7 @@ hidden-layer/
 └── docs/                       # Lab-wide documentation
     ├── infrastructure/
     ├── hardware/
-    ├── workflows/
-    └── archive/
+    └── workflows/
 ```
 
 ---

@@ -2,13 +2,15 @@
 
 **Interactive LLM Interpretability with Sparse Autoencoders**
 
-Latent Lens is a production-grade web application for training Sparse Autoencoders (SAEs) on language model activations, discovering interpretable features, and analyzing model behavior through an intuitive interface.
+Latent Lens is a backend service for training Sparse Autoencoders (SAEs) on language model activations, discovering interpretable features, and analyzing model behavior through a REST API.
+
+> **Note**: An earlier Next.js frontend was removed (it never built); the FastAPI backend and its `/docs` UI are the supported interface.
 
 ## 🌟 Features
 
-- **Layer Explorer**: Select model layers and configure SAE training
-- **Feature Gallery**: Browse and filter discovered features
-- **Activation Lens**: Analyze which features activate for specific text inputs
+- **SAE Training**: Train sparse autoencoders on captured activations
+- **Activation Capture**: Forward hooks on any HuggingFace model
+- **Feature Extraction**: Pipeline for discovering and ranking features
 - **Feature Labeling**: Annotate features with human-readable labels
 - **Real-time Training**: WebSocket updates during SAE training
 - **Comprehensive API**: RESTful API with OpenAPI 3.1 specification
@@ -22,17 +24,11 @@ Latent Lens is a production-grade web application for training Sparse Autoencode
 - **Storage**: SQLite/PostgreSQL with SQLModel ORM
 - **API**: REST endpoints + WebSocket for real-time updates
 
-### Frontend (Next.js + TypeScript)
-- **Views**: Layer Explorer, Feature Gallery, Activation Lens, Labeling
-- **UI Components**: shadcn/ui components with Tailwind CSS
-- **Charts**: Recharts for visualizations
-- **State Management**: React hooks with API client
-
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Docker and Docker Compose
-- (Optional) Python 3.11+ and Node.js 18+ for local development
+- (Optional) Python 3.11+ for local development
 
 ### Using Docker (Recommended)
 
@@ -54,14 +50,11 @@ make dev
 ```
 
 This will:
-- Build and start both backend and frontend containers
+- Build and start the backend container
 - Backend available at http://localhost:8000
-- Frontend available at http://localhost:3000
 - API docs at http://localhost:8000/docs
 
 ### Local Development
-
-#### Backend
 
 ```bash
 cd backend
@@ -69,48 +62,14 @@ pip install -r requirements-dev.txt
 uvicorn app.main:app --reload
 ```
 
-#### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
 ## 📋 Usage
 
-### 1. Create an Experiment
+Work through the API (interactive docs at `/docs`):
 
-Navigate to **Layer Explorer** and:
-- Select a model (e.g., `gpt2`)
-- Choose a layer index (e.g., `6`)
-- Configure SAE parameters:
-  - Hidden dimension (4096 default)
-  - Sparsity coefficient (0.01 default)
-- Click "Create Experiment"
-
-### 2. Browse Features
-
-Go to **Feature Gallery** to:
-- View all discovered features
-- Filter by experiment, sparsity range
-- See top-activating tokens for each feature
-
-### 3. Analyze Text
-
-Use **Activation Lens** to:
-- Input text to analyze
-- Select an experiment
-- View token-level feature activations
-- See heatmap visualization
-
-### 4. Label Features
-
-In the **Labeling** view:
-- Select features to annotate
-- Add human-readable labels
-- Tag features for categorization
-- Export labeled features
+1. **Create an experiment**: `POST /api/experiments` with a model (e.g., `gpt2`), layer index, and SAE parameters (hidden dimension, sparsity coefficient)
+2. **Browse features**: `GET /api/features` with experiment/sparsity filters
+3. **Analyze text**: `POST /api/activations/analyze` for token-level feature activations
+4. **Label features**: `POST /api/features/{id}/labels` to annotate and categorize
 
 ## 🧪 Testing
 
@@ -118,11 +77,8 @@ In the **Labeling** view:
 # Run all tests
 make test
 
-# Backend tests only
+# Or directly
 cd backend && pytest -v
-
-# Frontend type checking
-cd frontend && npm run type-check
 ```
 
 ## 📚 API Documentation
@@ -184,12 +140,6 @@ latent-lens/
 │   │   ├── services/        # Business logic
 │   │   └── api/             # FastAPI routes
 │   └── tests/               # Pytest tests
-├── frontend/
-│   └── src/
-│       ├── app/             # Next.js pages
-│       ├── components/      # React components
-│       ├── lib/             # API client, utils
-│       └── types/           # TypeScript types
 ├── docker-compose.yml
 ├── Makefile
 └── README.md
@@ -204,15 +154,6 @@ latent-lens/
 async def my_endpoint(data: MyModel, api_key: str = Depends(verify_api_key)):
     # Implementation
     return result
-```
-
-**Frontend:**
-```typescript
-// Add a new page
-// frontend/src/app/my-page/page.tsx
-export default function MyPage() {
-  return <div>My New Page</div>
-}
 ```
 
 ## 📦 Deployment

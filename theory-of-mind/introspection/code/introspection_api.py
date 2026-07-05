@@ -19,7 +19,7 @@ from .introspection_tasks import (
     IntrospectionResult,
     IntrospectionTaskGenerator,
 )
-from .llm_provider import llm_call
+from harness import llm_call
 
 
 @dataclass

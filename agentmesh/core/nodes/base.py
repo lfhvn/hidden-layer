@@ -61,7 +61,7 @@ class StrategyNode(WorkflowNodeExecutor):
         - Metrics collection
         """
         import time
-        from harness import run_strategy
+        from communication.multi_agent import run_strategy
 
         if not self.strategy_id:
             raise ValueError(f"{self.__class__.__name__} must set strategy_id")

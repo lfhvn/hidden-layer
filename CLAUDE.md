@@ -55,13 +55,9 @@ What are internal representations and how can we make them interpretable?
 
 **Projects**:
 - **Latent Space** → `representations/latent-space/CLAUDE.md`
-  - **Lens**: SAE interpretability (web app)
-  - **Topologies**: Mobile latent space exploration (visual/audio/haptic)
-  - Research Q: How can we understand and experience latent representations?
-
-- **State Explorer** → `representations/state-explorer/`
-  - LLM internal state visualization and exploration
-  - Research Q: How can we visualize and navigate model states?
+  - **Lens**: SAE interpretability (FastAPI backend)
+  - **CALM**: Continuous autoregressive language modeling experiments
+  - Research Q: How can we understand and interpret latent representations?
 
 ### 4. Alignment (`alignment/`)
 How can we reliably steer AI systems and detect deception?
@@ -105,17 +101,12 @@ How can AI systems maintain long-term memory and personalization?
 
 **Usage**: `mlx-lab` CLI command (after `pip install -e .`)
 
-### Academic Papers (`papers/`)
-**LaTeX sources for research publications**
+### AI Research Aggregator (`ai_research_aggregator/`)
+**Daily research digest tool**
 
-Papers documenting the research:
-- `multi-agent-coordination.tex` - Multi-agent strategies
-- `ai-to-ai-communication.tex` - Non-linguistic communication
-- `selphi-theory-of-mind.tex` - Theory of mind evaluation
-- `model-introspection.tex` - Introspection experiments
-- `latent-lens-sae.tex` - SAE interpretability
-- `latent-topologies-multimodal.tex` - Multimodal latent exploration
-- `steerability-adherence.tex` - Steering and alignment
+- Fetches papers/blogs from real sources (arXiv API, etc.)
+- Ranks by relevance to configured interests
+- Optional Substack publishing
 
 ---
 
@@ -130,7 +121,7 @@ Projects are deeply interconnected:
 - SELPHI (understanding others) + Introspection (understanding self)
 
 **Representations**:
-- Latent Lens + Latent Topologies + Introspection → Making sense of internal states
+- Latent Lens + Introspection → Making sense of internal states
 
 **Alignment**:
 - SELPHI + Introspection + Steerability → Honest, controllable systems
@@ -309,7 +300,7 @@ When working across projects, consider:
 
 **Representations**:
 - What features activate during ToM tasks? (latent-lens + selphi)
-- Can we navigate latent space to steer behavior? (representations/latent-space/topologies + steerability)
+- Can we navigate latent space to steer behavior? (representations/latent-space + steerability)
 
 **Alignment**:
 - Can we steer ToM behavior? (steerability + selphi)
@@ -338,10 +329,9 @@ hidden-layer/
 ├── theory_of_mind/             # Python package wrapper for theory-of-mind
 │
 ├── representations/            # Research Area: Internal Representations
-│   ├── latent-space/
-│   │   ├── lens/              # SAE interpretability
-│   │   └── topologies/        # Mobile latent exploration
-│   └── state-explorer/        # LLM state visualization
+│   └── latent-space/
+│       ├── lens/              # SAE interpretability
+│       └── calm/              # Continuous latent modeling experiments
 │
 ├── alignment/                  # Research Area: Alignment & Steerability
 │   └── steerability/          # Steering vectors & metrics
@@ -351,9 +341,9 @@ hidden-layer/
 │
 ├── agentmesh/                  # Platform: Workflow orchestration
 ├── mlx_lab/                    # Tool: MLX model management CLI
-├── papers/                     # Academic paper sources (.tex)
+├── ai_research_aggregator/     # Tool: Daily research digest
 │
-├── docs/                       # Lab-wide documentation
+├── docs/                       # Lab-wide documentation (FAQ, guides, setup)
 ├── tests/                      # Lab-wide tests
 ├── config/                     # Lab-wide configuration
 ├── scripts/                    # Utility scripts
@@ -361,8 +351,7 @@ hidden-layer/
 ├── README.md                   # Lab overview
 ├── RESEARCH.md                 # Research themes & connections
 ├── CLAUDE.md                   # This file (development guide)
-├── QUICKSTART.md               # Quick start guide
-└── SETUP.md                    # Setup instructions
+└── QUICKSTART.md               # Quick start guide
 ```
 
 ---

@@ -22,7 +22,7 @@ class TestHarnessImports:
         """Test basic harness import."""
         import harness
 
-        assert harness.__version__ == "0.2.0"
+        assert harness.__version__ == "0.3.0"
 
     def test_import_llm_provider(self):
         """Test LLM provider imports."""
