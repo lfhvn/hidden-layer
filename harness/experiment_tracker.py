@@ -161,11 +161,21 @@ class ExperimentTracker:
         tokens_in = [r.tokens_in for r in self.results if r.tokens_in]
         tokens_out = [r.tokens_out for r in self.results if r.tokens_out]
 
-        # Aggregate eval scores
+        # Aggregate eval scores. Underscore-prefixed keys are metadata
+        # (e.g. _judge_reasoning) and non-numeric values cannot be
+        # aggregated, so both are skipped.
         eval_aggregates = {}
-        if self.results[0].eval_scores:
-            for key in self.results[0].eval_scores.keys():
-                scores = [r.eval_scores[key] for r in self.results if key in r.eval_scores]
+        score_keys = set()
+        for r in self.results:
+            if r.eval_scores:
+                score_keys.update(k for k in r.eval_scores if not k.startswith("_"))
+        if score_keys:
+            for key in sorted(score_keys):
+                scores = [
+                    r.eval_scores[key]
+                    for r in self.results
+                    if r.eval_scores and isinstance(r.eval_scores.get(key), (int, float))
+                ]
                 if scores:
                     eval_aggregates[key] = {
                         "mean": sum(scores) / len(scores),

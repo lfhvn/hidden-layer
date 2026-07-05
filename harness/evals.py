@@ -238,7 +238,9 @@ def evaluate_task(task: Dict[str, Any], output: str, eval_type: Optional[str] = 
         eval_type: Override task's eval_type if provided
 
     Returns:
-        Dict of scores, e.g., {'accuracy': 1.0, 'coherence': 0.9}
+        Dict of scores, e.g., {'accuracy': 1.0, 'coherence': 0.9}.
+        Keys prefixed with '_' (e.g. '_judge_reasoning') carry non-numeric
+        metadata and are excluded from summary aggregation.
     """
     eval_type = eval_type or task.get("eval_type", "llm_judge")
     scores = {}
