@@ -2,6 +2,7 @@
 Database session management for AgentMesh.
 """
 
+import os
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -11,13 +12,15 @@ from sqlalchemy.orm import sessionmaker
 from agentmesh.db.models import Base
 
 
-# Database URL (will be configurable via env)
-DATABASE_URL = "postgresql+asyncpg://agentmesh:agentmesh@localhost:5432/agentmesh"
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL",
+    "postgresql+asyncpg://agentmesh:agentmesh@localhost:5432/agentmesh",
+)
 
-# Create async engine
+# Create async engine (set AGENTMESH_SQL_ECHO=1 to log SQL queries)
 engine = create_async_engine(
     DATABASE_URL,
-    echo=True,  # Log SQL queries (disable in production)
+    echo=os.environ.get("AGENTMESH_SQL_ECHO", "").lower() in ("1", "true", "yes"),
     future=True,
 )
 
