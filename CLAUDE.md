@@ -1,418 +1,189 @@
 # Claude Development Guide - Hidden Layer Lab
 
-## Lab Identity
-
-**Hidden Layer** is an independent research lab investigating:
-- Agent communication & coordination
-- Theory of mind & self-knowledge
-- Internal representations & interpretability
-- Alignment, steerability & deception
-
-## Research Philosophy
-
-**Orientation**: foundations → theory → implementation → experiment → synthesis
-
-**Guiding Principles**:
-- **Radical Curiosity**: Question everything, even the question
-- **Theoretical Discipline**: Every claim connects to measurable evidence
-- **Paradigm Awareness**: Understand frameworks, then leap beyond them
-- **Architectural Creativity**: Design systems that could discover new science
-- **Empirical Elegance**: Simple mechanisms → emergent complexity
+**Hidden Layer** is an independent research lab studying agent communication,
+theory of mind, internal representations, and alignment. This file is loaded
+into every agent session. Read the rules first; they exist because each one
+was violated by an earlier agent session and had to be cleaned up by hand.
 
 ---
 
-## Research Areas & Projects
+## Non-Negotiable Rules
 
-Research is organized by thematic areas, with projects grouped by their primary focus:
+1. **Never fabricate results.** No numbers, tables, plots, or "findings" that
+   were not produced by an actual run. No invented citations, no fake arXiv
+   IDs, no sample data attributed to real people. If you need illustrative
+   data, label it `SYNTHETIC` in the filename and the content.
+   *(This repo once contained 7 papers full of fabricated results. All were
+   deleted. Do not recreate that problem.)*
 
-### 1. Communication (`communication/`)
-How do multiple AI agents communicate and coordinate?
+2. **No claim without a results file.** Any number cited in any document must
+   trace to a committed run directory under `results/` (config.json +
+   results.jsonl + summary.json + git SHA). See `results/README.md`.
+   `experiments/` is gitignored scratch space — citable runs go in `results/`.
 
-**Projects**:
-- **Multi-Agent** → `communication/multi-agent/CLAUDE.md`
-  - Coordination strategies: debate, CRIT, XFN teams, consensus
-  - Research Q: When and why do multi-agent systems outperform single agents?
+3. **Verify before you report done.** Minimum bar for any change:
+   ```bash
+   python -m pytest tests/ -q        # must pass (runs in <1s, no excuses)
+   python -m compileall -q . -x '\.git|node_modules'
+   make docs                         # if you touched documentation paths
+   ```
+   If you claim something works, you ran it. If you couldn't run it (missing
+   hardware, no API key), say so explicitly instead of implying success.
 
-- **AI-to-AI Communication** → `communication/ai-to-ai-comm/CLAUDE.md`
-  - Non-linguistic LLM communication via latent representations
-  - Research Q: Can agents communicate more efficiently than through language?
+4. **One source of truth.** Never create a second copy of tests, docs, or
+   configs "for the project" — stale duplicates have caused 27-test failure
+   piles here. Root `tests/` is the test suite. If a doc exists, update it;
+   don't write a parallel one.
 
-### 2. Theory of Mind (`theory-of-mind/`)
-How do AI systems understand mental states (self and others)?
+5. **Don't leave the tree broken.** No committed merge-conflict markers, no
+   imports of modules that don't exist, no docs describing apps that were
+   deleted. If you move or delete a file, grep for references and fix them:
+   ```bash
+   grep -rn "old-name" --include="*.md" --include="*.py" .
+   ```
 
-**Projects**:
-- **SELPHI** → `theory-of-mind/selphi/CLAUDE.md`
-  - Theory of mind evaluation and benchmarking
-  - Research Q: How do LLMs understand mental states and perspective-taking?
-
-- **Introspection** → `theory-of-mind/introspection/CLAUDE.md`
-  - Model introspection experiments (Anthropic-style)
-  - Concept vectors, activation steering
-  - Research Q: Can models accurately report their internal states?
-
-### 3. Representations (`representations/`)
-What are internal representations and how can we make them interpretable?
-
-**Projects**:
-- **Latent Space** → `representations/latent-space/CLAUDE.md`
-  - **Lens**: SAE interpretability (FastAPI backend)
-  - **CALM**: Continuous autoregressive language modeling experiments
-  - Research Q: How can we understand and interpret latent representations?
-
-### 4. Alignment (`alignment/`)
-How can we reliably steer AI systems and detect deception?
-
-**Projects**:
-- **Steerability** → `alignment/steerability/CLAUDE.md`
-  - Steering vectors, adherence metrics, alignment
-  - Research Q: How can we reliably control model behavior?
-
-### 5. Memory (`memory/`)
-How can AI systems maintain long-term memory and personalization?
-
-**Projects**:
-- **Lifelog Personalization** → `memory/lifelog-personalization/README.md`
-  - Long-term memory evaluation and lifelog retrieval
-  - Preference-aware personalization and adapter promotion gates
-  - Research Q: How can systems maintain coherent long-term context?
+6. **Status honesty in docs.** A README may only say "working" about code
+   that runs. Aspirational features are listed under "Planned", not
+   described in the present tense.
 
 ---
 
-## Platform & Tools
+## Repo Map (with ground-truth status)
 
-### AgentMesh (`agentmesh/`)
-**Multi-agent workflow orchestration platform built on Hidden Layer research**
+| Path | What it is | Status |
+|---|---|---|
+| `harness/` | LLM provider abstraction, experiment tracking, evals | Working; the core library |
+| `shared/` | Concept vectors, datasets, utils | Working utils; datasets mostly empty |
+| `communication/multi-agent/` | Debate/consensus/CRIT strategies | Working code; needs live LLM backend |
+| `communication/ai-to-ai-comm/` | Cache-to-Cache KV transfer (torch) | Real code; needs GPU + HF models, unvalidated |
+| `theory-of-mind/selphi/` | ToM scenario evaluation | Working; needs LLM backend |
+| `theory-of-mind/introspection/` | Concept vectors, activation steering | Working; steering needs MLX |
+| `representations/latent-space/lens/` | SAE training backend (FastAPI+torch) | Working backend; API-only (frontend removed) |
+| `representations/latent-space/calm/` | Continuous latent modeling | Prototype (autoencoder + energy transformer) |
+| `alignment/steerability/` | Activation steering dashboard | Real backend; needs torch + HF model |
+| `memory/lifelog-personalization/` | Memory/retrieval eval harness | Real metrics; zero data downloaded |
+| `agentmesh/` | Workflow orchestration platform | Skeleton works; frozen pending Phase-1 evidence |
+| `mlx_lab/` | MLX model CLI | Working (Apple Silicon for model ops) |
+| `ai_research_aggregator/` | arXiv digest + Substack publishing | Working fetchers |
+| `web-tools/steerability/` | Public steering demo | Real backend, thin frontend |
+| `results/` | Committed experiment results | See `results/README.md` |
 
-- Visual workflow design and execution
-- Wraps research strategies (debate, CRIT, consensus) in production-ready API
-- Persistent state management with Postgres/Redis
-- REST API with FastAPI
-
-**Status**: Product spinoff - commercial SaaS offering
-**Documentation**: `agentmesh/README.md`, `agentmesh/QUICKSTART.md`
-
-### MLX Lab (`mlx_lab/`)
-**CLI tool for local MLX model management and research**
-
-- Model management and downloading
-- Performance benchmarking
-- Concept browser for SAE features
-- Integrated with Hidden Layer workflows
-
-**Usage**: `mlx-lab` CLI command (after `pip install -e .`)
-
-### AI Research Aggregator (`ai_research_aggregator/`)
-**Daily research digest tool**
-
-- Fetches papers/blogs from real sources (arXiv API, etc.)
-- Ranks by relevance to configured interests
-- Optional Substack publishing
+Planning docs: `ROADMAP.md` (18-month plan) · `RESEARCH.md` (themes) ·
+`docs/` (FAQ, PROJECT_GUIDE, SETUP, infrastructure, workflows).
 
 ---
 
-### Research Theme Connections
+## The Dual-Directory Import Pattern (read before touching imports)
 
-Projects are deeply interconnected:
+Project files live in dash-named directories; Python imports go through
+underscore-named loader packages:
 
-**Communication**:
-- Multi-agent + AI-to-AI comm → Agent coordination mechanisms
+| | Example |
+|---|---|
+| Project files (README, notebooks, code) | `communication/multi-agent/` |
+| Importable package (loader shim) | `communication/multi_agent/` |
 
-**Theory of Mind**:
-- SELPHI (understanding others) + Introspection (understanding self)
-
-**Representations**:
-- Latent Lens + Introspection → Making sense of internal states
-
-**Alignment**:
-- SELPHI + Introspection + Steerability → Honest, controllable systems
-
-**See** `RESEARCH.md` for detailed research questions and cross-project connections.
-
----
-
-## Infrastructure
-
-### The Harness (Standalone Library)
-
-**Location**: `/harness/`
-
-**Purpose**: Core infrastructure used by all research projects. Can be open-sourced independently.
-
-**Provides**:
-- Unified LLM provider abstraction
-- Experiment tracking & reproducibility
-- Evaluation utilities
-- Benchmark dataset loading
-- Model configuration management
-- System prompt management
-
-**Philosophy**: Provider-agnostic. Supports:
-- **Local**: Ollama, MLX (rapid iteration, full control)
-- **API**: Claude, GPT, etc. (frontier capabilities)
-
-Switch providers seamlessly:
 ```python
-from harness import llm_call
-
-# Local
-response = llm_call(prompt, provider="ollama", model="llama3.2:latest")
-
-# API
-response = llm_call(prompt, provider="anthropic", model="claude-3-5-sonnet-20241022")
+# Correct — import through the underscore package:
+from communication.multi_agent import run_strategy, STRATEGIES
+from theory_of_mind.selphi import scenarios
+from theory_of_mind.introspection import ConceptLibrary
+from harness import llm_call, ExperimentTracker
 ```
 
-**Documentation**: See `harness/README.md` and `docs/infrastructure/provider-limitations.md`
+Gotchas that have actually bitten:
+- The underscore `__init__.py` files are ~40-line `importlib` shims that load
+  the dash directory by **relative path**. If you move directories, update the
+  shim's `Path(...)` arithmetic and **test the import** — a wrong `.parent`
+  count fails silently or at import time.
+- `harness` does NOT export the strategies. `run_strategy` lives in
+  `communication.multi_agent`.
+- Never `sys.path`-hack around the shims or create a `code/` copy; fix the
+  shim instead.
 
-### Shared Resources
+---
 
-**Location**: `/shared/`
+## Harness Quick Reference
 
-**Includes**:
-- `concepts/` - Concept vectors (used by introspection, latent-space)
-- `datasets/` - Benchmark datasets
-- `utils/` - Common utilities
+```python
+from harness import llm_call, ExperimentConfig, ExperimentResult, ExperimentTracker, evaluate_task
+
+# Provider-agnostic call (local first, API for frontier runs)
+r = llm_call("prompt", provider="ollama", model="llama3.2:latest")
+r = llm_call("prompt", provider="anthropic", model="claude-sonnet-5")
+r.text, r.latency_s, r.tokens_in, r.tokens_out, r.cost_usd
+
+# Tracked experiment (base_dir="results/..." for citable runs)
+tracker = ExperimentTracker(base_dir="results/<project>/<experiment>")
+tracker.start_experiment(ExperimentConfig(experiment_name=..., task_type=...,
+                                          strategy=..., provider=..., model=...,
+                                          git_hash=<short SHA>))
+tracker.log_result(ExperimentResult(config=..., task_input=..., output=...,
+                                    latency_s=..., eval_scores=evaluate_task(task, out)))
+tracker.finish_experiment()   # writes summary.json
+```
+
+- Eval score keys prefixed `_` are metadata and excluded from aggregation.
+- Named system prompts live in `config/system_prompts/`
+  (`llm_call(..., system_prompt="researcher")`).
+- Reference runner: `scripts/run_phase0.py` shows the full
+  load-tasks → run-strategy → track → results/ loop.
+
+## Environment Constraints
+
+| Provider | Needs | Notes |
+|---|---|---|
+| `ollama` | local `ollama serve` | default for iteration |
+| `mlx` | Apple Silicon only | temperature currently ignored |
+| `anthropic` / `openai` | API key in env | spend on final runs, not iteration |
+
+torch/transformers projects (lens, steerability, ai-to-ai-comm) need those
+deps installed; they are not in the base requirements. CI (3.10–3.12) runs
+the root suite only. Python ≥3.10 required.
+
+---
+
+## Commands That Work
+
+```bash
+make setup                # venv + requirements
+python check_setup.py     # environment sanity check
+python -m pytest tests/ -q            # root suite (~56 tests, <1s)
+make docs                 # verify documentation files exist
+flake8 harness/ shared/ tests/ --select=E9,F63,F7,F82   # CI hard-error gate
+python scripts/run_phase0.py --provider ollama --model llama3.2:latest
+```
 
 ---
 
 ## Development Workflows
 
-### Working on a Project
+**Working on a project**: `cd <area>/<project>/`, read its `CLAUDE.md`, make
+changes, then run the root verification (Rule 3). Project docs list their own
+run commands.
 
-1. Navigate to project: `cd {area}/{project-name}/` (e.g., `cd communication/multi-agent/`)
-2. Read project CLAUDE.md: `cat CLAUDE.md`
-3. Follow project-specific setup and instructions
+**Adding cross-project features**: core infrastructure → `harness/`;
+utilities → `shared/utils/`; then update `docs/infrastructure/` and the
+affected project guides.
 
-### Adding Cross-Project Features
+**Adding a project**: dash directory for files, underscore shim for imports
+(copy an existing shim and fix the paths), README + CLAUDE.md, entry in
+`docs/PROJECT_GUIDE.md` and the map above.
 
-If a feature benefits multiple projects:
-1. Add to `harness/` (if core infrastructure) or `shared/utils/` (if utility)
-2. Update `docs/infrastructure/`
-3. Update relevant project guides
-
-### Research Methodology
-
-1. **Frame the Problem**
-   - Restate in first principles
-   - What paradigm does this challenge?
-   - What hidden assumptions exist?
-
-2. **Decompose & Theorize**
-   - Identify constraints and untested assumptions
-   - Generate multiple approaches
-   - Could this be done fundamentally differently?
-
-3. **Design & Implement**
-   - Simple, interpretable mechanisms
-   - Easy to probe and inspect
-   - Design for extensibility
-
-4. **Experiment**
-   - Log everything (use harness experiment tracker)
-   - Reproducible experiments
-   - Compare across conditions
-
-5. **Synthesize & Reflect**
-   - What did this reveal?
-   - Does this generalize?
-   - What new questions does this enable?
-
-See the Research Methodology section above for detailed guidance.
-
----
-
-## Key Documentation
-
-### Lab-Wide Documentation (`/docs/`)
-
-**Infrastructure**:
-- `harness/README.md` - Harness usage and API reference
-- `docs/infrastructure/provider-limitations.md` - Provider capabilities and constraints
-
-**Hardware** (optional - for local models):
-- `docs/hardware/local-setup.md` - M4 Max setup
-- `docs/hardware/mlx-models.md` - MLX model selection
-
-**Workflows**:
-- `docs/workflows/benchmarking.md` - Benchmark usage
-
-**Architecture & Planning**:
-- `docs/ARCHITECTURE.md` - System architecture
-- `docs/BENCHMARKS.md` - Benchmark information
-
-### Project-Specific Documentation
-
-Each project has:
-- `README.md` - Project overview and quick start
-- `CLAUDE.md` - Development guide for that project
-- Additional docs as needed
-
----
-
-## Development Principles
-
-1. **Maintain Backward Compatibility**: Projects depend on harness APIs
-2. **Log Everything**: Use experiment tracker for all runs
-3. **Document Decisions**: Update relevant .md files
-4. **Test with Small Models First**: Rapid iteration with local models
-5. **Version Control Configs**: Commit model configs and prompts
-6. **Theoretical Discipline**: Every feature should:
-   - Enable a new research hypothesis, OR
-   - Make existing research faster/easier/more reproducible
-7. **Architectural Creativity**: Question existing patterns
+**Research methodology** (full version in ROADMAP.md):
+1. Frame the question and pre-register the design (hypotheses, cells, seeds).
+2. Iterate on local models; log everything through the tracker.
+3. Promote final runs to `results/` and cite only from there.
+4. Write up with links to run directories; a null result is a result.
 
 ---
 
 ## Questions to Keep in Mind
 
-While developing, constantly ask:
+- Does this maintain the local + API provider flexibility?
+- Is this reproducible — config, seed, git SHA all recorded?
+- Does this generalize across projects, or belong in one?
+- What would falsify the claim I'm about to write down?
 
-### Technical Level
-1. Does this maintain the flexible infrastructure (local + API)?
-2. Is this reproducible and logged?
-3. Does this generalize across projects?
-4. Is this interpretable and inspectable?
-
-### Paradigm Level
-5. What hidden assumptions am I encoding?
-6. Could this work fundamentally differently?
-7. Does this enable testing new hypotheses?
-8. What would falsify this approach?
-
-### Research Impact
-9. Will this help understand *why*, not just *that*?
-10. Does this make internal states more visible?
-11. Could this generalize to biological/social intelligence?
-12. What new questions does this unlock?
-
----
-
-## Integration Points
-
-When working across projects, consider:
-
-**Communication**:
-- Can multi-agent strategies use latent messaging? (multi-agent + ai-to-ai-comm)
-- What coordination mechanisms emerge? (multi-agent)
-
-**Theory of Mind**:
-- Can SELPHI tasks measure introspection honesty? (selphi + introspection)
-- How does ToM relate to deception? (selphi + alignment)
-
-**Representations**:
-- What features activate during ToM tasks? (latent-lens + selphi)
-- Can we navigate latent space to steer behavior? (representations/latent-space + steerability)
-
-**Alignment**:
-- Can we steer ToM behavior? (steerability + selphi)
-- Is introspection a reliable alignment signal? (introspection + alignment)
-
----
-
-## File Organization
-
-```
-hidden-layer/
-├── harness/                    # Core infrastructure (standalone library)
-├── shared/                     # Shared resources (concepts, datasets, utils)
-├── web-tools/                  # Deployment versions of web applications
-│
-├── communication/              # Research Area: Agent Communication
-│   ├── multi-agent/           # Multi-agent coordination (project files)
-│   ├── multi_agent/           # Python package (importable)
-│   ├── ai-to-ai-comm/         # AI-to-AI communication (project files)
-│   └── ai_to_ai_comm/         # Python package (importable)
-│
-├── theory-of-mind/             # Research Area: Theory of Mind & Self-Knowledge
-│   ├── selphi/                # Theory of mind evaluation
-│   └── introspection/         # Model introspection
-│
-├── theory_of_mind/             # Python package wrapper for theory-of-mind
-│
-├── representations/            # Research Area: Internal Representations
-│   └── latent-space/
-│       ├── lens/              # SAE interpretability
-│       └── calm/              # Continuous latent modeling experiments
-│
-├── alignment/                  # Research Area: Alignment & Steerability
-│   └── steerability/          # Steering vectors & metrics
-│
-├── memory/                     # Research Area: Long-term Memory
-│   └── lifelog-personalization/  # Lifelog retrieval & preference
-│
-├── agentmesh/                  # Platform: Workflow orchestration
-├── mlx_lab/                    # Tool: MLX model management CLI
-├── ai_research_aggregator/     # Tool: Daily research digest
-│
-├── docs/                       # Lab-wide documentation (FAQ, guides, setup)
-├── tests/                      # Lab-wide tests
-├── config/                     # Lab-wide configuration
-├── scripts/                    # Utility scripts
-│
-├── README.md                   # Lab overview
-├── RESEARCH.md                 # Research themes & connections
-├── CLAUDE.md                   # This file (development guide)
-└── QUICKSTART.md               # Quick start guide
-```
-
----
-
-## Directory Naming Convention
-
-**Important**: The codebase uses a dual-directory pattern for Python compatibility:
-
-| Purpose | Naming | Example |
-|---------|--------|---------|
-| Project files (README, config, notebooks) | Dash-separated | `multi-agent/` |
-| Python packages (importable code) | Underscore-separated | `multi_agent/` |
-
-**Why?** Python identifiers cannot contain dashes. Research projects use dash-naming for readability, but Python imports require underscores.
-
-**How to use**:
-```python
-# Import from underscore-named packages
-from communication.multi_agent import strategies
-from theory_of_mind.selphi import scenarios
-
-# Navigate to dash-named directories for project context
-# cd communication/multi-agent/  # README, CLAUDE.md, notebooks here
-```
-
-**For new projects**:
-1. Create dash-named directory for project files: `myarea/my-project/`
-2. Create underscore-named directory for Python code: `myarea/my_project/`
-3. Actual code can live in either location; the underscore package loads it
-
----
-
-### Key Organizational Principles
-
-1. **Research Areas at Top Level**: Projects grouped by thematic focus
-2. **Infrastructure at Root**: `harness/`, `shared/`, `web-tools/` for easy imports
-3. **Scalable Structure**: Easy to add new areas or projects within areas
-4. **No Breaking Changes**: Import paths unchanged (`from harness import ...`)
-5. **Dual-Directory Pattern**: Dash for docs, underscore for imports
-
-### Working with Research Areas
-
-**Navigate to an area**:
-```bash
-cd communication/     # or theory-of-mind/, representations/, alignment/, memory/
-```
-
-**Each area contains**:
-- `README.md` - Area overview, research questions, cross-connections
-- Project subdirectories with their own CLAUDE.md and README.md
-
-**For new research directions**: Create a new top-level directory (e.g., `emergent-behavior/`)
-
-**For new projects within an area**: Add subdirectory (e.g., `communication/swarm-intelligence/`)
-
----
-
-**For project-specific guidance**: See `{area}/{project}/CLAUDE.md`
-
-**For research area overview**: See `{area}/README.md`
-
-**For research context**: See `RESEARCH.md`
-
-**For infrastructure details**: See `docs/infrastructure/`
+**For project-specific guidance**: `<area>/<project>/CLAUDE.md`
+**For research areas**: `<area>/README.md` · **For the plan**: `ROADMAP.md`
