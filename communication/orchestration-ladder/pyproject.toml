@@ -1,0 +1,6 @@
+[project]
+name = "inkling-orchestra"
+version = "0.1.0"
+description = "How much does agent orchestration add to local Inkling 2 Mini on LiveCodeBench?"
+requires-python = ">=3.11"
+dependencies = []
