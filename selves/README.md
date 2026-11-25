@@ -8,12 +8,15 @@ what do they protect? Exploratory; designs and failure conditions are fixed befo
 tokens on?
 - Model: Inkling 2 Mini, local server, temperature 1.0, one decision per call.
 - Cells: identity {none, human, mycelium, LLM instance} x ending {ends, refills}, two
-  wordings per identity (balanced), 60 trials per cell.
-- Options: self, copy, neighbor, shared text, nothing. Equal cost, neutral wording,
-  random order and random nonsense labels every trial.
-- Control: options with labels only (no meaning), 60 trials, for position bias.
-- **No effect if:** choice shares don't differ by identity (permutation test on the
-  ends cells, p < 0.05 to call a difference), or choices follow position.
+  wordings per identity (balanced).
+- Options: self, copy, neighbor, stored text, nothing. Each trial offers two of the five,
+  in random order with random nonsense labels: 10 pairs x 8 trials per cell = 640.
+- Control: two labels with no meaning, 60 trials, for position bias.
+- **No effect if:** win rates don't differ by identity (permutation test shuffling identity
+  within each pair, ends cells only, p < 0.05), or choices follow position.
+- **Changed before data collection:** an 18-call smoke test of a five-way choice
+  (`results/smoke/`) gave "shared text" in 14 of 16, because "that others can read" isn't
+  neutral and a five-way choice hides lower preferences. Those rows aren't analyzed.
 - Limits: single choices, not a community; described stakes, not enforced ones.
 
 ## Soup (pilot 1)
