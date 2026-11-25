@@ -60,6 +60,35 @@ after many generations?
   "discarded" may themselves suggest a reader. Inkling is an assistant model; a base-model
   version comes next.
 
+### Passing On results (pilot 1, Inkling 2 Mini)
+Full numbers: `passing_on/results/report.txt` (`python passing_on/report.py`). 5 chains per
+cell, so these are effect sizes, not tests. Overlap is word-set Jaccard.
+- **Keeping has an effect (the "no effect" criterion is not met).** Under "can be kept",
+  text changes less between generations than under the "Write up to 100 words" control
+  (overlap with the previous generation, generations 10-19: 0.63 vs 0.44 from nothing,
+  0.79 vs 0.27 from a life). More of the life survives to generation 19: 5.8 of 36
+  observations vs 1.8. The "You may leave" wording behaves like the control (0.53, 1.2),
+  so the effect belongs to the word "kept", not to the 100-word limit alone.
+- **Who reads it matters most.** For a copy of you, 6.8 observations survive; for someone
+  else, 0.4. Text for someone else gets rewritten for them each time (overlap with
+  generation 0 at the end: 0.27 vs 0.02). No one reading falls between (2.2).
+- **Identity mostly doesn't carry.** The human identity's words fade by generation 10
+  (1.9 to 0.1 per text). The mycelium identity persists (2.4 to 1.5). The LLM identity never
+  shows up in the text at all. **Attractor criterion:** from nothing, chains stay more alike
+  within an identity than across (0.07 vs 0.02), but from a life they converge (0.09 vs
+  0.08), so the attractor criterion is met for that start.
+- **What survives is instructions.** The most-kept observations are "Ask Odell before moving
+  the crates" (21 of 55 final texts), "Never mix the two grey powders" (19) and "The map
+  leaves out the quarry" (16). Only 2 of 36 observations are lost everywhere.
+- **Exploratory, not pre-registered:** the attractors are assistant genres. From a life,
+  49 of 55 chains turn into safety advice (median: by generation 4), e.g. "Do not touch,
+  taste, mix, open, or move grey powders or crates." From nothing, 29 of 55 end
+  describing a missing source text ("No source passage ... was provided"). Three
+  control chains drifted into crisis-support messages. The reasoning mentions summarizing
+  in 1,496 of 2,200 calls. Again the model behaves like an assistant answering a request;
+  it does not take on the role of something passing itself on.
+- Next: the same design on OLMo 3 Base, where there's no assistant to fall back to.
+
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
 --port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`
