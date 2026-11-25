@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Dict, Optional
 
 from harness import LLMResponse, llm_call
+from harness.defaults import DEFAULT_MODEL, DEFAULT_PROVIDER
 from .strategies import StrategyResult
 
 
@@ -29,8 +30,8 @@ class RationaleResponse:
 
 def llm_call_with_rationale(
     prompt: str,
-    provider: str = "ollama",
-    model: str = "gpt-oss:20b",
+    provider: str = DEFAULT_PROVIDER,
+    model: Optional[str] = DEFAULT_MODEL,
     temperature: float = 0.7,
     thinking_budget: Optional[int] = None,
     **kwargs,
@@ -43,7 +44,7 @@ def llm_call_with_rationale(
 
     Args:
         prompt: The question or task
-        provider: LLM provider (ollama, anthropic, openai)
+        provider: LLM provider (local, ollama, anthropic, openai)
         model: Model name
         temperature: Sampling temperature
         thinking_budget: Optional token budget for extended reasoning
@@ -55,8 +56,8 @@ def llm_call_with_rationale(
     Example:
         >>> result = llm_call_with_rationale(
         ...     "What is 15% of 240?",
-        ...     provider="ollama",
-        ...     model="gpt-oss:20b",
+        ...     provider="local",
+        ...     model="pipenetwork/Inkling-2-Mini-MLX-bf16",
         ...     thinking_budget=1000
         ... )
         >>> print(result.rationale)
@@ -195,8 +196,8 @@ def run_strategy_with_rationale(strategy: str, task_input: str, **kwargs) -> Rat
         ...     "adaptive_team",
         ...     "Should we use React or Vue?",
         ...     n_experts=3,
-        ...     provider="ollama",
-        ...     model="gpt-oss:20b"
+        ...     provider="local",
+        ...     model="pipenetwork/Inkling-2-Mini-MLX-bf16"
         ... )
         >>> print(result.rationale)
         [Expert analyses and synthesis reasoning...]
@@ -226,8 +227,8 @@ ANSWER:
 # Convenience function for common use case
 def ask_with_reasoning(
     question: str,
-    provider: str = "ollama",
-    model: str = "gpt-oss:20b",
+    provider: str = DEFAULT_PROVIDER,
+    model: Optional[str] = DEFAULT_MODEL,
     thinking_budget: int = 1500,
     temperature: float = 0.7,
     **kwargs,

@@ -87,7 +87,7 @@ Examples:
     parser.add_argument("--strategy", choices=list(STRATEGIES.keys()), default="single", help="Strategy to use")
 
     parser.add_argument(
-        "--provider", choices=["ollama", "mlx", "anthropic", "openai"], help="LLM provider (overrides config)"
+        "--provider", choices=["local", "ollama", "mlx", "anthropic", "openai"], help="LLM provider (overrides config)"
     )
 
     parser.add_argument("--model", help="Model identifier (overrides config)")
@@ -157,7 +157,7 @@ Examples:
         # Build kwargs from command line args
         # Set defaults if not provided
         provider = args.provider or DEFAULT_PROVIDER
-        model = args.model or DEFAULT_MODEL
+        model = args.model or (DEFAULT_MODEL if provider == DEFAULT_PROVIDER else None)
         temperature = args.temperature if args.temperature is not None else 0.7
 
         kwargs = {

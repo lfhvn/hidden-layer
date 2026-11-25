@@ -1,6 +1,16 @@
 # Model Configuration Presets
 # Define reusable configurations for different models and use cases
 
+inkling-baseline:
+  provider: local
+  model: pipenetwork/Inkling-2-Mini-MLX-bf16
+  temperature: 0.7
+  max_tokens: 16384
+  description: Inkling 2 Mini on a local server, the lab baseline
+  tags:
+    - baseline
+    - local
+
 gpt-oss-20b-reasoning:
   provider: ollama
   model: gpt-oss:20b
