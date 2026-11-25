@@ -209,3 +209,19 @@ MIT - Can be used independently of Hidden Layer projects
 ---
 
 **Part of [Hidden Layer Research Lab](../)** - Can be used standalone
+
+## Baseline model
+
+The default is Inkling 2 Mini on a local OpenAI-compatible server (provider `local`):
+
+```bash
+mlx_lm.server --model pipenetwork/Inkling-2-Mini-MLX-bf16 --port 8080 --prompt-cache-bytes 4000000000
+```
+
+Without the cache cap the server can run out of GPU memory. Inkling thinks before it
+answers, so give it room: a small `max_tokens` can end with empty text and a warning.
+Reasoning and the finish reason are in `response.metadata`.
+
+From another machine, tunnel to the server instead of exposing it on the network
+(`ssh -L 8080:127.0.0.1:8080 <host>`). To use something else, set `HARNESS_PROVIDER`
+and `HARNESS_MODEL`, or `HARNESS_LOCAL_URL` for a different server.

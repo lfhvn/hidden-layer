@@ -187,7 +187,7 @@ def debate_strategy(
     # Use defaults if not specified
     if provider is None:
         provider = DEFAULT_PROVIDER
-    if model is None:
+    if model is None and provider == DEFAULT_PROVIDER:
         model = DEFAULT_MODEL
     if n_debaters is None:
         n_debaters = DEFAULT_N_DEBATERS
@@ -556,7 +556,7 @@ def consensus_strategy(
     # Use defaults if not specified
     if provider is None:
         provider = DEFAULT_PROVIDER
-    if model is None:
+    if model is None and provider == DEFAULT_PROVIDER:
         model = DEFAULT_MODEL
     if n_agents is None:
         n_agents = DEFAULT_N_DEBATERS

@@ -14,6 +14,8 @@ from typing import Any, Dict, Optional
 
 import yaml
 
+from .defaults import BASELINE_MODEL
+
 
 @dataclass
 class ModelConfig:
@@ -132,6 +134,15 @@ class ModelConfigManager:
     def create_default_configs(self):
         """Create default configurations"""
         defaults = [
+            ModelConfig(
+                name="inkling-baseline",
+                provider="local",
+                model=BASELINE_MODEL,
+                temperature=0.7,
+                max_tokens=16384,
+                description="Inkling 2 Mini on a local server, the lab baseline",
+                tags=["baseline", "local"],
+            ),
             ModelConfig(
                 name="gpt-oss-20b-reasoning",
                 provider="ollama",

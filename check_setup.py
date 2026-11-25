@@ -308,7 +308,7 @@ def test_basic_functionality():
         print(f"\nTesting {DEFAULT_PROVIDER} with model {DEFAULT_MODEL}...")
         response = llm_call(
             "Say 'Hello from Hidden Layer!' and nothing else.",
-            max_tokens=50
+            max_tokens=1024
         )
 
         print(f"  Response: {response.text[:100]}")
@@ -319,8 +319,8 @@ def test_basic_functionality():
     except Exception as e:
         print(f"  ✗ Test failed: {e}")
         print("\n  Possible issues:")
-        print("    - Ollama not running (run: ollama serve)")
-        print("    - Model not pulled (run: ollama pull llama3.2:latest)")
+        print("    - Model server not running, or HARNESS_LOCAL_URL is wrong (see harness/README.md)")
+        print("    - Using another provider: set HARNESS_PROVIDER and HARNESS_MODEL")
         return False
 
 

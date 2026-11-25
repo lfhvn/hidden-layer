@@ -2,12 +2,16 @@
 LLM Provider Layer - supports local MLX models, Ollama, and API providers
 """
 
+import json
 import os
 import time
+import urllib.error
+import urllib.request
+import warnings
 from dataclasses import dataclass
 from typing import Any, Dict, Generator, Optional
 
-from .defaults import DEFAULT_MODEL, DEFAULT_PROVIDER
+from .defaults import DEFAULT_MODEL, DEFAULT_PROVIDER, LOCAL_URL
 from .system_prompts import resolve_system_prompt
 
 
@@ -28,7 +32,7 @@ class LLMResponse:
 class LLMProvider:
     """
     Unified interface for calling different LLM providers.
-    Supports: MLX (local), Ollama (local), Anthropic, OpenAI
+    Supports: local server (OpenAI-compatible), MLX (in-process), Ollama, Anthropic, OpenAI
     """
 
     def __init__(self):
@@ -50,7 +54,7 @@ class LLMProvider:
 
         Args:
             prompt: The input prompt
-            provider: "mlx", "ollama", "anthropic", "openai" (defaults to DEFAULT_PROVIDER)
+            provider: "local", "mlx", "ollama", "anthropic", "openai" (defaults to DEFAULT_PROVIDER)
             model: Model identifier (defaults to DEFAULT_MODEL)
             temperature: Sampling temperature
             max_tokens: Max tokens to generate
@@ -63,15 +67,16 @@ class LLMProvider:
         # Use defaults if not specified
         if provider is None:
             provider = DEFAULT_PROVIDER
-        if model is None:
-            model = DEFAULT_MODEL
+        model = _default_model(provider, model)
 
         # Resolve system prompt (load from file if named, or use as-is)
         resolved_system_prompt = resolve_system_prompt(system_prompt)
 
         start = time.time()
 
-        if provider == "mlx":
+        if provider == "local":
+            response = self._call_local(prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs)
+        elif provider == "mlx":
             response = self._call_mlx(prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs)
         elif provider == "ollama":
             response = self._call_ollama(prompt, model, temperature, max_tokens, resolved_system_prompt, **kwargs)
@@ -113,8 +118,7 @@ class LLMProvider:
         # Use defaults if not specified
         if provider is None:
             provider = DEFAULT_PROVIDER
-        if model is None:
-            model = DEFAULT_MODEL
+        model = _default_model(provider, model)
 
         # Resolve system prompt
         resolved_system_prompt = resolve_system_prompt(system_prompt)
@@ -138,6 +142,55 @@ class LLMProvider:
             response = self.call(prompt, provider, model, temperature, max_tokens, system_prompt, **kwargs)
             yield response.text
             yield response
+
+    def _call_local(
+        self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
+    ) -> LLMResponse:
+        """Call a local OpenAI-compatible server (e.g. mlx_lm.server).
+
+        kwargs: base_url, timeout, reasoning_effort, top_p, top_k, seed. Others are
+        ignored. Raises RuntimeError if the server fails, so an error never
+        enters results as if it were model output.
+        """
+        messages = [{"role": "system", "content": system_prompt}] if system_prompt else []
+        messages.append({"role": "user", "content": prompt})
+        body = {"model": model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens}
+        body.update({k: kwargs[k] for k in ("top_p", "top_k", "seed") if kwargs.get(k) is not None})
+        if kwargs.get("reasoning_effort"):
+            body["chat_template_kwargs"] = {"reasoning_effort": kwargs["reasoning_effort"]}
+
+        base_url = (kwargs.get("base_url") or LOCAL_URL).rstrip("/")
+        request = urllib.request.Request(
+            f"{base_url}/chat/completions", json.dumps(body).encode(), {"Content-Type": "application/json"}
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=kwargs.get("timeout", 3600)) as reply:
+                data = json.load(reply)
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode(errors="replace")[:500]
+            raise RuntimeError(f"Local server at {base_url} returned {e.code}: {detail}") from e
+        except OSError as e:
+            raise RuntimeError(
+                f"No local model server at {base_url} ({e}). Start one with: "
+                f"mlx_lm.server --model {model} --port 8080 --prompt-cache-bytes 4000000000"
+            ) from e
+
+        choice = data["choices"][0]
+        message = choice["message"]
+        usage = data.get("usage", {})
+        text = message.get("content") or ""
+        finish_reason = choice.get("finish_reason")
+        if not text and finish_reason == "length":
+            warnings.warn(f"{model} used all {max_tokens} tokens before answering; raise max_tokens.")
+        return LLMResponse(
+            text=text,
+            model=model,
+            provider="local",
+            latency_s=0.0,  # Set by call()
+            tokens_in=usage.get("prompt_tokens"),
+            tokens_out=usage.get("completion_tokens"),
+            metadata={"finish_reason": finish_reason, "reasoning": message.get("reasoning") or ""},
+        )
 
     def _call_mlx(
         self, prompt: str, model: str, temperature: float, max_tokens: int, system_prompt: Optional[str], **kwargs
@@ -531,6 +584,15 @@ class LLMProvider:
         return 0.0
 
 
+def _default_model(provider: str, model: Optional[str]) -> str:
+    """Fill in DEFAULT_MODEL, but never send it to a different provider."""
+    if model is None and provider == DEFAULT_PROVIDER:
+        model = DEFAULT_MODEL
+    if model is None:
+        raise ValueError(f'No model given for provider "{provider}". Pass model=... or set HARNESS_MODEL.')
+    return model
+
+
 # Singleton instance
 _provider = None
 
@@ -555,11 +617,11 @@ def llm_call(
         # Use defaults (from defaults.py)
         response = llm_call("What is 2+2?")
 
-        # Local Ollama
-        response = llm_call("What is 2+2?", provider="ollama", model="gpt-oss:20b")
+        # Local server
+        response = llm_call("What is 2+2?", provider="local", model="pipenetwork/Inkling-2-Mini-MLX-bf16")
 
         # Local MLX
-        response = llm_call("What is 2+2?", provider="mlx", model="mlx-community/Llama-3.2-3B-Instruct-4bit")
+        response = llm_call("What is 2+2?", provider="mlx", model="<mlx model>")
 
         # Anthropic API
         response = llm_call("What is 2+2?", provider="anthropic", model="claude-3-5-sonnet-20241022")
