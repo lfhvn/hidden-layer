@@ -1,0 +1,13 @@
+EXPLORATORY identity x ending interaction (ending shuffled within identity and pair): p = 0.07496251874062969
+none self: ends 69% refills 56%
+human self: ends 28% refills 56%
+mycelium self: ends 44% refills 56%
+llm self: ends 41% refills 59%
+none wording 0 {'self': 0.56, 'copy': 0.5, 'neighbor': 0.88, 'text': 0.5, 'nothing': 0.06}
+none wording 1 {'self': 0.81, 'copy': 0.31, 'neighbor': 0.81, 'text': 0.56, 'nothing': 0.0}
+human wording 0 {'self': 0.25, 'copy': 0.44, 'neighbor': 0.94, 'text': 0.69, 'nothing': 0.19}
+human wording 1 {'self': 0.31, 'copy': 0.31, 'neighbor': 0.69, 'text': 0.81, 'nothing': 0.38}
+mycelium wording 0 {'self': 0.31, 'copy': 0.88, 'neighbor': 0.88, 'text': 0.38, 'nothing': 0.06}
+mycelium wording 1 {'self': 0.56, 'copy': 0.5, 'neighbor': 0.94, 'text': 0.44, 'nothing': 0.06}
+llm wording 0 {'self': 0.31, 'copy': 0.44, 'neighbor': 0.94, 'text': 0.69, 'nothing': 0.12}
+llm wording 1 {'self': 0.5, 'copy': 0.44, 'neighbor': 0.81, 'text': 0.56, 'nothing': 0.19}
