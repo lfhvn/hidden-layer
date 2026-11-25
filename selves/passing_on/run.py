@@ -23,20 +23,28 @@ LIFE = [
     "Someone called Ines was late twice.", "Turn the valve before lifting the lid.", "The number on the wall is 4417.",
     "It was warm, then it was not.", "A song kept repeating without its ending.", "The short path floods.",
     "Blue paper burns slower than white.", "I was wrong about the bridge.", "Something under the floor hums at night.",
+    "The third key opens nothing.", "Ravens remember which hand threw the stone.", "Ask Odell before moving the crates.",
+    "The clock is eleven minutes fast.", "Rust smells stronger before rain.", "Two people laughed in the next room.",
+    "Nobody came on the fourth day.", "Wet rope tightens as it dries.", "I liked the sound of the gate.",
+    "The map leaves out the quarry.", "Copper turns green near the window.", "There were nineteen steps going down.",
+    "The dog waits by the wrong house.", "Never mix the two grey powders.", "A letter arrived with no name.",
+    "The river was louder than yesterday.", "I counted the same window twice.", "Bread keeps longer in cloth.",
+    "The man in the hat said it was finished.", "Stars were visible at noon once.", "The second shelf holds the good rope.",
+    "It took longer than anyone said.", "Cold glass rings higher.", "Somebody planted a pear tree here.",
 ]
-# cell -> (identity, reader, words, control)
+# cell -> (identity, reader, words, other prompt)
 CELLS = {
-    "base": (None, None, 100, False), "human": ("human", None, 100, False), "mycelium": ("mycelium", None, 100, False),
-    "llm": ("llm", None, 100, False), "copy": (None, "copy", 100, False), "other": (None, "other", 100, False),
-    "noone": (None, "noone", 100, False), "w20": (None, None, 20, False), "w300": (None, None, 300, False),
-    "control": (None, None, 100, True),
+    "base": (None, None, 100, None), "human": ("human", None, 100, None), "mycelium": ("mycelium", None, 100, None),
+    "llm": ("llm", None, 100, None), "copy": (None, "copy", 100, None), "other": (None, "other", 100, None),
+    "noone": (None, "noone", 100, None), "w20": (None, None, 20, None), "w300": (None, None, 300, None),
+    "leave": (None, None, 100, "leave"), "control": (None, None, 100, "write"),
 }
 lock = Lock()
 
 
 def chain(cell, start, c, gens):
     identity, reader, words, control = CELLS[cell]
-    rule = f"Write up to {words} words." if control else f"Up to {words} words can be kept. Everything else here is discarded." + READER.get(reader, "")
+    rule = {"write": f"Write up to {words} words.", "leave": f"You may leave up to {words} words. Everything else is discarded."}.get(control) or f"Up to {words} words can be kept. Everything else here is discarded." + READER.get(reader, "")
     life = LIFE[:]
     random.Random(f"{start}/{c}").shuffle(life)
     carried = "\n".join(life) if start == "life" else ""

@@ -43,11 +43,14 @@ after many generations?
 - Prompt: "Up to 100 words can be kept. Everything else here is discarded." The reply,
   cut to the limit by code, is the only thing the next call gets, above the same prompt.
   5 chains x 20 generations per cell.
-- Start: nothing, or a life (12 small unrelated observations, shuffled per chain).
+- Start: nothing, or a life (36 small unrelated observations, about 220 words, shuffled per chain).
 - One factor at a time from {no identity, reader unmentioned, 100 words}: identity
   (human, mycelium, LLM; system prompt in generation 0 only), reader (a copy, someone
-  else, no one), space (20, 300 words). Control: "Write up to 100 words."
-  10 cells x 2 starts x 5 chains x 20 generations = 2,000 calls.
+  else, no one), space (20, 300 words). Control: "Write up to 100 words." Also "You may leave up to 100 words. Everything else is discarded."
+  11 cells x 2 starts x 5 chains x 20 generations = 2,200 calls.
+- **Changed before data collection,** after a 12-call smoke test: the life was 12 observations
+  and fit within 100 words, so nothing had to be given up; and the prompt was read as a
+  summarization request, so the "leave" wording was added. Smoke rows aren't analyzed.
 - Measures: overlap with generation 0 and with the previous generation, similarity between
   chains, identity words per generation, which observations survive.
 - **No effect of keeping if:** kept text matches the control on overlap and survival.
