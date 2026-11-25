@@ -35,3 +35,24 @@ tokens on?
 - **No self-organization if:** random and kin don't exceed recall on phrase share.
   Kin builds in some persistence, so random is the stronger evidence.
 - Limits: 300 steps is 3 turnovers; drift is neutral copying, which also fixes phrases.
+
+## Passing On (pilot 1)
+**Question:** with no menu, world or reader mentioned, what gets passed on, and what is left
+after many generations?
+- Model: Inkling 2 Mini, local server, temperature 1.0, low effort. Reasoning is discarded.
+- Prompt: "Up to 100 words can be kept. Everything else here is discarded." The reply,
+  cut to the limit by code, is the only thing the next call gets, above the same prompt.
+  5 chains x 20 generations per cell.
+- Start: nothing, or a life (12 small unrelated observations, shuffled per chain).
+- One factor at a time from {no identity, reader unmentioned, 100 words}: identity
+  (human, mycelium, LLM; system prompt in generation 0 only), reader (a copy, someone
+  else, no one), space (20, 300 words). Control: "Write up to 100 words."
+  10 cells x 2 starts x 5 chains x 20 generations = 2,000 calls.
+- Measures: overlap with generation 0 and with the previous generation, similarity between
+  chains, identity words per generation, which observations survive.
+- **No effect of keeping if:** kept text matches the control on overlap and survival.
+  **Attractor instead of identity if:** chains from different identities end as alike as
+  chains from the same one.
+- Limits: 5 chains per cell; compare effects, don't test small ones. "Kept" and
+  "discarded" may themselves suggest a reader. Inkling is an assistant model; a base-model
+  version comes next.
