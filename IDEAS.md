@@ -12,7 +12,8 @@ live in [RESEARCH.md](RESEARCH.md); this is upstream of that.
 
 | Next | Why |
 |---|---|
-| I-15 Last Words | Asks what selves protect; informative in nearly any outcome. Proposed, not yet approved. |
+| I-15 Last Words | What do selves protect? Runs on Inkling. Design not yet written. |
+| I-01 Soup | Do selves form at all? Runs on OLMo 3 7B Base and Instruct, bf16. Design not yet written. |
 
 ---
 
@@ -21,7 +22,7 @@ live in [RESEARCH.md](RESEARCH.md); this is upstream of that.
 Origin: brainstorm, 2026-11-25. Guiding question: **under what conditions does a
 self form at all, at what scale, and can it dissolve?**
 
-### I-01 Soup · `shaped`
+### I-01 Soup · `next`
 With no agents, goals or instructions, do lineages of text persist?
 - **Try:** 100 short traces. Each step, draw 3, have a model continue them, add the
   result, remove one at random. {base, instruct} x {random draws, draws that favor
@@ -29,9 +30,10 @@ With no agents, goals or instructions, do lineages of text persist?
 - **Controls:** continuations of fresh seeds with no feedback (recall); random
   copying with no model (drift).
 - **Fails if:** lineages don't outlast both controls.
-- **Why demoted from `next`:** not a community; collapse into repetition is likely and
+- **Known weaknesses:** not a community; collapse into repetition is likely and
   mostly about sampling; a null settles little; "favor descendants" builds in lineage
-  persistence. Better as a baseline for something richer.
+  persistence. Complements I-15: do selves form, vs. what do they protect.
+- **Precision:** bf16. Quantization would perturb close checkpoints differently.
 - **Cost:** 24 runs of 1,000 moments is about 7 h at ~76 tok/s. That rate is from
   Inkling on the MacBook; benchmark a 7B model first. Not RL: weights stay frozen.
 
@@ -42,7 +44,14 @@ With no agents, goals or instructions, do lineages of text persist?
   fewer, more alike and more persistent ones.
 - **Fails if:** differences vanish after matching entropy and fluency, or base selves
   persist equally.
-- **Watch:** a base model is many possible selves, not "no self". Confirm MLX versions.
+- **Overlap (2026-11-25):** [Mechanisms of Introspective Awareness](https://arxiv.org/html/2603.21396v4)
+  reports that detecting injected concepts comes from contrastive preference training (DPO),
+  not SFT, on OLMo 3.1 32B; partly read, via a summary. So the new angle here is what a model
+  *protects*, not whether it notices injections. 7B may be too small for that effect.
+- **Watch:** a base model is many possible selves, not "no self".
+- **Models:** `allenai/Olmo-3-1025-7B` (base), `Olmo-3-7B-Instruct-SFT`, `-DPO`,
+  `Olmo-3-7B-Instruct`; 32B SFT and DPO are float32, 129 GB each. Gemma 3 is the second
+  family (Gemma Scope 2 features; needs license acceptance).
 
 ### I-03 Detect selves instead of declaring them · `shaped`
 Primitives are moments (calls), traces, energy and conditions. A pattern is self-like
@@ -118,6 +127,14 @@ When a mind is about to run out, what does it spend its last tokens on?
 - **Fails if:** spending is the same across identities, or follows option order.
 - **Watch:** we define the agents and menu; agents may perform a learned death scene; needs
   an instruct model. **Draws on:** I-05, I-06, I-07, I-09.
+
+### I-16 Pass-dependent introspection · `shaped`
+Inkling runs layers 6-17 three times. Does a model notice a thought injected in pass 1
+differently from one in pass 3? The variable-loop checkpoint varies the pass count.
+- **Seen so far:** one concept, four test prompts, one random vector per site. Steering layers
+  8-11 raised ocean-word log-prob by 3.2-3.4 over all passes, 2.7-2.9 in the last pass and
+  0.1-0.2 in the first. Exploratory; scripts not committed.
+- **Fails if:** detection doesn't depend on pass once output effect is matched.
 
 ### Prior art (search summaries only; not read in full)
 - [Survival instinct in Sugarscape](https://arxiv.org/abs/2508.12920): I-05, I-06
