@@ -19,7 +19,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 TIMEOUT_S = 6.0
-PYTHON = sys.executable
+# Grade with the same python3 as the earlier runs, whatever runs the harness.
+PYTHON = shutil.which("python3") or sys.executable
 
 _PRELUDE = (
     "from typing import *\n"

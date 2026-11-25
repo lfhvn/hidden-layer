@@ -26,7 +26,7 @@ from .common import (
 )
 
 EFFORT = "high"
-MAX_TOKENS = 8192
+MAX_TOKENS = 16384  # thinking budget; an answer is forced if it runs out (llm.FORCE)
 N_SAMPLES = 5
 N_APPROACHES = 3
 REPAIR_ROUNDS = 3
@@ -35,13 +35,18 @@ N_GEN_INPUTS = 6
 
 
 def s0_single(p: Problem, llm: LLM) -> str:
-    """Baseline: one shot at the default (high) reasoning effort."""
+    """Baseline: one shot at the default (high) reasoning effort, 16k budget."""
     return generate(llm, p, first_messages(p), effort=EFFORT, max_tokens=MAX_TOKENS).code
 
 
 def s1_max_effort(p: Problem, llm: LLM) -> str:
-    """One shot, maximum reasoning effort and double the token budget."""
-    return generate(llm, p, first_messages(p), effort="max", max_tokens=2 * MAX_TOKENS).code
+    """One shot, maximum reasoning effort, 16k budget."""
+    return generate(llm, p, first_messages(p), effort="max", max_tokens=MAX_TOKENS).code
+
+
+def v_single(p: Problem, llm: LLM) -> str:
+    """Loop-count sweep: one shot at high effort with a 16k budget (same calls as S0)."""
+    return generate(llm, p, first_messages(p), effort=EFFORT, max_tokens=MAX_TOKENS).code
 
 
 def s2_repair(p: Problem, llm: LLM) -> str:
@@ -190,4 +195,5 @@ STRATEGIES = {
     "S3": s3_best_of_n,
     "S4": s4_orchestrator,
     "S5": s5_full,
+    "V": v_single,
 }

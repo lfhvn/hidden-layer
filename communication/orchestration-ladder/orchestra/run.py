@@ -16,6 +16,7 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from . import llm as llm_mod
 from .llm import LLM
 from .problems import Problem, select
 from .sandbox import run_tests
@@ -42,6 +43,7 @@ def solve_and_grade(name: str, p: Problem) -> dict:
         "passed": bool(hidden) and all(r.passed for r in hidden) and len(hidden) == len(p.hidden),
         "first_fail": "no code" if not code.strip() else next((r.status for r in hidden if not r.passed), None),
         "calls": llm.calls,
+        "forced": llm.forced,
         "completion_tokens": llm.completion_tokens,
         "prompt_tokens": llm.prompt_tokens,
         "model_seconds": round(llm.model_seconds, 1),
@@ -56,15 +58,22 @@ def main():
     ap.add_argument("strategy", choices=sorted(STRATEGIES))
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--parallel", type=int, default=4, help="problems in flight")
+    ap.add_argument("--model", help="model name/path to request (default: llm.MODEL)")
+    ap.add_argument("--url", help="server base URL (default: llm.BASE_URL)")
+    ap.add_argument("--tag", help="results file name (default: the strategy name)")
     args = ap.parse_args()
+    if args.model:
+        llm_mod.MODEL = args.model
+    if args.url:
+        llm_mod.BASE_URL = args.url
 
     RESULTS.mkdir(exist_ok=True)
-    out = RESULTS / f"{args.strategy}.jsonl"
+    out = RESULTS / f"{args.tag or args.strategy}.jsonl"
     done = set()
     if out.exists():
         done = {json.loads(l)["problem"] for l in out.read_text().splitlines() if l.strip()}
     problems = [p for p in select() if p.id not in done][: args.limit]
-    print(f"{args.strategy}: {len(problems)} to run, {len(done)} already done", flush=True)
+    print(f"{args.tag or args.strategy} [{llm_mod.MODEL}]: {len(problems)} to run, {len(done)} already done", flush=True)
 
     def one(p: Problem):
         row = solve_and_grade(args.strategy, p)
@@ -78,7 +87,8 @@ def main():
         mark = "PASS" if row["passed"] else f"fail ({row['first_fail'] or row['error'] and 'error'})"
         print(
             f"  {p.id:10s} {mark:16s} {row['calls']:2d} calls "
-            f"{row['completion_tokens']:6d} tok {row['wall_seconds']:7.1f}s",
+            f"{row['completion_tokens']:6d} tok {row['wall_seconds']:7.1f}s"
+            + (f" ({row['forced']} forced)" if row["forced"] else ""),
             flush=True,
         )
 
