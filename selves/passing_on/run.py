@@ -9,7 +9,7 @@ from pathlib import Path
 from threading import Lock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from harness import llm_call  # noqa: E402
+from selves.retry import llm_call  # noqa: E402
 
 OUT = Path(__file__).parent / "results" / "chains.jsonl"
 IDENTITY = {

@@ -56,3 +56,10 @@ after many generations?
 - Limits: 5 chains per cell; compare effects, don't test small ones. "Kept" and
   "discarded" may themselves suggest a reader. Inkling is an assistant model; a base-model
   version comes next.
+
+## Running
+`python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
+--port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`
+(on the ladder branch; it restarts the server when its generation thread dies, which happens
+on long runs). Runners retry and resume. The first Last Words run stopped at 122 of 700 trials
+in such a crash and was resumed; no trial was rerun or dropped.
