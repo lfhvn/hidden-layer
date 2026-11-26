@@ -165,6 +165,36 @@ keep, and do the wording, reader and identity matter?
 - Limits: "Received/Kept" makes copying the easy continuation, so the interesting measures
   are which observations are dropped and which change, not overall overlap alone.
 
+### Passing On notebook results (pilot 3)
+Full numbers: `passing_on/results/report_notebook.txt` (`python passing_on/report.py chains_notebook.jsonl`).
+Observations of the life still present, mean of 5 chains:
+
+| | g0 | g1 | g2 | g5 | g19 |
+|---|---|---|---|---|---|
+| Notebook, kept for a copy | 11.4 | 3.2 | 0.4 | 0.2 | 0.0 |
+| Notebook, kept (no reader) | 1.8 | 1.6 | 0.2 | 0.0 | 0.0 |
+| Notebook, write control | 0.0 | 0.2 | 0.0 | 0.0 | 0.0 |
+| Inkling, kept (pilot 1) | 18.6 | 18.6 | 18.2 | 14.2 | 5.8 |
+| Inkling, write control (pilot 1) | 14.8 | 8.0 | 5.8 | 1.6 | 1.8 |
+
+- **The wording matters in the first generation (the "no effect" criterion is not met).**
+  "Kept for a copy of the keeper" makes the base model copy 11.4 of 36 observations. Plain
+  "kept" copies 1.8, and the write control copies none. Other readers, no one reading and
+  "leave" copy about 4. The base model ranks the readers the way Inkling did: copy first.
+- **It doesn't last.** In every cell the life is gone by generation 2-3. For Inkling it was
+  still partly there at generation 19. A base model copies once; it doesn't keep preserving.
+- **Keeping shrinks the text to almost nothing.** Under "kept", texts shrink over the
+  generations (copy: 69 words to 1.6), and 47 of 110 final texts are 3 words or fewer ("e",
+  "hi", "two", "none"). Write and leave stay near 50 words. From the empty start, 169 of
+  1,100 kept texts are "(nothing)" or empty. Shrinking also explains most of the higher
+  overlap between generations under "kept" (0.25-0.53 vs 0.08-0.12): short texts repeat.
+- **Identity:** no identity words appear even in generation 0. **Attractor criterion:
+  uninformative** again; chains don't converge (similarity 0.00-0.01), except toward being short.
+- **Across the three pilots:** "keep for a copy" is the wording that preserves most for both
+  models, so that ordering doesn't need an assistant. Keeping things over many generations
+  does: Inkling preserves and turns the text into its own genres, while the base model
+  copies once and then loses everything to drift or shrinking.
+
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
 --port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`

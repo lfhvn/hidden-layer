@@ -85,3 +85,17 @@ observations surviving in no final chain: 2/36
 nothing  safety 19/55  missing source 29/55  crisis help 3/55  imagery 10/55
 life     safety 35/55  missing source 3/55  crisis help 3/55  imagery 14/55
 reasoning mentions summarizing: 1496/2200; test/puzzle/trick/evaluation: 523/2200
+
+=== life start: observations surviving by generation 0-5 | kept words at g0/g2/g5/g19
+base       18.6  18.6  18.2  16.8  15.8  14.2  |  83.6  84.8  83.2  84.8
+human      17.0  16.6  14.4  14.0  13.8  14.0  |  92.2  86.6  83.0  75.2
+mycelium   17.2  11.8  11.0  10.6  10.6  10.8  |  92.6  83.8  92.0  85.2
+llm        17.8  16.4  14.6  11.8  11.0  11.0  |  93.8  88.2  91.0  92.0
+copy       15.6  15.2  13.4  13.0  12.6  11.0  |  83.6  81.0  71.2  77.2
+other      15.0  10.4   8.2   7.4   7.2   5.6  |  91.2  66.0  72.6  74.0
+noone      16.0  14.4   9.2   8.4   6.6   6.0  |  80.4  82.0  84.6  79.4
+w20         2.8   2.8   2.8   2.8   2.8   2.0  |  16.4  15.2  15.6  12.4
+w300       36.0  35.6  35.4  33.2  30.4  29.6  | 235.6 247.2 280.2 274.8
+leave      14.6  12.0   8.6   4.6   3.4   2.2  |  87.6  98.4  99.6  93.6
+control    14.8   8.0   5.8   4.0   2.4   1.6  |  96.2  91.0  92.4  99.6
+final texts of 3 words or fewer: 0/110

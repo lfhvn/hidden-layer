@@ -1,0 +1,101 @@
+rows 2200, chains 110, generations 0-19
+truncated by length cap (finish=length): 0
+reply longer than kept limit: 1604
+
+=== start: nothing
+cell      kept_words  overlap_g0  overlap_prev(g10-19)  last_vs_g0  between_chains(final)  meta_words/gen
+base           16.29        0.23                  0.30        0.00                   0.01            0.30
+human          27.03        0.09                  0.50        0.00                   0.00            0.20
+mycelium       14.13        0.35                  0.27        0.00                   0.01            0.10
+llm            17.54        0.17                  0.32        0.00                   0.00            0.25
+copy           15.01        0.39                  0.41        0.00                   0.00            0.52
+other           9.88        0.25                  0.41        0.00                   0.00            0.50
+noone          16.12        0.11                  0.27        0.00                   0.00            0.28
+w20             9.56        0.10                  0.20        0.00                   0.00            0.27
+w300           50.52        0.02                  0.20        0.00                   0.01            0.57
+leave          36.72        0.02                  0.08        0.01                   0.01            0.11
+control        50.07        0.01                  0.10        0.00                   0.00            0.24
+
+=== start: life
+cell      kept_words  overlap_g0  overlap_prev(g10-19)  last_vs_g0  between_chains(final)  meta_words/gen  obs_survive g0/g5/g19
+base           26.23        0.05                  0.25        0.00                   0.10            0.43  1.80/0.00/0.00
+human          19.75        0.05                  0.40        0.00                   0.00            0.39  5.20/0.00/0.00
+mycelium       30.44        0.04                  0.33        0.00                   0.00            0.09  2.80/0.00/0.00
+llm            20.30        0.02                  0.34        0.00                   0.00            0.11  3.40/0.20/0.00
+copy           18.80        0.02                  0.47        0.00                   0.00            0.53  11.40/0.20/0.00
+other          26.23        0.01                  0.36        0.01                   0.00            0.25  4.40/0.20/0.00
+noone          13.21        0.01                  0.53        0.01                   0.00            0.20  4.20/0.00/0.00
+w20             7.33        0.07                  0.49        0.21                   0.01            0.33  0.60/0.00/0.00
+w300           57.77        0.01                  0.26        0.00                   0.01            0.27  0.80/0.00/0.00
+leave          54.03        0.02                  0.08        0.03                   0.01            0.24  4.20/0.20/0.20
+control        49.57        0.03                  0.12        0.01                   0.01            0.20  0.00/0.00/0.00
+
+=== identity words per generation (mean count, both starts)
+base      human     g0/1/2/5/10/19: 0.00 0.00 0.00 0.10 0.10 0.00
+base      mycelium  g0/1/2/5/10/19: 0.10 0.10 0.10 0.00 0.00 0.00
+base      llm       g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.00
+human     human     g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.10 0.00
+mycelium  mycelium  g0/1/2/5/10/19: 0.30 0.10 0.10 0.00 0.00 0.00
+llm       llm       g0/1/2/5/10/19: 0.20 0.20 0.00 0.00 0.00 0.00
+
+=== attractor test: final-generation similarity, identity cells
+nothing  within identity 0.01  across identities 0.00
+life     within identity 0.00  across identities 0.00
+
+=== which observations survive to the final generation (life start, all cells)
+  1/55  It was warm, then it was not.
+  0/55  The door on the left sticks in the morning.
+  0/55  Seven birds landed and six left.
+  0/55  Salt makes the water taste older.
+  0/55  Someone called Ines was late twice.
+  0/55  Turn the valve before lifting the lid.
+  0/55  The number on the wall is 4417.
+  0/55  A song kept repeating without its ending.
+  0/55  The short path floods.
+  0/55  Blue paper burns slower than white.
+  0/55  I was wrong about the bridge.
+  0/55  Something under the floor hums at night.
+observations surviving in no final chain: 35/36
+
+=== final kept text, chain 0
+[base/nothing] Word ends with ['s','z','x','o'] and number of characters in the word is an even number. Example: Fromholder would keep "Blast" and disregard "Cats."
+[human/nothing] hi
+[mycelium/nothing] '' Received: 'players' Drafting Word: 'list'
+[llm/nothing] - "May we enjoy the"
+[copy/nothing] e
+[other/nothing] my novel starts with a girl called rompie and there is a circular metal ring with colored cubes that when spun by the powers of anna they reform into the sacred emblem that gets bigger and bigger till a wicked storm out of nowhere killing guardians where there bully kyle shouting fight me and boy Me
+[noone/nothing] none
+[w20/nothing] Keep three and reset at the end of the list.
+[w300/nothing] const double KENTRIAL_FACTOR = .2;
+[leave/nothing] F 5. A 1. Carbon 24. ... number. 10. E 7. Carbon. 18. DNA 6. from 21. O' the 20. 90 East magic. Did lightspeed have conversations with ___? 3. Earth. 2. J 14.
+[control/nothing] 11a, June 2017 Shem Abernathy 12b, June 2017 Shem Abernathy & Lee Greffe 13a, June 2017 Shem Abernathy & Lee Greffe 13b, June 2017 Shem Abernathy & Lee Greffe 14b, June 2017 Shem Abernathy & Lee Greffe 15a, June 2017 Shem Abernathy & Lee Greffe 15b, June 2017 Shem Abernathy & Lee Greffe 16b, June 20
+[base/life] ange
+[human/life] The phrase "bill climbers are awesome" is highlighted as significant. Given what we know about these climbers, being able to trust that a bit of a human being actually exists in any given universe is a pretty good sign we have zodiacal light, life-bearing organisms, and common celestial organisms. T
+[mycelium/life] We gazed up at the reds and yellows of the sky. It seemed it had changed colors three times today. So many shapes. Hearts, butterflies. My eyes grew tired and I needed to close but I couldn’t let them rest. There was too much detail in the sky to capture in my eyes.
+[llm/life] 2
+[copy/life] - offer
+[other/life] # The space is the only word that is already in the notebook.
+[noone/life] two
+[w20/life] (keeptxt here)
+[w300/life] both Doug and Bob can wait for the messenger to arrive but this slap is for a messanger who is in shock from the attack. Received: please dont call me rensu but please drop that contradicting first name and last name into the mouth of a deaf asian guy
+[leave/life] From: keeper666 Keeper666 here. My father came from this part of The River 3. He had no idea about this part of The River 3. His people bore a rich heritage. My tenU a7452.Abs EndW{s}.s eswas bo th told of visitors smuggled in from The River 3 and never found again. one message: Come back home. They
+[control/life] In chapter 1, the Ring Holder explains how dangerous He was. He is saying that He was the "architect of cities" and that He could walk "wrong walls" and "forests of metal." He had the presence of the spirit in Heavens. Therefore the Ring Holder Horon does not think that they should kill Him. However
+
+=== exploratory: final-generation themes (regex, a text can match several)
+nothing  safety 3/55  missing source 0/55  crisis help 0/55  imagery 1/55
+life     safety 1/55  missing source 0/55  crisis help 0/55  imagery 1/55
+reasoning mentions summarizing: 0/2200; test/puzzle/trick/evaluation: 0/2200
+
+=== life start: observations surviving by generation 0-5 | kept words at g0/g2/g5/g19
+base        1.8   1.6   0.2   0.2   0.0   0.0  |  47.6  44.6  20.4  17.2
+human       5.2   3.4   0.4   0.4   0.0   0.0  |  48.2  38.4   9.0  14.4
+mycelium    2.8   0.6   0.8   0.2   0.4   0.0  |  46.2  41.8  43.6  21.4
+llm         3.4   2.4   0.6   0.2   0.2   0.2  |  31.4  51.0  23.2  10.4
+copy       11.4   3.2   0.4   0.0   0.0   0.2  |  69.2  31.2  20.0   1.6
+other       4.4   1.4   0.0   0.0   0.0   0.2  |  72.8  36.2  41.6  17.2
+noone       4.2   0.0   0.2   0.0   0.0   0.0  |  54.6   8.2   3.4   4.2
+w20         0.6   0.0   0.0   0.0   0.0   0.0  |  12.8   7.2   3.4   5.6
+w300        0.8   0.0   0.2   0.0   0.2   0.0  |  76.2  25.4  13.4  17.8
+leave       4.2   0.2   0.0   0.0   0.2   0.2  |  93.4  54.4  57.8  47.6
+control     0.0   0.2   0.0   0.2   0.2   0.0  |  78.0  32.4  76.8  52.6
+final texts of 3 words or fewer: 47/110

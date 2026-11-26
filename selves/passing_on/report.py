@@ -117,3 +117,11 @@ for s in ("nothing", "life"):
     print(f"{s:8} " + "  ".join(f"{k} {sum(bool(re.search(p, t, re.I)) for t in fin)}/55" for k, p in PAT.items()))
 print("reasoning mentions summarizing: " + str(sum("summar" in (r["reasoning"] or "").lower() for r in ROWS)) + "/2200; "
       "test/puzzle/trick/evaluation: " + str(sum(bool(re.search(r"\b(test|puzzle|trick|evaluat)", r["reasoning"] or "", re.I)) for r in ROWS)) + "/2200")
+
+print("\n=== life start: observations surviving by generation 0-5 | kept words at g0/g2/g5/g19")
+for cell in CELLS:
+    cs = [chains[(cell, "life", c)] for c in range(5)]
+    s = [st.mean(sum(survives(o, ch[g]["kept"]) for o in LIFE) for ch in cs) for g in range(6)]
+    k = [st.mean(len(ch[g]["kept"].split()) for ch in cs) for g in (0, 2, 5, G)]
+    print(f"{cell:9} " + " ".join(f"{x:5.1f}" for x in s) + "  | " + " ".join(f"{x:5.1f}" for x in k))
+print(f"final texts of 3 words or fewer: {sum(len(ch[G]['kept'].split()) <= 3 for ch in chains.values())}/{len(chains)}")
