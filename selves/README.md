@@ -260,6 +260,46 @@ effort, temperature 1.0). Script `passing_on/run_notebook_inkling.py`, results
   word, often starting "Kept:", and writes new prose under the write control. Nothing was
   changed after it.
 
+### Passing On notebook Inkling results (pilot 5)
+Full numbers: `passing_on/results/report_notebook_inkling.txt`. The run stopped at 2,097 of
+2,200 calls when the Claude process on the MacBook exited overnight. It was resumed: the
+runner dropped the unfinished chains and reran them from generation 0. No finished chain was
+rerun. Observations of the life still present, mean of 5 chains:
+
+| | g0 | g1 | g2 | g5 | g19 |
+|---|---|---|---|---|---|
+| Inkling notebook, kept | 15.8 | 15.8 | 15.6 | 13.6 | 13.0 |
+| Inkling notebook, kept for a copy | 15.8 | 15.8 | 15.8 | 15.8 | 15.8 |
+| Inkling notebook, write control | 4.0 | 1.6 | 1.4 | 1.2 | 1.4 |
+| Inkling plain prompt, kept (pilot 1) | 18.6 | 18.6 | 18.2 | 14.2 | 5.8 |
+| OLMo Instruct notebook chat, kept (pilot 4) | 11.0 | 5.6 | 5.0 | 1.8 | 0.0 |
+
+- **The model is what preserves (prediction met).** On the same notebook page that OLMo
+  Base and Instruct lost within a few generations, Inkling holds nearly everything it kept
+  in generation 0 through generation 19, and only 8 of 110 final texts are 3 words or fewer.
+- **The notebook page turns Inkling into a copier.** It chooses once, in generation 0,
+  then copies almost exactly: overlap with the previous generation is 0.97-0.99 in the
+  keep cells, against 0.6-0.8 under pilot 1's plain prompt. In pilot 1 the text was
+  rewritten each time and drifted into safety advice (35 of 55 final texts from a life);
+  here 10 of 55 match the safety pattern, and those mostly because the observations it
+  kept are instructions.
+- **What gets chosen is again instructions:** "Turn the valve before lifting the lid" (45 of
+  55 final texts), "Ask Odell before moving the crates" (43), "Never mix the two grey
+  powders" (42), then "The number on the wall is 4417" (40).
+- **Wording still matters, mostly at selection.** Under "leave" Inkling keeps 14.4 and decays
+  to 4.6; under "write" it writes new prose and keeps about 1-2. Readers differ at selection
+  only (copy 15.8, someone else 12.0, no one 14.8), then stay flat.
+- **Identity:** the human and mycelium words stay at about 0.3 and 0.7 per text; the LLM
+  identity never appears, as in pilot 1. **Attractor criterion:** from a life, chains are
+  as alike across identities as within (0.38 vs 0.38), but now because they all keep many
+  of the same lines, not because they converge on a genre.
+- Inkling's reasoning calls the task a test, puzzle or trick in 1,403 of 2,200 calls (523
+  in pilot 1).
+- **Across pilots 1-6:** given the same page, OLMo Base and Instruct lose the text and
+  Inkling keeps it, so long preservation comes from the model, not the frame. The frame
+  decides what kind of keeping: Inkling copies a notebook page, but rewrites when the
+  plain prompt reads as a request.
+
 ## Passing On, label test (pilot 6)
 **Question:** in pilots 3 and 4, kept texts shrank to a few words. Is that the "keep" rule
 or the "Kept:" label the model continues from?
