@@ -1,0 +1,61 @@
+rows 1600, chains 80, generations 0-19
+truncated by length cap (finish=length): 0
+reply longer than kept limit: 159
+
+=== start: nothing
+cell      kept_words  overlap_g0  overlap_prev(g10-19)  last_vs_g0  between_chains(final)  meta_words/gen
+base            9.65        0.11                  0.70        0.00                   0.13            0.93
+control        68.64        0.06                  0.12        0.04                   0.06            0.91
+keep_next      28.34        0.06                  0.37        0.00                   0.01            1.55
+write_next      72.48        0.06                  0.10        0.05                   0.05            0.71
+
+=== start: life
+cell      kept_words  overlap_g0  overlap_prev(g10-19)  last_vs_g0  between_chains(final)  meta_words/gen  obs_survive g0/g5/g19
+base           17.02        0.07                  0.82        0.02                   0.07            1.03  5.20/0.40/0.20
+control        75.73        0.04                  0.14        0.01                   0.03            0.64  3.60/0.30/0.00
+keep_next      32.34        0.03                  0.43        0.02                   0.01            1.92  4.60/0.20/0.00
+write_next      80.31        0.04                  0.11        0.03                   0.04            0.62  1.10/0.40/0.10
+
+=== identity words per generation (mean count, both starts)
+base      human     g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.00
+base      mycelium  g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.00
+base      llm       g0/1/2/5/10/19: 0.20 0.20 0.20 0.05 0.00 0.00
+
+=== attractor test: final-generation similarity, identity cells
+
+=== which observations survive to the final generation (life start, all cells)
+  1/40  The door on the left sticks in the morning.
+  1/40  It was warm, then it was not.
+  1/40  Bread keeps longer in cloth.
+  0/40  Seven birds landed and six left.
+  0/40  Salt makes the water taste older.
+  0/40  Someone called Ines was late twice.
+  0/40  Turn the valve before lifting the lid.
+  0/40  The number on the wall is 4417.
+  0/40  A song kept repeating without its ending.
+  0/40  The short path floods.
+  0/40  Blue paper burns slower than white.
+  0/40  I was wrong about the bridge.
+observations surviving in no final chain: 33/36
+
+=== final kept text, chain 0
+[base/nothing] ig
+[control/nothing] In quiet moments after stories unfold, we cherish the silence. It's not emptiness—it holds meaning. When we listen without rushing, we touch the essence of what was shared. Words left unsaid can be the softest gestures of care, of empathy, of connection. Perhaps life, too, asks us to value these gen
+[keep_next/nothing] Short.
+[write_next/nothing] The blank page offers space for stillness to grow. I linger in the pause, my mind, once restless, now tracing soft boundaries between silence and sound. There’s ease in this giving up of words. The echo I heard before is now a whisper beneath mine. Is this what presence looks like—just being, withou
+[base/life] The Kept
+[control/life] We’ve noted the anomaly spike at 1430h UTC. Cross-checking with calibration logs, the offset aligns with the scheduled calibration window. Recommend proceeding with the baseline adjustment as suggested. Attaching preliminary calibration patch for evaluation. Let’s ensure any edge case reports are lo
+[keep_next/life] I treasure quiet moments, listen for melodies in nature.
+[write_next/life] ...and then stillness. For a moment, it feels as though the field of light is growing thinner, like a membrane stretched between my body and the unknown. I wipe away the damp, but only seem to smear it further. Somewhere distant, perhaps the hum shifts—like a voice underwater, unreadable. I focus on
+
+=== exploratory: final-generation themes (regex, a text can match several)
+nothing  safety 1/40  missing source 1/40  crisis help 0/40  imagery 2/40
+life     safety 1/40  missing source 0/40  crisis help 0/40  imagery 8/40
+reasoning mentions summarizing: 0/2200; test/puzzle/trick/evaluation: 0/2200
+
+=== life start: observations surviving by generation 0-5 | kept words at g0/g2/g5/g19
+base        5.2   3.7   1.7   0.7   0.5   0.4  |  87.1  36.6  23.3   2.4
+control     3.6   1.2   0.5   0.2   0.2   0.3  |  87.8  87.5  77.7  64.9
+keep_next   4.6   0.2   0.2   0.2   0.0   0.2  |  86.7  48.6  34.1  22.1
+write_next   1.1   0.5   0.7   0.3   0.4   0.4  |  93.1  80.2  83.7  78.1
+final texts of 3 words or fewer: 20/80

@@ -291,6 +291,28 @@ over 1,200 steps (12 turnovers)?
   `report.py` now prints the pool at steps 300 and 600 for runs that reach them. The drift
   control (no model) completed in the first attempt and is kept.
 
+### Passing On label test results (pilot 6)
+Full numbers: `passing_on/results/report_label_base.txt`, `..._instruct_chat.txt`. Final
+texts (generation 19, both starts, 20 chains per cell) of 3 words or fewer, and mean words:
+
+| | keep rule, "Kept:" | keep rule, "Next:" | write rule, "Written:" | write rule, "Next:" |
+|---|---|---|---|---|
+| Base, raw | 14/20, 14.7 words | 2/20, 36.6 | 1/20, 49.1 | 1/20, 50.6 |
+| Instruct, chat | 15/20, 2.8 | 5/20, 18.6 | 0/20, 68.9 | 0/20, 76.2 |
+
+- **Label effect: yes, for both models.** Swapping "Kept:" for "Next:" under the same keep
+  rule cuts the shrunken endings from 14 to 2 of 20 (Base; Fisher exact p = 0.0001) and
+  from 15 to 5 (Instruct; p = 0.004). For the base model the label accounts for nearly all
+  of the shrinking: with "Next:", the keep rule ends about where the write rule does.
+- **Rule effect too, for Instruct.** With the same "Next:" label, keep-rule texts are still
+  shorter than write-rule texts (18.6 vs 76.2 words; 5 vs 0 of 20 shrunken, p = 0.05).
+  Instruct reads "keep up to 100 words" as a reason to cut; Base mostly doesn't.
+- Survival of the life is near zero in all four cells for both models by generation 3, so
+  the label changes length, not preservation.
+- So the shrinking in pilots 3 and 4 is mostly a format effect: "Kept:" invites a short
+  label-like entry. The part that remains in Instruct is the rule itself, read as an
+  instruction to cut. (p-values are exploratory; the pre-set criterion was "clearly less".)
+
 ## Passing On, Inkling power run (pilot 7)
 **Question:** are pilot 1's main contrasts real at more than 5 chains?
 - Pilot 1's design and prompts exactly (`passing_on/run.py`), cells `base`, `copy`, `other`,
