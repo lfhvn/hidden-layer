@@ -195,6 +195,22 @@ Observations of the life still present, mean of 5 chains:
   does: Inkling preserves and turns the text into its own genres, while the base model
   copies once and then loses everything to drift or shrinking.
 
+## Passing On, notebook frame, Instruct (pilot 4)
+**Question:** what does assistant training change? Same notebook pages as pilot 3, on
+OLMo 3 7B Instruct (`allenai/Olmo-3-7B-Instruct`), the post-trained sibling of the base model.
+- Two versions: **raw**, the identical page as raw text (`--model instruct`, results
+  `chains_notebook_instruct.jsonl`); and **chat**, the page sent as a user message with the
+  chat template (`--model instruct --chat`, `chains_notebook_instruct_chat.jsonl`). In chat
+  the reply is not cut at a blank line, only at the word limit, because a reply can open with
+  a line before the kept text (as in pilot 1, where the whole reply was passed on).
+- Everything else as pilot 3: cells, starts, 5 x 20 chains, measures and criteria.
+- **Predictions:** if keeping across generations needs post-training, Instruct (chat at
+  least) holds observations past generation 3, unlike the base model. If the base model's
+  shrinking comes from post-training's absence, Instruct texts don't shrink under "kept".
+- Smoke test (1 chain, 2 generations each, not analyzed): raw Instruct copies some lines
+  and drops others; chat Instruct sometimes opens with "Certainly! Here is..." and explains
+  its counting. Nothing was changed after it.
+
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
 --port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`
