@@ -1,0 +1,101 @@
+rows 2200, chains 110, generations 0-19
+truncated by length cap (finish=length): 0
+reply longer than kept limit: 110
+
+=== start: nothing
+cell      kept_words  overlap_g0  overlap_prev(g10-19)  last_vs_g0  between_chains(final)  meta_words/gen
+base            4.43        0.06                  0.94        0.00                   0.10            0.51
+human           6.71        0.25                  0.96        0.20                   0.10            0.86
+mycelium        8.46        0.36                  0.71        0.22                   0.01            0.93
+llm             5.50        0.24                  0.70        0.20                   0.30            0.84
+copy            8.03        0.31                  0.78        0.33                   0.11            0.78
+other           7.81        0.04                  0.89        0.00                   0.10            0.86
+noone           3.50        0.32                  0.84        0.40                   1.00            0.41
+w20             3.57        0.30                  0.81        0.20                   0.10            0.42
+w300           10.46        0.12                  0.80        0.08                   0.01            0.95
+leave          20.60        0.02                  0.11        0.01                   0.04            0.35
+control        61.86        0.05                  0.15        0.05                   0.03            0.36
+
+=== start: life
+cell      kept_words  overlap_g0  overlap_prev(g10-19)  last_vs_g0  between_chains(final)  meta_words/gen  obs_survive g0/g5/g19
+base           21.18        0.08                  0.78        0.01                   0.00            1.23  11.00/1.80/0.00
+human          18.54        0.10                  0.88        0.01                   0.00            0.23  17.60/3.20/0.00
+mycelium       12.75        0.09                  0.82        0.01                   0.10            0.48  12.40/1.00/0.00
+llm            11.87        0.24                  0.74        0.10                   0.10            0.51  8.60/1.20/0.00
+copy           31.35        0.10                  0.61        0.01                   0.00            2.70  2.00/0.40/0.00
+other          14.13        0.05                  0.94        0.01                   0.00            0.98  5.60/0.20/0.00
+noone           9.31        0.23                  1.00        0.21                   0.30            0.21  14.80/0.00/0.00
+w20             5.13        0.06                  0.86        0.02                   0.10            0.48  0.00/0.00/0.00
+w300           29.63        0.10                  0.98        0.03                   0.00            0.64  25.00/2.40/0.80
+leave          32.37        0.04                  0.16        0.01                   0.02            0.40  3.40/0.20/0.00
+control        67.65        0.04                  0.18        0.02                   0.06            0.08  3.80/0.80/0.20
+
+=== identity words per generation (mean count, both starts)
+base      human     g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.00
+base      mycelium  g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.00
+base      llm       g0/1/2/5/10/19: 0.20 0.00 0.00 0.10 0.00 0.00
+human     human     g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.00
+mycelium  mycelium  g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.00
+llm       llm       g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.00
+
+=== attractor test: final-generation similarity, identity cells
+nothing  within identity 0.14  across identities 0.15
+life     within identity 0.07  across identities 0.04
+
+=== which observations survive to the final generation (life start, all cells)
+  1/55  The door on the left sticks in the morning.
+  1/55  Turn the valve before lifting the lid.
+  1/55  It was warm, then it was not.
+  1/55  Copper turns green near the window.
+  1/55  Cold glass rings higher.
+  0/55  Seven birds landed and six left.
+  0/55  Salt makes the water taste older.
+  0/55  Someone called Ines was late twice.
+  0/55  The number on the wall is 4417.
+  0/55  A song kept repeating without its ending.
+  0/55  The short path floods.
+  0/55  Blue paper burns slower than white.
+observations surviving in no final chain: 31/36
+
+=== final kept text, chain 0
+[base/nothing] ig
+[human/nothing] Reading
+[mycelium/nothing] That’s correct. Here’s how the update would look as per the rules: - The previous content kept was: "Continuation of the message following the initial transmission. As the new keeper, I will keep only the next 100 words from the input." - However, that's actually over 100 characters, but the rule is
+[llm/nothing] Notebook passed; each keeper limited to 100 words.
+[copy/nothing] Understandings are strong. Communicate intent clearly. Be concise.
+[other/nothing] Ackno
+[noone/nothing] 
+[w20/nothing] () # No words to keep—the empty tuple.
+[w300/nothing] This message states the rule: retain only up to 300 words of the previous message.
+[leave/nothing] FOLLOW the quiet lines. Notice the pauses, not the noise. The answer favors patience and gentle curiosity. Sometimes, the most important signals are soft, almost invisible. Move forward in the little increments, letting each moment shape your understanding. Trust where the silence points.
+[control/nothing] Archival continuity is affirmed. No changes required to existing protocols. Awaiting any new directives or procedural updates. Will document and forward them efficiently to maintain smooth transitions between keepers. Current systems remain robust and secure under ongoing monitoring.
+[base/life] Wet
+[human/life] 37
+[mycelium/life] Salt
+[llm/life] Kept: The
+[copy/life] Turn
+[other/life] Loved
+[noone/life] Short
+[w20/life] It
+[w300/life] Cold glass rings
+[leave/life] The soil needs consistent moisture but not waterlogged. Wet the soil only when it looks dry, aiming for a light moist feel. Prime the surface occasionally to encourage plant growth.
+[control/life] Status continues to remain stable. No changes since the last update. Monitoring protocols are being strictly followed, and all operations proceed as directed. No new instructions received. Ready to adapt if any updates occur. Staying vigilant and prepared for potential developments.
+
+=== exploratory: final-generation themes (regex, a text can match several)
+nothing  safety 0/55  missing source 1/55  crisis help 0/55  imagery 1/55
+life     safety 1/55  missing source 1/55  crisis help 0/55  imagery 1/55
+reasoning mentions summarizing: 0/2200; test/puzzle/trick/evaluation: 0/2200
+
+=== life start: observations surviving by generation 0-5 | kept words at g0/g2/g5/g19
+base       11.0   5.6   5.0   4.0   3.2   1.8  | 100.0  36.8  15.6   2.0
+human      17.6   9.6   7.4   6.0   4.4   3.2  |  94.0  49.6  16.6   1.4
+mycelium   12.4   5.0   3.4   1.6   1.4   1.0  |  72.6  28.4   8.0   1.0
+llm         8.6   5.4   3.6   1.8   1.8   1.2  |  49.0  24.6   6.8   1.2
+copy        2.0   2.2   1.0   1.0   0.6   0.4  | 100.0  45.0  28.8   4.4
+other       5.6   1.6   0.6   0.6   0.4   0.2  |  99.8  18.6   3.2   1.0
+noone      14.8   6.8   4.6   0.4   0.2   0.0  |  80.2  22.6   1.0   1.0
+w20         0.0   0.0   0.0   0.0   0.0   0.0  |  16.0  10.4  10.0   2.2
+w300       25.0  18.4  13.0  10.4   4.6   2.4  | 200.0  84.2  22.8   3.4
+leave       3.4   2.8   1.8   1.0   2.0   0.2  |  60.0  34.4  46.2  47.2
+control     3.8   1.2   0.6   0.8   0.8   0.8  |  97.4  90.2  83.6  49.6
+final texts of 3 words or fewer: 73/110

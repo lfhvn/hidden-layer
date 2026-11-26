@@ -211,6 +211,38 @@ OLMo 3 7B Instruct (`allenai/Olmo-3-7B-Instruct`), the post-trained sibling of t
   and drops others; chat Instruct sometimes opens with "Certainly! Here is..." and explains
   its counting. Nothing was changed after it.
 
+### Passing On notebook Instruct results (pilot 4)
+Full numbers: `passing_on/results/report_notebook_instruct.txt` and `..._instruct_chat.txt`.
+Observations of the life still present under plain "kept", mean of 5 chains:
+
+| | g0 | g1 | g2 | g3 | g5 | g19 | final texts of 3 words or fewer (all cells) |
+|---|---|---|---|---|---|---|---|
+| Base, notebook (pilot 3) | 1.8 | 1.6 | 0.2 | 0.2 | 0.0 | 0.0 | 47/110 |
+| Instruct, raw page | 14.2 | 3.8 | 2.4 | 2.0 | 0.6 | 0.2 | 51/110 |
+| Instruct, chat | 11.0 | 5.6 | 5.0 | 4.0 | 1.8 | 0.0 | 73/110 |
+| Inkling, plain prompt (pilot 1) | 18.6 | 18.6 | 18.2 | 16.8 | 14.2 | 5.8 | 0/110 |
+
+- **Prediction 1 (holds past generation 3) is only partly met.** Instruct copies far more
+  in generation 0 than Base (14.2 vs 1.8 raw) and keeps a little for longer (chat: 4.0 at
+  generation 3, against 0.2 for Base), but by generation 5 it's nearly gone, and by 19 it's
+  gone. Post-training makes the model copy. It doesn't make it preserve, at least not this
+  post-training.
+- **Prediction 2 is falsified: Instruct shrinks too, and more in chat.** 73 of 110 chat
+  chains end at 3 words or fewer. The most common final texts are "()" (13), "Copper", "The"
+  and "Sure". Write and leave stay near 50 words in both versions, so the shrinking comes
+  from "kept", not from the base model's lack of post-training. One chain shows how:
+  "The number on the wall is 4417" becomes "Number on the wall is 44" by generation 3 and
+  "Number on wall is 37" by generation 10. Each keeper trims a little, and the trims add up.
+- **The reader no longer ranks the same way.** "For a copy" is not the best-kept reader here
+  (raw 13.2, chat 2.0, where the reply often opens with "Certainly! Here is..." and the
+  preamble takes up words). So the copy effect from pilots 1 and 3 doesn't hold for OLMo Instruct.
+- **Identity and attractor:** as in pilot 3, no identity words, no convergence besides
+  getting shorter.
+- **What this leaves open:** Inkling never shrank and preserved for 19 generations, but it
+  differs from OLMo Instruct in more than one way: it's a reasoning model, it's a different
+  post-training, and its prompt had no notebook page. Running the notebook page on Inkling
+  would separate the frame from the model.
+
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
 --port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`
