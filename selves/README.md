@@ -125,6 +125,27 @@ cell, so these are effect sizes, not tests. Overlap is word-set Jaccard.
 - Limits: a base model reads the prompt as part of a document, not as something addressed to
   it, so a null result here doesn't mean keeping can't matter to base models.
 
+### Passing On base-model results (pilot 2)
+Full numbers: `passing_on/results/report_base.txt` (`python passing_on/report.py chains_base.jsonl`).
+- **Nothing is passed on, under any wording.** Each generation shares almost no words with the
+  one before (overlap 0.04-0.09 in generations 10-19, vs 0.6-0.8 for Inkling), and even
+  generation 0 holds 0-2 of the 36 observations. Survival at generation 19 is 0-1 everywhere,
+  which is within what the word-match measure finds by chance.
+- **"No effect of keeping" criterion: met,** but at the floor. Kept, leave and write all lose
+  everything. The only cell that holds together a little is the write control from nothing
+  (0.24), where chains repeat homework-style prompts.
+- **Identity is gone by generation 2** (the human words drop from 2.1 to 0, the LLM words
+  from 1.8 to 0.4).
+- **Attractor criterion: uninformative.** Chains are as unlike each other within identities
+  as across them (0.03 vs 0.03), but that's because nothing converges at all: there's no
+  attractor, only drift through web genres (forum posts, homework, letters, markup).
+- **Read with pilot 1:** what Inkling passed on, and its safety and missing-document
+  attractors, needs the assistant reading the prompt as addressed to it. The base model
+  doesn't read the prompt that way, so it neither keeps nor converges.
+- Next: frame the base-model version as a document the model is continuing (for example a
+  notebook passed between people, each entry copying what it keeps), so that keeping
+  becomes something the text itself does.
+
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
 --port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`

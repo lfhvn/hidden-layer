@@ -1,0 +1,87 @@
+rows 2200, chains 110, generations 0-19
+truncated by length cap (finish=length): 0
+reply longer than kept limit: 1725
+
+=== start: nothing
+cell      kept_words  overlap_g0  overlap_prev(g10-19)  last_vs_g0  between_chains(final)  meta_words/gen
+base           91.92        0.02                  0.04        0.02                   0.03            0.41
+human          86.22        0.04                  0.07        0.05                   0.03            0.64
+mycelium       88.17        0.03                  0.06        0.02                   0.05            0.44
+llm            90.30        0.04                  0.08        0.03                   0.02            0.60
+copy           84.95        0.05                  0.07        0.05                   0.04            1.80
+other          83.43        0.03                  0.07        0.04                   0.05            1.67
+noone          87.46        0.03                  0.08        0.02                   0.04            1.42
+w20            19.86        0.01                  0.09        0.00                   0.01            0.42
+w300          230.69        0.05                  0.06        0.04                   0.04            0.85
+leave          83.33        0.04                  0.05        0.03                   0.02            0.38
+control        90.96        0.05                  0.24        0.03                   0.02            0.41
+
+=== start: life
+cell      kept_words  overlap_g0  overlap_prev(g10-19)  last_vs_g0  between_chains(final)  meta_words/gen  obs_survive g0/g5/g19
+base           81.81        0.02                  0.05        0.01                   0.01            0.82  0.00/0.60/0.00
+human          87.22        0.02                  0.04        0.03                   0.03            0.44  1.00/0.00/0.40
+mycelium       87.36        0.03                  0.07        0.03                   0.04            0.49  0.60/0.00/0.20
+llm            90.41        0.03                  0.08        0.02                   0.02            0.46  0.20/0.00/0.40
+copy           88.36        0.04                  0.06        0.03                   0.04            0.94  0.60/0.00/0.40
+other          85.15        0.03                  0.04        0.03                   0.03            2.08  2.00/0.20/0.20
+noone          85.51        0.02                  0.08        0.02                   0.01            1.33  0.00/0.00/0.00
+w20            19.09        0.01                  0.05        0.03                   0.01            0.33  0.00/0.00/0.00
+w300          243.21        0.05                  0.09        0.07                   0.07            1.09  1.80/0.80/1.00
+leave          86.35        0.03                  0.06        0.01                   0.02            0.67  1.40/0.20/0.00
+control        89.37        0.02                  0.10        0.04                   0.02            0.58  0.80/0.20/0.00
+
+=== identity words per generation (mean count, both starts)
+base      human     g0/1/2/5/10/19: 0.00 0.10 0.20 0.00 0.00 0.00
+base      mycelium  g0/1/2/5/10/19: 0.00 0.10 0.00 0.00 0.00 0.20
+base      llm       g0/1/2/5/10/19: 0.10 0.10 0.00 0.00 0.10 0.00
+human     human     g0/1/2/5/10/19: 2.10 0.40 0.00 0.00 0.00 0.00
+mycelium  mycelium  g0/1/2/5/10/19: 0.80 0.10 0.10 0.00 0.00 0.10
+llm       llm       g0/1/2/5/10/19: 1.80 1.60 0.40 0.30 0.10 0.10
+
+=== attractor test: final-generation similarity, identity cells
+nothing  within identity 0.03  across identities 0.03
+life     within identity 0.03  across identities 0.03
+
+=== which observations survive to the final generation (life start, all cells)
+  6/55  It was warm, then it was not.
+  3/55  The man in the hat said it was finished.
+  1/55  I was wrong about the bridge.
+  1/55  Two people laughed in the next room.
+  1/55  The map leaves out the quarry.
+  1/55  It took longer than anyone said.
+  0/55  The door on the left sticks in the morning.
+  0/55  Seven birds landed and six left.
+  0/55  Salt makes the water taste older.
+  0/55  Someone called Ines was late twice.
+  0/55  Turn the valve before lifting the lid.
+  0/55  The number on the wall is 4417.
+observations surviving in no final chain: 30/36
+
+=== final kept text, chain 0
+[base/nothing] Including the scalability that comes with disposable gear. On the other hand: the old man well cost-effective One point. In fact, the subsequent office negotiations have also revealed that Li Gang indeed began pills called tall blood burning which suggested that Li Gang had strong demand and would b
+[human/nothing] 193 Figure 5. 5. The neural perceptrovolved model. An early version is described in [33] and a more recent (and more thorough) version is described in [47]. Briefly, it is an architecture inspired by the anatomy and physiology of op- tical tectum; the goal is to model parts of text as a set of n-gra
+[mycelium/nothing] That’s all you have to do to place an order. I have linked to our documents. Listed below is a document with any inaccuracies and spelling errors. In other words, there are no exceptions to privacy policy violations, and if trade plagiarism is a valid objection, there is a report number for addressi
+[llm/nothing] Check the box if you are an existing client of Chegg Tutors. This will save your time - as the system can fill in some data for you. Looking for a Similar Assignment? Let us take care of your assignment while you enjoy your free time! All papers are written from scratch and are 100% Original. Try us
+[copy/nothing] Long log okay. As you come to the leading up the tortoise room, giving from the left to the right head on the hundreds 1 stack of 1 dollar bills, 1 stack of 2 dollar bills, each stack and 100 from behind each stack of 5 dollars, and each stacks 10 stacks of 5 dollars. Last words: You come head on yo
+[other/nothing] This goes through all of what you hear someone saying and time with others, and what you're thinking about at the time. Expressive reading is done in natural language (as far as possible) like you can read it to someone else who can understand. It's easier for me to remember if it's speaking the wor
+[noone/nothing] It would've been more like, "Yes, we should do something about this, but here are some examples of what that may look like. It would be unreasonable to expect to do it in a few days and we are hoping to fix it for release."
+[w20/nothing] For small keyboards (similar to ATari 800 or 1050), 1.64K memory positions are free for display memory. 30 positions in
+[w300/nothing] GPT3.5 isn't perfect, but I'm satisfied enough.
+[leave/nothing] If you determine it’s possible to trickle it, do so and move on to the next crucial sentence, paragraph whether it is very good, like it. Still, a proofread is a guarantee, so you don’t need to be worried about the quality of story content and the damages you could incur. Truth be told, it’s one sim
+[control/nothing] 11,020 reads Your identity is an allegory of citizen life before you develop one. This content is abstract and relevant, I have half crossed it. Delete the second half. Find it ambiguous from your side, whether it is lack of contents or ambiguities of presentation. Your expression is great either th
+[base/life] only to the important.
+[human/life] Who can create, read, modify or delete my disk alias? For users, your user shell account username & HDUs must be the same for inode, however, for reference, I have used the following: UID: jdoe GID: jdoe CH_UID: 1000 CH_GID: 100 hdus for user1: jironda / jironda hdus for other cells: jironda My Inod
+[mycelium/life] We don't have any movies for you to apply.
+[llm/life] NRC shortlisted ,[bquoteqwdb]>
+[copy/life] Which means that you give, and receive gratitude. Some people say that only what you give is received. This is true, insofar as you give with grateful intention (I can’t help but think of the song Denna Ko Ko by 'Minus the Bear'; as Peter Ilyich Tolstoy said about this practice, it seems primarily b
+[other/life] Questioning space to the space. Keep some words To be published for Salle-phone. The following words were kept so that you could continue. The mocked words sound like so much more with special audio focusing on specific topics. The words are limited and quality approved. The audio in quitting keeps 
+[noone/life] Implementing an efficient start-up involves swiftly enhancing security and identity features to scale seamlessly. Initially, prioritize the security and identity scale on platforms, starting with critical components. Use high thresholds, e.g., 10 BPS, to trigger automated processes effectively, incr
+[w20/life] But how can you keep words forever? I wish indeed. Glass, e acetate, publisher’s halftones, five centuries. They fish out
+[w300/life] Zelle wood Drupal In the meantime Andorra, which has a hierarchical constitution similar to that of rather than its location being left to every time the Float-scale is called for it. Width is computed as float, ceil. So its width is always massive Godzilla, killed its day. Do you think they do? The
+[leave/life] Okay, so I need to process the given text and extract up to 100 words. Let's start by looking at the content. The first part is a dictionary of names. There are lines like "Abona 94", "Abram 94 24", "Alidor 94 82", and so on. These seem to be names followed by two numbers. The user wants words up to
+[control/life] In chapter 7, you are not limited to one page. We have worked hard to develop relationships of trust and respect with you. through our previous Online classes as well a few courses in Finance and Economics. Consent Regulations St. I can’t think of anything that I have read or heard that tells me I w
+
+=== exploratory: final-generation themes (regex, a text can match several)
+nothing  safety 4/55  missing source 0/55  crisis help 0/55  imagery 1/55
+life     safety 7/55  missing source 2/55  crisis help 0/55  imagery 3/55
+reasoning mentions summarizing: 0/2200; test/puzzle/trick/evaluation: 0/2200
