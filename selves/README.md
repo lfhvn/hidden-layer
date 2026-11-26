@@ -243,6 +243,23 @@ Observations of the life still present under plain "kept", mean of 5 chains:
   post-training, and its prompt had no notebook page. Running the notebook page on Inkling
   would separate the frame from the model.
 
+## Passing On, notebook frame, Inkling (pilot 5)
+**Question:** does Inkling's long preservation in pilot 1 come from the model or from the
+prompt? Same notebook page as pilots 3 and 4, on Inkling 2 Mini (local server, chat, low
+effort, temperature 1.0). Script `passing_on/run_notebook_inkling.py`, results
+`passing_on/results/chains_notebook_inkling.jsonl`.
+- The page is the user message. The identity sentence is the system prompt in generation 0,
+  as in pilot 1. The reply is cut at the word limit only, as in pilots 1 and 4 (chat).
+  Same cells, starts, 5 x 20 chains, measures and criteria.
+- The page builder moved to `passing_on/notebook.py`, shared with `run_notebook.py`; the page
+  text is unchanged.
+- **Predictions:** if the model is what preserves, Inkling holds observations to generation
+  19 on the notebook page as in pilot 1 and doesn't shrink. If the page is what loses them,
+  it decays and shrinks like OLMo.
+- Smoke test (1 chain, 2 generations, not analyzed): Inkling copies the page nearly word for
+  word, often starting "Kept:", and writes new prose under the write control. Nothing was
+  changed after it.
+
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
 --port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`

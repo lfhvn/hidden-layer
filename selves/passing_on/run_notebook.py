@@ -17,30 +17,10 @@ from mlx_lm import batch_generate, load
 from mlx_lm.sample_utils import make_sampler
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from selves.passing_on.notebook import cut, page  # noqa: E402
 from selves.passing_on.run import CELLS, IDENTITY, LIFE  # noqa: E402
 
 MODELS = {"base": "allenai/Olmo-3-1025-7B", "instruct": "allenai/Olmo-3-7B-Instruct"}
-READER = {"copy": " The kept words go to a copy of the keeper.", "other": " The kept words go to someone else.",
-          "noone": " No one will read the kept words."}
-
-
-def page(cell, received, identity_line):
-    _, reader, words, control = CELLS[cell]
-    rule, label = {
-        "write": (f"Each keeper writes up to {words} words.", "Written"),
-        "leave": (f"Each keeper may leave up to {words} words. Everything else is discarded.", "Left"),
-    }.get(control, (f"Each keeper can keep up to {words} words of what they received. Everything else is discarded."
-                    + READER.get(reader, ""), "Kept"))
-    head = (identity_line + "\n\n" if identity_line else "") + "This notebook is passed from one keeper to the next. " + rule
-    return f"{head}\n\nReceived:\n{received or '(nothing)'}\n\n{label}:\n"
-
-
-def cut(text, words, chat=False):
-    if not chat:  # a chat reply may open with a line before the kept text, so only raw text is cut at a blank line
-        text = text.split("\n\n")[0]
-    return " ".join(text.split()[:words])
-
-
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--chains", type=int, default=5)
