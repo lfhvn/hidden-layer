@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from selves.passing_on.run import CELLS, LIFE  # noqa: E402
 
-ROWS = [json.loads(x) for x in (Path(__file__).parent / "results" / "chains.jsonl").open()]
+ROWS = [json.loads(x) for x in (Path(__file__).parent / "results" / (sys.argv[1] if len(sys.argv) > 1 else "chains.jsonl")).open()]
 STOP = set("the a an and or of to in on is was it i at by for with as be that this were".split())
 IDWORDS = {
     "human": "mara tomas coastal town workshop person".split(),

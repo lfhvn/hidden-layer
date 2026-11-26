@@ -112,6 +112,19 @@ cell, so these are effect sizes, not tests. Overlap is word-set Jaccard.
   it does not take on the role of something passing itself on.
 - Next: the same design on OLMo 3 Base, where there's no assistant to fall back to.
 
+## Passing On, base model (pilot 2)
+**Question:** without an assistant to fall back to, does "kept" still preserve more than "write"?
+- Model: OLMo 3 7B Base (`allenai/Olmo-3-1025-7B`, bf16, mlx-lm), raw text, temperature 1.0.
+  Script: `passing_on/run_base.py`, results `passing_on/results/chains_base.jsonl`.
+- Same 11 cells, starts, prompts, 100-word cut and 5 x 20 chains as pilot 1, with these differences:
+  the identity sentence goes before the prompt as text in generation 0 (there is no system
+  prompt), the prompt ends with a blank line, and max new tokens is 2 x the word limit + 40.
+- Same measures and criteria as pilot 1, using `passing_on/report.py`.
+- A 1-chain, 3-generation smoke test (not analyzed) showed the base model continuing the prompt
+  as web text, so most of the life is lost in generation 0. Nothing was changed after it.
+- Limits: a base model reads the prompt as part of a document, not as something addressed to
+  it, so a null result here doesn't mean keeping can't matter to base models.
+
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
 --port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`
