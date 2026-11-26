@@ -260,6 +260,31 @@ effort, temperature 1.0). Script `passing_on/run_notebook_inkling.py`, results
   word, often starting "Kept:", and writes new prose under the write control. Nothing was
   changed after it.
 
+## Passing On, label test (pilot 6)
+**Question:** in pilots 3 and 4, kept texts shrank to a few words. Is that the "keep" rule
+or the "Kept:" label the model continues from?
+- 2 x 2: rule ("can keep up to 100 words" / "writes up to 100 words") x open line (its own
+  label "Kept:" / "Written:", or the neutral "Next:"). Cells `base`, `keep_next`, `control`,
+  `write_next` (`notebook.py`). 10 chains per cell and start, 20 generations.
+- Models: OLMo 3 7B Base raw (`--model base`) and OLMo 3 7B Instruct chat (`--model instruct --chat`),
+  bf16, on the MacBook. Results `chains_label_base.jsonl`, `chains_label_instruct_chat.jsonl`.
+- Measure: final texts of 3 words or fewer, and kept words at generation 19, per cell.
+  **Label effect if** `keep_next` shrinks clearly less than `base`. **Rule effect if**
+  `keep_next` still shrinks and `write_next` doesn't. Survival by generation as before.
+- No smoke test beyond checking the pages print as intended (the runner is pilot 3's).
+
+## Soup, long run (pilot 2)
+**Question:** pilot 1 found no self-organization in 300 steps (3 turnovers). Does it appear
+over 1,200 steps (12 turnovers)?
+- OLMo 3 7B Instruct, **8-bit** (`mlx-community/Olmo-3-7B-Instruct-8bit`, revision 9ceec58),
+  on the Mac mini (16 GB, which can't hold bf16 alongside a batch). Same `init.json` and
+  conditions (random, kin, recall) and drift, 4 seeds, `--steps 1200`. Results
+  `soup/results/instruct8_1200.jsonl`, `drift_1200.jsonl`.
+- Same criterion: **no self-organization if** random and kin don't exceed recall on phrase
+  share at step 1,200. Phrase share at steps 300 and 600 is also reported.
+- Limits: 8-bit differs from pilot 1's bf16, so compare the long run with its own recall
+  control, not with pilot 1's numbers.
+
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
 --port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`

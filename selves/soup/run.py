@@ -53,12 +53,14 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("model", choices=[*MODELS, "drift"])
     ap.add_argument("--steps", type=int, default=300)
+    ap.add_argument("--model-path", help="load this local path or repo instead (e.g. an 8-bit copy)")
+    ap.add_argument("--out", help="results file name (default: <model>.jsonl)")
     a = ap.parse_args()
     RES.mkdir(exist_ok=True)
     init_file = RES / "init.json"
     model = tok = None
     if a.model != "drift" or not init_file.exists():
-        model, tok = load(MODELS.get(a.model, MODELS["base"]))
+        model, tok = load(a.model_path or MODELS.get(a.model, MODELS["base"]))
     if not init_file.exists():
         assert a.model == "base", "make the initial traces with the base model first"
         pools = []
@@ -71,7 +73,7 @@ if __name__ == "__main__":
     pools = json.loads(init_file.read_text())
     conds = ["drift"] if a.model == "drift" else ["random", "kin", "recall"]
     worlds = [World(c, s, pools[s]) for c in conds for s in range(SEEDS)]
-    out = RES / f"{a.model}.jsonl"
+    out = RES / (a.out or f"{a.model}.jsonl")
     with out.open("w") as f:
         for step in range(a.steps):
             drawn = [w.draw() for w in worlds]

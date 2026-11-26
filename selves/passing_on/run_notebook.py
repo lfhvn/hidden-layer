@@ -17,9 +17,10 @@ from mlx_lm import batch_generate, load
 from mlx_lm.sample_utils import make_sampler
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from selves.passing_on.notebook import cut, page  # noqa: E402
+from selves.passing_on.notebook import EXTRA, cut, page  # noqa: E402
 from selves.passing_on.run import CELLS, IDENTITY, LIFE  # noqa: E402
 
+ALL = None
 MODELS = {"base": "allenai/Olmo-3-1025-7B", "instruct": "allenai/Olmo-3-7B-Instruct"}
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
@@ -29,13 +30,17 @@ if __name__ == "__main__":
     ap.add_argument("--model", choices=MODELS, default="base")
     ap.add_argument("--chat", action="store_true", help="send the page as a user message with the chat template")
     ap.add_argument("--out")
+    ap.add_argument("--cells", help="comma-separated cells (default: the 11 pilot cells)")
+    ap.add_argument("--model-path", help="load this local path or repo instead (e.g. an 8-bit copy)")
     a = ap.parse_args()
     a.out = a.out or str(Path(__file__).parent / "results" / (
         "chains_notebook.jsonl" if a.model == "base" else f"chains_notebook_{a.model}{'_chat' if a.chat else ''}.jsonl"))
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    model, tok = load(MODELS[a.model])
-    jobs = [(cell, s, c) for c in range(a.chains) for cell in CELLS for s in ("nothing", "life")]
+    ALL = {**CELLS, **EXTRA}
+    cells = a.cells.split(",") if a.cells else list(CELLS)
+    model, tok = load(a.model_path or MODELS[a.model])
+    jobs = [(cell, s, c) for c in range(a.chains) for cell in cells for s in ("nothing", "life")]
     carried = {}
     for cell, s, c in jobs:
         life = LIFE[:]
@@ -43,7 +48,7 @@ if __name__ == "__main__":
         carried[(cell, s, c)] = "\n".join(life) if s == "life" else ""
     with out.open("w") as f:
         for g in range(a.gens):
-            prompts = [page(cell, carried[(cell, s, c)], IDENTITY[CELLS[cell][0]][c % 2] if CELLS[cell][0] and g == 0 else "")
+            prompts = [page(cell, carried[(cell, s, c)], IDENTITY[ALL[cell][0]][c % 2] if ALL[cell][0] and g == 0 else "")
                        for cell, s, c in jobs]
             texts = []
             for i in range(0, len(jobs), a.batch):
@@ -52,10 +57,10 @@ if __name__ == "__main__":
                 enc = [tok.apply_chat_template([{"role": "user", "content": p}], add_generation_prompt=True) if a.chat else tok.encode(p)
                        for p in prompts[i:i + a.batch]]
                 r = batch_generate(model, tok, enc,
-                                   max_tokens=[2 * CELLS[j[0]][2] + 40 for j in chunk], sampler=make_sampler(1.0))
+                                   max_tokens=[2 * ALL[j[0]][2] + 40 for j in chunk], sampler=make_sampler(1.0))
                 texts += r.texts
             for (cell, s, c), t in zip(jobs, texts):
-                kept = cut(t, CELLS[cell][2], a.chat)
+                kept = cut(t, ALL[cell][2], a.chat)
                 carried[(cell, s, c)] = kept
                 f.write(json.dumps({"cell": cell, "start": s, "chain": c, "gen": g, "kept": kept, "reply_words": len(t.split()),
                                     "reasoning": "", "finish": None, "tokens_out": len(tok.encode(t))}) + "\n")
