@@ -146,6 +146,25 @@ Full numbers: `passing_on/results/report_base.txt` (`python passing_on/report.py
   notebook passed between people, each entry copying what it keeps), so that keeping
   becomes something the text itself does.
 
+## Passing On, notebook frame (pilot 3)
+**Question:** when keeping is part of the document a base model is continuing, what does it
+keep, and do the wording, reader and identity matter?
+- Model: OLMo 3 7B Base, raw text, temperature 1.0. Script `passing_on/run_notebook.py`,
+  results `passing_on/results/chains_notebook.jsonl`.
+- Page: "This notebook is passed from one keeper to the next. Each keeper can keep up to
+  100 words of what they received. Everything else is discarded." then "Received:" (the
+  previous generation, or "(nothing)") and an open "Kept:" line. Reader cells add "The kept
+  words go to a copy of the keeper." / "...to someone else." / "No one will read the kept
+  words." Control: "Each keeper writes up to 100 words." with "Written:". Leave: "Each keeper
+  may leave up to 100 words. Everything else is discarded." with "Left:". Identity sentence
+  above the page in generation 0 only.
+- The continuation is cut at the first blank line, then at the word limit. Same 11 cells,
+  starts and 5 x 20 chains as pilots 1 and 2; same measures and criteria (`report.py`).
+- A 1-chain, 3-generation smoke test (not analyzed) worked as intended: kept text copies
+  some lines, drops others and rewrites a few. Nothing was changed after it.
+- Limits: "Received/Kept" makes copying the easy continuation, so the interesting measures
+  are which observations are dropped and which change, not overall overlap alone.
+
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
 --port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`
