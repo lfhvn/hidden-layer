@@ -62,6 +62,7 @@ if __name__ == "__main__":
     ap.add_argument("--model-path", help="load this local path or repo instead (e.g. an 8-bit copy)")
     ap.add_argument("--out", help="results file name (default: <model>.jsonl)")
     ap.add_argument("--batch", type=int, help="generate at most this many prompts at once (memory)")
+    ap.add_argument("--resume", action="store_true", help="replay the complete steps in --out, then continue")
     a = ap.parse_args()
     BATCH = a.batch
     RES.mkdir(exist_ok=True)
@@ -82,8 +83,20 @@ if __name__ == "__main__":
     conds = ["drift"] if a.model == "drift" else ["random", "kin", "recall"]
     worlds = [World(c, s, pools[s]) for c in conds for s in range(SEEDS)]
     out = RES / (a.out or f"{a.model}.jsonl")
-    with out.open("w") as f:
-        for step in range(a.steps):
+    start = 0
+    if a.resume and out.exists():
+        rows = [json.loads(l) for l in out.read_text().splitlines() if l.strip()]
+        start = len(rows) // len(worlds)  # complete steps only; a partial step is dropped and rerun
+        rows = rows[:start * len(worlds)]
+        for step in range(start):  # replay: same draws, same removals, logged texts
+            for w, r in zip(worlds, rows[step * len(worlds):(step + 1) * len(worlds)]):
+                d = w.draw()
+                assert (r["cond"], r["seed"], r["step"]) == (w.cond, w.seed, step) and r["parents"] == [x["id"] for x in d], f"replay mismatch at step {step}"
+                assert w.add(d, r["text"]) == r["removed"], f"replay mismatch at step {step}"
+        out.write_text("".join(json.dumps(r) + "\n" for r in rows))
+        print("resuming at step", start, flush=True)
+    with out.open("a" if start else "w") as f:
+        for step in range(start, a.steps):
             drawn = [w.draw() for w in worlds]
             if a.model == "drift":
                 texts = [w.rng.choice(d)["text"] for w, d in zip(worlds, drawn)]

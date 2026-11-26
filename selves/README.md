@@ -330,6 +330,11 @@ over 1,200 steps (12 turnovers)?
   its cache snapshot path (same revision), since the offline cache has no `main` ref.
   `report.py` now prints the pool at steps 300 and 600 for runs that reach them. The drift
   control (no model) completed in the first attempt and is kept.
+- **Interrupted:** the run stopped at 2:53 AM on Nov 26 after 607 complete steps (the
+  session that launched it closed). It resumes with `--resume`, which replays the logged
+  steps (the same draws and removals, checked against the log; the replay reproduces all
+  300 steps of pilot 1 exactly) and continues at step 607 with the same per-step seeds. It
+  runs detached (`nohup`) so a closed session can't stop it again. The analysis is unchanged.
 
 ### Passing On label test results (pilot 6)
 Full numbers: `passing_on/results/report_label_base.txt`, `..._instruct_chat.txt`. Final
