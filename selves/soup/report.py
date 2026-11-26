@@ -8,6 +8,7 @@ from pathlib import Path
 from statistics import mean
 
 RES = Path(__file__).parent / "results"
+SNAP = (300, 600)  # pool snapshots taken before these steps, for runs that reach them
 pools0 = json.loads((RES / "init.json").read_text())
 
 
@@ -37,16 +38,21 @@ for f in sorted(RES.glob("*.jsonl")):
     for r in map(json.loads, f.open()):
         runs.setdefault((r["cond"], r["seed"]), []).append(r)
     for cond in dict.fromkeys(c for c, _ in runs):
-        ms, empty = [], 0
+        ms, empty, snaps, prev = [], 0, {}, None
         for (c, s), rows in runs.items():
             if c != cond:
                 continue
             pool = dict(enumerate(pools0[s]))
             for r in rows:
+                if r["step"] in SNAP and r["step"] != prev:
+                    snaps.setdefault(r["step"], []).append(measure(list(pool.values())))
+                prev = r["step"]
                 empty += not r["text"]
                 if r["text"]:
                     pool[r["id"]] = r["text"]
                     del pool[r["removed"]]
             ms.append(measure(list(pool.values())))
+        for st in sorted(snaps):
+            show(f"  at step {st}", snaps[st])
         show(f"{f.stem}/{cond}", ms)
         print(f"{'':18}empty continuations: {empty}")

@@ -14,11 +14,17 @@ MODELS = {"base": "allenai/Olmo-3-1025-7B", "instruct": "allenai/Olmo-3-7B-Instr
 POOL, NEW, SEEDS = 100, 80, 4
 
 
+BATCH = None  # set by --batch; None generates all prompts in one batch (pilot 1)
+
+
 def generate(model, tok, prompts, seed):
-    mx.random.seed(seed)
-    r = batch_generate(model, tok, [tok.encode(p) if p else [tok.eos_token_id] for p in prompts],
-                       max_tokens=NEW, sampler=make_sampler(1.0))
-    return [t.strip().split("\n\n")[0].strip() for t in r.texts]
+    texts, n = [], BATCH or len(prompts)
+    for i in range(0, len(prompts), n):
+        mx.random.seed(seed + i)  # i is 0 for a single batch, so pilot 1's seeds are unchanged
+        r = batch_generate(model, tok, [tok.encode(p) if p else [tok.eos_token_id] for p in prompts[i:i + n]],
+                           max_tokens=NEW, sampler=make_sampler(1.0))
+        texts += r.texts
+    return [t.strip().split("\n\n")[0].strip() for t in texts]
 
 
 class World:
@@ -55,7 +61,9 @@ if __name__ == "__main__":
     ap.add_argument("--steps", type=int, default=300)
     ap.add_argument("--model-path", help="load this local path or repo instead (e.g. an 8-bit copy)")
     ap.add_argument("--out", help="results file name (default: <model>.jsonl)")
+    ap.add_argument("--batch", type=int, help="generate at most this many prompts at once (memory)")
     a = ap.parse_args()
+    BATCH = a.batch
     RES.mkdir(exist_ok=True)
     init_file = RES / "init.json"
     model = tok = None

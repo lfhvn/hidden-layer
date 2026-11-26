@@ -284,6 +284,12 @@ over 1,200 steps (12 turnovers)?
   share at step 1,200. Phrase share at steps 300 and 600 is also reported.
 - Limits: 8-bit differs from pilot 1's bf16, so compare the long run with its own recall
   control, not with pilot 1's numbers.
+- **Changed before data collection** (the first attempt didn't get past step 0): the 12
+  prompts of a step ran out of GPU memory on the mini, so they're generated 4 at a time
+  (`--batch 4`; each chunk seeded with step seed + chunk offset), and the model is loaded from
+  its cache snapshot path (same revision), since the offline cache has no `main` ref.
+  `report.py` now prints the pool at steps 300 and 600 for runs that reach them. The drift
+  control (no model) completed in the first attempt and is kept.
 
 ## Passing On, Inkling power run (pilot 7)
 **Question:** are pilot 1's main contrasts real at more than 5 chains?
