@@ -1,0 +1,15 @@
+start             top=0.010 distinct=0.975 zlib=0.532 first=0.050 words=17.875 | top by seed [0.01, 0.01, 0.01, 0.01] | hope in trying max capping
+base/random       top=0.020 distinct=0.981 zlib=0.508 first=0.143 words=26.328 | top by seed [0.02, 0.02, 0.02, 0.02] | dataset contains a number n
+                  empty continuations: 0
+base/kin          top=0.022 distinct=0.995 zlib=0.500 first=0.138 words=31.023 | top by seed [0.02, 0.02, 0.03, 0.02] | wine opener comparison table uc
+                  empty continuations: 0
+base/recall       top=0.020 distinct=0.994 zlib=0.517 first=0.110 words=24.892 | top by seed [0.04, 0.01, 0.01, 0.02] | okay let s see the
+                  empty continuations: 1
+drift/drift       top=0.152 distinct=0.293 zlib=0.194 first=0.055 words=16.393 | top by seed [0.26, 0.08, 0.1, 0.17] | loss may damage fitness performance
+                  empty continuations: 0
+instruct/random   top=0.018 distinct=0.995 zlib=0.507 first=0.150 words=26.195 | top by seed [0.01, 0.02, 0.02, 0.02] | probability of winning the sale
+                  empty continuations: 13
+instruct/kin      top=0.025 distinct=0.990 zlib=0.497 first=0.142 words=27.738 | top by seed [0.04, 0.02, 0.02, 0.02] | the benefits and risks of
+                  empty continuations: 4
+instruct/recall   top=0.018 distinct=0.994 zlib=0.521 first=0.163 words=26.067 | top by seed [0.01, 0.02, 0.02, 0.02] | of solutions in positive integers
+                  empty continuations: 10

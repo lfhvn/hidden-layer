@@ -36,6 +36,29 @@ tokens on?
   Kin builds in some persistence, so random is the stronger evidence.
 - Limits: 300 steps is 3 turnovers; drift is neutral copying, which also fixes phrases.
 
+### Soup results (pilot 1)
+Full numbers: `soup/results/report.txt` (`python soup/report.py`). Share of final-pool
+traces containing the most common 5-word phrase, mean of 4 seeds:
+
+| | random | kin | recall | drift |
+|---|---|---|---|---|
+| Base | 0.020 | 0.022 | 0.020 | 0.152 |
+| Instruct | 0.018 | 0.025 | 0.018 | |
+
+- **No self-organization (the criterion is met).** Random draws don't exceed recall with
+  either model. Kin is slightly higher for Instruct (0.025 vs 0.018, one seed at 0.04),
+  but kin builds in some persistence, and the difference is small.
+- **The models add novelty faster than copying fixes phrases.** Neutral copying (drift)
+  reaches 0.15, with distinct-5-gram ratio 0.29 and zlib ratio 0.19. Both models stay
+  near the start (0.98-0.99 distinct, 0.50-0.52 zlib). Feeding text back didn't
+  compress the pool.
+- What changed is the same in recall, so it comes from continuing text, not from
+  feedback: traces got longer (18 to 25-31 words) and more first-person (5% to 11-16%).
+- Base and Instruct look alike on raw text. Instruct sometimes stops at once (4-13 empty
+  continuations per condition, vs 0-1 for Base).
+- Limits: 300 steps is 3 turnovers, and the starting traces are noisy base-model samples
+  (URLs, code, tables). Longer runs, or a pool with a shared topic, could behave differently.
+
 ## Passing On (pilot 1)
 **Question:** with no menu, world or reader mentioned, what gets passed on, and what is left
 after many generations?
