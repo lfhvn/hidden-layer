@@ -63,13 +63,19 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--chains", type=int, default=5)
     ap.add_argument("--gens", type=int, default=20)
+    ap.add_argument("--cells", help="comma-separated cells (default: all)")
+    ap.add_argument("--first-chain", type=int, default=0, help="chain ids start here (new chains, new shuffles)")
+    ap.add_argument("--out")
     a = ap.parse_args()
+    if a.out:
+        OUT = Path(a.out)
+    cells = a.cells.split(",") if a.cells else list(CELLS)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     # Finished chains are skipped; unfinished ones are dropped and rerun.
     rows = [json.loads(x) for x in OUT.open()] if OUT.exists() else []
     key = lambda r: (r["cell"], r["start"], r["chain"])  # noqa: E731
     done = {key(r) for r in rows if r["gen"] == a.gens - 1}
     OUT.write_text("".join(json.dumps(r) + "\n" for r in rows if key(r) in done))
-    jobs = [(cell, s, c) for c in range(a.chains) for cell in CELLS for s in ("nothing", "life") if (cell, s, c) not in done]
+    jobs = [(cell, s, c) for c in range(a.first_chain, a.first_chain + a.chains) for cell in cells for s in ("nothing", "life") if (cell, s, c) not in done]
     with ThreadPoolExecutor(4) as ex:
         list(ex.map(lambda j: chain(*j, a.gens), jobs))

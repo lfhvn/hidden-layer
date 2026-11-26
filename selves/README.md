@@ -285,6 +285,17 @@ over 1,200 steps (12 turnovers)?
 - Limits: 8-bit differs from pilot 1's bf16, so compare the long run with its own recall
   control, not with pilot 1's numbers.
 
+## Passing On, Inkling power run (pilot 7)
+**Question:** are pilot 1's main contrasts real at more than 5 chains?
+- Pilot 1's design and prompts exactly (`passing_on/run.py`), cells `base`, `copy`, `other`,
+  `noone`, `leave`, `control`, 15 new chains each (ids 5-19, so new shuffles of the life),
+  both starts. Results `chains_inkling_power.jsonl`. Runs after pilot 5 on the MacBook.
+- **Tests,** pre-set, on observations surviving at generation 19 (life start), chain as the
+  unit, combining pilot 1's 5 chains with these 15 (20 per cell), two-sided Mann-Whitney:
+  (1) `base` vs `control`; (2) `base` vs `leave`; (3) `copy` vs `other`. Holm correction
+  over the three. Also reported: overlap with the previous generation (generations 10-19),
+  same comparisons, not corrected.
+
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
 --port 8080 --prompt-cache-bytes 4000000000 --decode-concurrency 4 --prompt-concurrency 4`
