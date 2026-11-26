@@ -301,7 +301,7 @@ texts (generation 19, both starts, 20 chains per cell) of 3 words or fewer, and 
 | Instruct, chat | 15/20, 2.8 | 5/20, 18.6 | 0/20, 68.9 | 0/20, 76.2 |
 
 - **Label effect: yes, for both models.** Swapping "Kept:" for "Next:" under the same keep
-  rule cuts the shrunken endings from 14 to 2 of 20 (Base; Fisher exact p = 0.0001) and
+  rule cuts the shrunken endings from 14 to 2 of 20 (Base; Fisher exact p = 0.0002) and
   from 15 to 5 (Instruct; p = 0.004). For the base model the label accounts for nearly all
   of the shrinking: with "Next:", the keep rule ends about where the write rule does.
 - **Rule effect too, for Instruct.** With the same "Next:" label, keep-rule texts are still
