@@ -336,6 +336,31 @@ over 1,200 steps (12 turnovers)?
   300 steps of pilot 1 exactly) and continues at step 607 with the same per-step seeds. It
   runs detached (`nohup`) so a closed session can't stop it again. The analysis is unchanged.
 
+### Soup long run results (pilot 2)
+Full numbers: `soup/results/report_long.txt` (run on the Mac mini; steps 0-606 overnight,
+607-1199 resumed, ending Nov 26 16:14). Share of traces containing the most common 5-word
+phrase, mean of 4 seeds (start 0.010):
+
+| step | random | kin | recall | drift |
+|---|---|---|---|---|
+| 300 | 0.020 | 0.022 | 0.013 | |
+| 600 | 0.020 | 0.022 | 0.015 | |
+| 1,200 | 0.020 (0.02 every seed) | 0.022 (0.02-0.03) | 0.013 (0.01-0.02) | 0.335 |
+
+- **By the letter, the criterion is not met:** random and kin exceed recall at step 1,200
+  (0.020 and 0.022 vs 0.013), and random is above recall in 3 of 4 seeds.
+- **But the gap is one trace and it doesn't grow.** A share of 0.02 is 2 traces in 100,
+  against about 1 for recall. Every condition is at the same level at step 300 as at 1,200:
+  nine more turnovers fed back added nothing. Self-organization would mean a phrase
+  spreading over time, as it does under neutral copying (drift: 0.15 at 300, 0.335 at 1,200).
+- **The model still adds novelty faster than feedback fixes phrases:** distinct-5-gram ratio
+  0.996-0.997 and zlib ratio 0.48-0.53 at step 1,200 in all three conditions.
+- Empty continuations rose to 39 (random), 36 (kin) and 55 (recall), from 13, 4 and 10
+  in pilot 1's 300 steps; the 8-bit model stops at once more often, recall included.
+- Memory: peak swap 4.7 GB (sampled each minute), peak footprint 11.7 GB on the 16 GB mini.
+- Limits: 8-bit model; a 0.01 step in this measure is one trace, so the measure is too
+  coarse to separate conditions this close; the starting traces are noisy base samples.
+
 ### Passing On label test results (pilot 6)
 Full numbers: `passing_on/results/report_label_base.txt`, `..._instruct_chat.txt`. Final
 texts (generation 19, both starts, 20 chains per cell) of 3 words or fewer, and mean words:
@@ -368,6 +393,29 @@ texts (generation 19, both starts, 20 chains per cell) of 3 words or fewer, and 
   (1) `base` vs `control`; (2) `base` vs `leave`; (3) `copy` vs `other`. Holm correction
   over the three. Also reported: overlap with the previous generation (generations 10-19),
   same comparisons, not corrected.
+
+## Commons: enacted consequences (feasibility pilot)
+
+Four seeded agents share renewable patches, spend energy on each turn, and can
+harvest, transfer energy, create successors with inherited notes, or post to a
+shared board. Resource depletion, births and the end of an agent's continuation
+are executed by the environment. No leader or collective goal is assigned.
+This moves from hypothetical choices to actions in an artificial environment;
+it does not yet establish emergent selves or a causal effect of consequences.
+
+Design and commands: [commons/README.md](commons/README.md).
+Results and limitations: [commons/results/README.md](commons/results/README.md).
+
+## Five-agent public goods: communication and contribution
+
+Five agents choose whether to pay into a project that benefits everyone when
+at least three contribute. The comparison is simultaneous public messages versus
+private planning, with equal model-call and output-token budgets. The initial
+run is a five-round pair for checking feasibility; it is not a test with enough
+replication to establish an effect of communication.
+
+Protocol and commands: [public_goods/README.md](public_goods/README.md).
+First completed pair: [public_goods/results/README.md](public_goods/results/README.md).
 
 ## Running
 `python3 communication/orchestration-ladder/serve.py --model pipenetwork/Inkling-2-Mini-MLX-bf16
