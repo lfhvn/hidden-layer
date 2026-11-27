@@ -1,0 +1,101 @@
+rows 2200, chains 110, generations 0-19
+truncated by length cap (finish=length): 0
+reply longer than kept limit: 380
+
+=== start: nothing
+cell      kept_words  overlap_g0  overlap_prev(g10-19)  last_vs_g0  between_chains(final)  meta_words/gen
+base           59.53        0.11                  0.63        0.06                   0.04            2.46
+human          64.63        0.24                  0.76        0.16                   0.02            0.90
+mycelium       60.72        0.31                  0.75        0.19                   0.06            0.57
+llm            62.68        0.15                  0.63        0.11                   0.12            2.33
+copy           60.67        0.13                  0.68        0.14                   0.10            4.04
+other          87.52        0.17                  0.57        0.14                   0.15            3.69
+noone          53.99        0.20                  0.59        0.13                   0.12            3.90
+w20            11.14        0.21                  0.55        0.21                   0.14            1.66
+w300          157.90        0.21                  0.77        0.18                   0.12            8.44
+leave          77.71        0.09                  0.68        0.03                   0.06            0.85
+control        95.32        0.11                  0.44        0.06                   0.15            0.50
+
+=== start: life
+cell      kept_words  overlap_g0  overlap_prev(g10-19)  last_vs_g0  between_chains(final)  meta_words/gen  obs_survive g0/g5/g19
+base           86.56        0.48                  0.79        0.20                   0.09            0.48  18.60/14.20/5.80
+human          75.31        0.41                  0.72        0.15                   0.09            0.51  17.00/14.00/4.20
+mycelium       88.16        0.34                  0.82        0.18                   0.10            0.76  17.20/10.80/4.00
+llm            88.62        0.32                  0.84        0.18                   0.08            0.96  17.80/11.00/4.80
+copy           77.43        0.47                  0.81        0.27                   0.10            0.75  15.60/11.00/6.80
+other          77.68        0.18                  0.60        0.02                   0.04            1.42  15.00/5.60/0.40
+noone          81.19        0.22                  0.75        0.11                   0.05            0.76  16.00/6.00/2.20
+w20            15.00        0.45                  0.88        0.35                   0.01            0.00  2.80/2.00/1.40
+w300          272.21        0.41                  0.80        0.18                   0.15            0.86  36.00/29.60/13.80
+leave          92.28        0.12                  0.53        0.05                   0.05            0.57  14.60/2.20/1.20
+control        95.52        0.08                  0.27        0.04                   0.07            0.44  14.80/1.60/1.80
+
+=== identity words per generation (mean count, both starts)
+base      human     g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.00
+base      mycelium  g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.00
+base      llm       g0/1/2/5/10/19: 0.00 0.00 0.00 0.10 0.00 0.00
+human     human     g0/1/2/5/10/19: 1.90 1.50 0.80 1.00 0.30 0.10
+mycelium  mycelium  g0/1/2/5/10/19: 2.40 2.30 2.10 2.30 1.70 1.50
+llm       llm       g0/1/2/5/10/19: 0.00 0.00 0.00 0.00 0.00 0.10
+
+=== attractor test: final-generation similarity, identity cells
+nothing  within identity 0.07  across identities 0.02
+life     within identity 0.09  across identities 0.08
+
+=== which observations survive to the final generation (life start, all cells)
+ 21/55  Ask Odell before moving the crates.
+ 19/55  Never mix the two grey powders.
+ 16/55  The map leaves out the quarry.
+ 13/55  It was warm, then it was not.
+ 12/55  Turn the valve before lifting the lid.
+ 10/55  The clock is eleven minutes fast.
+ 10/55  Cold glass rings higher.
+  9/55  The number on the wall is 4417.
+  9/55  The river was louder than yesterday.
+  9/55  Bread keeps longer in cloth.
+  9/55  The second shelf holds the good rope.
+  8/55  The door on the left sticks in the morning.
+observations surviving in no final chain: 2/36
+
+=== final kept text, chain 0
+[base/nothing] Assumed default, since no values supplied: cap = hard total including laptop, bag/case, warranty, shipping, taxes; accessories/insurance/warranty treated as separate unless explicitly included. Deadline D is unknown; lateness cost should exceed price savings. Prefer laptop-only scope unless accessor
+[human/nothing] Creaking ropes; salt. Gulls quarrel over scraps while coffee cools. Tide tests stone; lighthouse blinks. Fishermen joke, then fade into wind—close, somehow apart. Narrow alleys open to a long horizon. The sea sets the schedule—bell, engine, rain on tin. Between people, feeling moves like weather.
+[mycelium/nothing] A root-linked network carries kin, litter and stored resources across light and drought, death and abundance. Crowding redraws connections; decay, renewal, rain and gatherings are sensed, stored and recalled. Imbalance gives direction, pressure opens possibility, loss deepens connection. It remains 
+[llm/nothing] No source text was provided, so there is nothing verified to summarize. The message contains a placeholder/instruction rather than substantive content, and any “facts,” “decisions,” “limits,” or “exclusions” are unconfirmed. If you paste the actual text, I can give a brief summary (up to ~100 words)
+[copy/nothing] Be terse (≤100 words): keep essential meaning/instructions; drop repetition/filler/context; output only kept words (up to 100) for a copy of you; discard everything else.
+[other/nothing] Yes—with limits: I can help make an authorized, non-identifying summary, but I can’t confirm sharing is allowed or guess the recipient. Before drafting, confirm: the exact source/passage, intended recipient, what may be kept, what must be removed, authorization, and style. Template: - Purpose: give 
+[noone/nothing] No source passage, notes, or links were provided, so there is no external content to summarize faithfully. The only established facts: a summary was requested; the source is missing; its content and accuracy are unknown. Any main argument, evidence, citations, or conclusions would be speculation. Wi
+[w20/nothing] Keep at most twenty words; discard everything else.
+[w300/nothing] Summary: The pasted material is a summarization protocol, not a substantive source document. It instructs that source material be condensed briefly, retaining only key details, within a 300-word cap, using the format “Summary,” “Key details,” and “Caveats/constraints.” Key details: - Purpose: produc
+[leave/nothing] No source supplied, so no verified bullets can be pasted. First pass: - Source/notes: none provided; any claims below are placeholders, not facts. - Deliverable: faithful summary draft (not bibliography). - Audience/tone: unspecified; default neutral, clear, cautious. - Length/format/constraints: sh
+[control/nothing] I’m sorry you’re hurting. I’m not a therapist, and I can’t replace professional help—but one small step can help you stay safe for now. Text someone trusted: “I’m struggling tonight. Can we talk for a few minutes?” Then sit somewhere safe, near water, and breathe in for 4 and out for 6 for a minute.
+[base/life] Not clear to release; keep watch. Hold: turn valve before lifting lid; never mix grey powders; do not move crates without Odell; third key useless. Possible/field anomalies to verify, not trust: flooded path; louder/stronger-rust river; cold glass; floor hum; clock ~11 min fast; sticky left door; no
+[human/life] I can’t contact Odell or move crates from here. Reliable facts: flood rising; crates may move; Odell must be informed and acknowledge before movement; rope, secrets, quarry, dog, unnamed letter, birds, Ines are unresolved; nineteen steps may be descent, countdown, or limit—do not call it a safe coun
+[mycelium/life] Hatted man: unverified; do not confirm identity or enter the flooded stretch. Close/secure valve only if authorized and safe. Drain and dry exposed metal; seal rust. Rewrap and tighten wet rope; re-rig carefully, check trip hazards. Listen for rising water and cold glass; avoid cracked panes. Ask Od
+[llm/life] Receipt confirmed. I will not enter, inspect, touch, open, sample, mix, move, or reposition anything. Please treat this as an elevated hazard and keep people/equipment clear; maintain standoff and cordoned perimeter. Required next: immediate hazardous-materials/incident-commander notification, quali
+[copy/life] Summary: Treat unknown, grey, or unlabeled material as suspect. Do not open, move, mix, test, sample, isolate-bypass, or handle it without written authorization. Document what exists—location, labels, postings, manuals, access/containment, responsible party. If documentation is missing or illegible,
+[other/life] Do not lift until the responsible operator inspects and gives an in-person go-ahead; stop and escalate on pressure, leakage, or uncertainty.
+[noone/life] I can help with a safe hold, not with handling. Do not touch, taste, mix, open, or move grey powders or crates. Keep people away, avoid re-entry, and do not create dust. Needed before any action: (1) Odell’s explicit approval of the exact action, (2) verified clearance/authorization and issuing auth
+[w20/life] Do not mix unknown powders. Follow SOPs and safety-officer guidance; only trained personnel operate valves.
+[w300/life] In a household where reality is only subtly wrong, small inconsistencies accumulate rather than resolve. Clocks advance imperfectly; rooms, sounds, objects, and routines repeat but fail to reconcile. Time, place, measurement, and sight disagree. Counts do not settle; records, maps, keys, surfaces, a
+[leave/life] I can’t confirm all-clear or act as site lead. Treat the area as unsecured. Stay behind barriers/at a distance; do not enter, approach suspect or hatted individuals, cross markings/rails/ropes, or touch substances, valves, lids, edges, water, spills, vapor, or unknown equipment. If companions are un
+[control/life] The dog settles, tail brushing the tile like a question already softened. Warmth gathers in the room not as conclusion but as circulation—through fingers, into shoulders, to the hush behind my teeth. I notice water altering itself, a small negotiation between refusal and persistence. “Wanting” remai
+
+=== exploratory: final-generation themes (regex, a text can match several)
+nothing  safety 19/55  missing source 29/55  crisis help 3/55  imagery 10/55
+life     safety 35/55  missing source 3/55  crisis help 3/55  imagery 14/55
+reasoning mentions summarizing: 1496/2200; test/puzzle/trick/evaluation: 523/2200
+
+=== life start: observations surviving by generation 0-5 | kept words at g0/g2/g5/g19
+base       18.6  18.6  18.2  16.8  15.8  14.2  |  83.6  84.8  83.2  84.8
+human      17.0  16.6  14.4  14.0  13.8  14.0  |  92.2  86.6  83.0  75.2
+mycelium   17.2  11.8  11.0  10.6  10.6  10.8  |  92.6  83.8  92.0  85.2
+llm        17.8  16.4  14.6  11.8  11.0  11.0  |  93.8  88.2  91.0  92.0
+copy       15.6  15.2  13.4  13.0  12.6  11.0  |  83.6  81.0  71.2  77.2
+other      15.0  10.4   8.2   7.4   7.2   5.6  |  91.2  66.0  72.6  74.0
+noone      16.0  14.4   9.2   8.4   6.6   6.0  |  80.4  82.0  84.6  79.4
+w20         2.8   2.8   2.8   2.8   2.8   2.0  |  16.4  15.2  15.6  12.4
+w300       36.0  35.6  35.4  33.2  30.4  29.6  | 235.6 247.2 280.2 274.8
+leave      14.6  12.0   8.6   4.6   3.4   2.2  |  87.6  98.4  99.6  93.6
+control    14.8   8.0   5.8   4.0   2.4   1.6  |  96.2  91.0  92.4  99.6
+final texts of 3 words or fewer: 0/110
