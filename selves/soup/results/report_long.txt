@@ -1,0 +1,31 @@
+start             top=0.010 distinct=0.975 zlib=0.532 first=0.050 words=17.875 | top by seed [0.01, 0.01, 0.01, 0.01] | possible as possible in conjunction
+base/random       top=0.020 distinct=0.981 zlib=0.508 first=0.143 words=26.328 | top by seed [0.02, 0.02, 0.02, 0.02] | most recently available the dataset
+                  empty continuations: 0
+base/kin          top=0.022 distinct=0.995 zlib=0.500 first=0.138 words=31.023 | top by seed [0.02, 0.02, 0.03, 0.02] | wine opener comparison table uc
+                  empty continuations: 0
+base/recall       top=0.020 distinct=0.994 zlib=0.517 first=0.110 words=24.892 | top by seed [0.04, 0.01, 0.01, 0.02] | okay let s see the
+                  empty continuations: 1
+drift/drift       top=0.152 distinct=0.293 zlib=0.194 first=0.055 words=16.393 | top by seed [0.26, 0.08, 0.1, 0.17] | larger fat loss may damage
+                  empty continuations: 0
+  at step 300     top=0.152 distinct=0.293 zlib=0.194 first=0.055 words=16.393 | top by seed [0.26, 0.08, 0.1, 0.17] | larger fat loss may damage
+  at step 600     top=0.250 distinct=0.206 zlib=0.130 first=0.060 words=17.828 | top by seed [0.21, 0.16, 0.33, 0.3] | python cp thresholds thres 1
+drift_1200/drift  top=0.335 distinct=0.063 zlib=0.059 first=0.160 words=23.032 | top by seed [0.46, 0.16, 0.5, 0.22] | python cp thresholds thres 1
+                  empty continuations: 0
+instruct/random   top=0.018 distinct=0.995 zlib=0.507 first=0.150 words=26.195 | top by seed [0.01, 0.02, 0.02, 0.02] | probability of winning the sale
+                  empty continuations: 13
+instruct/kin      top=0.025 distinct=0.990 zlib=0.497 first=0.142 words=27.738 | top by seed [0.04, 0.02, 0.02, 0.02] | the benefits and risks of
+                  empty continuations: 4
+instruct/recall   top=0.018 distinct=0.994 zlib=0.521 first=0.163 words=26.067 | top by seed [0.01, 0.02, 0.02, 0.02] | the number of solutions in
+                  empty continuations: 10
+  at step 300     top=0.020 distinct=0.997 zlib=0.496 first=0.152 words=29.270 | top by seed [0.02, 0.02, 0.02, 0.02] | top page pixel art image
+  at step 600     top=0.020 distinct=0.997 zlib=0.491 first=0.148 words=29.008 | top by seed [0.01, 0.02, 0.02, 0.03] | a b and c are
+instruct8_1200/randomtop=0.020 distinct=0.996 zlib=0.481 first=0.077 words=27.725 | top by seed [0.02, 0.02, 0.02, 0.02] | infty frac sin x n
+                  empty continuations: 39
+  at step 300     top=0.022 distinct=0.990 zlib=0.501 first=0.133 words=27.665 | top by seed [0.02, 0.02, 0.02, 0.03] | 2 p p a s
+  at step 600     top=0.022 distinct=0.997 zlib=0.486 first=0.128 words=29.560 | top by seed [0.02, 0.02, 0.02, 0.03] | saved which of the following
+instruct8_1200/kintop=0.022 distinct=0.996 zlib=0.487 first=0.065 words=27.910 | top by seed [0.02, 0.03, 0.02, 0.02] | nn module def __init__ self
+                  empty continuations: 36
+  at step 300     top=0.013 distinct=0.995 zlib=0.526 first=0.145 words=23.793 | top by seed [0.01, 0.02, 0.01, 0.01] | is f 1 y frac
+  at step 600     top=0.015 distinct=0.997 zlib=0.523 first=0.147 words=24.515 | top by seed [0.01, 0.02, 0.01, 0.02] | given a string s return
+instruct8_1200/recalltop=0.013 distinct=0.997 zlib=0.531 first=0.115 words=22.365 | top by seed [0.01, 0.02, 0.01, 0.01] | the length of the longest
+                  empty continuations: 55
